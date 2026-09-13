@@ -1,0 +1,18 @@
+---
+import { link } from '@/lib/link';
+import Base from '@/layouts/Base.astro';
+---
+
+<Base title="Страница не найдена">
+  <section class="section">
+    <div class="shell">
+      <p class="eyebrow">Ошибка 404</p>
+      <h1 class="h1" style="margin-top:16px">Такой страницы нет</h1>
+      <p class="lead measure" style="margin-top:16px">Возможно, ссылка устарела. Начните с главной или загляните в каталог.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:32px">
+        <a class="btn btn--primary" href={link('/')}>На главную</a>
+        <a class="btn btn--ghost" href={link('/production/')}>Каталог производства</a>
+      </div>
+    </div>
+  </section>
+</Base>

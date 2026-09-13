@@ -1,0 +1,113 @@
+---
+import { link } from '@/lib/link';
+import Logo from './Logo.astro';
+import { CONTACTS, LEGAL, TERMS } from '@/consts';
+const year = new Date().getFullYear();
+---
+
+<footer class="ftr">
+  <div class="shell">
+    <div class="ftr__grid">
+      <div class="ftr__about">
+        <Logo width={96} />
+        <p>Организация участия в выставках под ключ и собственное производство наружной рекламы.</p>
+        <p class="ftr__area">Выставки: {TERMS.exhibitionsArea}.<br />Производство: {TERMS.productionArea}.</p>
+      </div>
+      <div>
+        <div class="ftr__h">Услуги</div>
+        <ul>
+          <li><a href={link('/exhibitions/')}>Выставки под ключ</a></li>
+          <li><a href={link('/production/')}>Наружная реклама и производство</a></li>
+          <li><a href={link('/exhibitions/concierge/')}>Консьерж-сервис</a></li>
+          <li><a href={link('/configurator/')}>Быстрый расчёт</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="ftr__h">Компания</div>
+        <ul>
+          <li><a href={link('/contacts/')}>Контакты</a></li>
+          <li><a href={link('/privacy/')}>Политика данных</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="ftr__h">Связь</div>
+        <ul>
+          <li><a href={CONTACTS.phoneHref}>{CONTACTS.phone}</a></li>
+          <li><a href={CONTACTS.whatsapp} target="_blank" rel="noopener">WhatsApp</a></li>
+          <li class="ftr__muted">{CONTACTS.hours}</li>
+        </ul>
+      </div>
+    </div>
+    <div class="ftr__legal">
+      <span>{LEGAL.name} · Лицензия {LEGAL.licence} · {LEGAL.address}</span>
+      <span>© {year} SIGNUP DXB</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .ftr {
+    background: var(--ink);
+    color: #b9bcc2;
+    padding-block: 64px 36px;
+    font-size: 15px;
+    line-height: 24px;
+  }
+  .ftr :global(svg text) {
+    fill: #fff;
+  }
+  .ftr :global(svg g) {
+    stroke: #fff;
+  }
+  .ftr__grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 40px;
+  }
+  .ftr__about p {
+    margin-top: 18px;
+    max-width: 320px;
+  }
+  .ftr__area {
+    color: #8b8f96;
+    font-size: 14px;
+  }
+  .ftr__h {
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .ftr ul {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ftr a {
+    color: #b9bcc2;
+  }
+  .ftr a:hover {
+    color: #fff;
+  }
+  .ftr__muted {
+    color: #8b8f96;
+  }
+  .ftr__legal {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid #2c2f35;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #8b8f96;
+  }
+  @media (max-width: 860px) {
+    .ftr__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .ftr__about {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

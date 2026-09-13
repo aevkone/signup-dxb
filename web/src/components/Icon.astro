@@ -1,0 +1,57 @@
+---
+/** Линейные иконки, сетка 24, обводка 1.5 — стиль с артборда 1. */
+const PATHS = {
+  stand: '<rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 9h18M8 5v4"/>',
+  print: '<path d="M6 3h12v5H6zM6 16h12v5H6z"/><rect x="3" y="8" width="18" height="8" rx="1"/>',
+  staff: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-6 7-6s7 2.1 7 6"/>',
+  catering: '<path d="M4 8h12v6a6 6 0 0 1-12 0z"/><path d="M16 9h2a2.5 2.5 0 0 1 0 5h-2"/><path d="M3 21h16"/>',
+  logistics: '<path d="M3 6h11v10H3z"/><path d="M14 9h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+  concierge: '<circle cx="9" cy="12" r="4"/><path d="M13 12h8M18 12v3M21 12v2"/>',
+  payment: '<rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 10h19M6 15h4"/>',
+  talks: '<path d="M4 4h16v11H9l-5 4z"/><path d="M9 8h6M9 11h4"/>',
+  light: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
+  rooftop: '<path d="M4 21V11l8-5 8 5v10"/><path d="M8 21v-5h8v5"/><path d="M9 3h6v3H9z"/>',
+  plate: '<rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M7 10h10M7 14h6"/>',
+  interior: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="15.5" cy="8.5" r="1.5"/>',
+  gift: '<rect x="3" y="9" width="18" height="12" rx="1"/><path d="M3 13h18M12 9v12"/><path d="M12 9c-2-4-6-4-6-1.5S9 9 12 9zm0 0c2-4 6-4 6-1.5S15 9 12 9z"/>',
+  window: '<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 12h18M12 3v18"/>',
+  whatsapp: '<path d="M20 12a8 8 0 0 1-11.8 7L4 20l1.1-4A8 8 0 1 1 20 12z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 .8a4 4 0 0 1-2-2l.8-1-1-2z"/>',
+  telegram: '<path d="M21 4L3 11l6 2 2 6 3-4 5 4z"/><path d="M9 13l12-9"/>',
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3.5 6l8.5 7 8.5-7"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  pin: '<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+} as const;
+
+export type IconName = keyof typeof PATHS;
+
+interface Props {
+  name: IconName;
+  size?: number;
+  stroke?: number;
+  class?: string;
+  label?: string;
+}
+
+const { name, size = 24, stroke = 1.5, class: cls, label } = Astro.props;
+---
+
+<svg
+  class={cls}
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width={stroke}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  set:html={PATHS[name]}
+/>

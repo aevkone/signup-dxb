@@ -1,0 +1,75 @@
+---
+import { PROCESS } from '@/data/process';
+---
+
+<ol class="steps">
+  {
+    PROCESS.map((s, i) => (
+      <li class="step">
+        <span class="step__num" aria-hidden="true">
+          <span>{i + 1}</span>
+        </span>
+        <div>
+          <h3 class="step__title">{s.title}</h3>
+          <p class="step__text">{s.text}</p>
+        </div>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 40px 32px;
+    counter-reset: step;
+  }
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  /* Кольцо спектра — разрешённая деталь с артборда 1. */
+  .step__num {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--spectrum-d);
+    display: grid;
+    place-items: center;
+  }
+  .step__num span {
+    width: 37px;
+    height: 37px;
+    border-radius: 50%;
+    background: var(--base);
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .step__title {
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .step__text {
+    margin-top: 8px;
+    font-size: 15px;
+    line-height: 24px;
+    color: var(--muted);
+  }
+  @media (max-width: 1080px) {
+    .steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .steps {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+  }
+</style>

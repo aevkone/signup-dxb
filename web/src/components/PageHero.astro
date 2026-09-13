@@ -1,0 +1,59 @@
+---
+import { link } from '@/lib/link';
+interface Props {
+  title: string;
+  lead?: string;
+  crumbs?: { href?: string; label: string }[];
+}
+const { title, lead, crumbs = [] } = Astro.props;
+---
+
+<section class="phero">
+  <div class="shell">
+    {
+      crumbs.length > 0 && (
+        <nav class="crumbs caption" aria-label="Навигационная цепочка">
+          <a href={link('/')}>Главная</a>
+          {crumbs.map((c) => (
+            <>
+              <span aria-hidden="true">/</span>
+              {c.href ? <a href={link(c.href)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+            </>
+          ))}
+        </nav>
+      )
+    }
+    <h1 class="h1 phero__title">{title}</h1>
+    {lead && <p class="lead measure phero__lead">{lead}</p>}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .phero {
+    padding-block: 52px 56px;
+  }
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .crumbs a {
+    color: var(--muted);
+  }
+  .crumbs a:hover {
+    color: var(--accent);
+  }
+  .phero__title {
+    margin-top: 22px;
+    max-width: 900px;
+  }
+  .phero__lead {
+    margin-top: 18px;
+  }
+  @media (max-width: 860px) {
+    .phero {
+      padding-block: 32px 40px;
+    }
+  }
+</style>

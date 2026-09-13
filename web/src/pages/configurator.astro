@@ -1,0 +1,18 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Configurator from '@/components/Configurator.astro';
+---
+
+<Base title="Быстрый расчёт" description="Соберите заявку на выставку, стенд, вывеску или печать за минуту — вернёмся с вариантами под ваш бюджет.">
+  <PageHero
+    title="Соберите заявку за минуту"
+    lead="Три шага: что нужно, параметры, бюджет. Вернёмся с вариантами под вашу сумму — без звонков, если вам так удобнее."
+    crumbs={[{ label: 'Быстрый расчёт' }]}
+  />
+  <section class="section--tight" style="padding-top:0">
+    <div class="shell">
+      <Configurator />
+    </div>
+  </section>
+</Base>

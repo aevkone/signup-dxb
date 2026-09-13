@@ -1,0 +1,19 @@
+# Сборка и зависимости
+node_modules/
+web/dist/
+web/dist-*/
+web/.astro/
+
+# Материалы заказчика — в публичный репозиторий не попадают
+_input/
+brand/
+design/
+*.docx
+*.pdf
+docs/*
+!docs/DEPLOY.md
+
+# Служебное
+.claude/
+.DS_Store
+Thumbs.db

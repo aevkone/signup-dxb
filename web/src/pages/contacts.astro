@@ -1,0 +1,78 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Icon from '@/components/Icon.astro';
+import LeadForm from '@/components/LeadForm.astro';
+import { CONTACTS, LEGAL, TERMS } from '@/consts';
+---
+
+<Base title="Контакты" description={`Телефон и WhatsApp ${CONTACTS.phone}. ${CONTACTS.hours}. Отвечаем ${CONTACTS.replyTime}.`}>
+  <PageHero
+    title="Контакты"
+    lead={`Быстрее всего — WhatsApp. Отвечаем ${CONTACTS.replyTime}.`}
+    crumbs={[{ label: 'Контакты' }]}
+  />
+
+  <section class="section--tight" style="padding-top:0">
+    <div class="shell grid grid--3">
+      <a class="card card--link c" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+        <Icon name="whatsapp" size={28} />
+        <span class="caption">WhatsApp</span>
+        <strong>{CONTACTS.phone}</strong>
+        <span class="more">Написать <Icon name="arrow" size={16} /></span>
+      </a>
+      <a class="card card--link c" href={CONTACTS.phoneHref}>
+        <Icon name="phone" size={28} />
+        <span class="caption">Телефон</span>
+        <strong>{CONTACTS.phone}</strong>
+        <span class="more">Позвонить <Icon name="arrow" size={16} /></span>
+      </a>
+      <div class="card c">
+        <Icon name="clock" size={28} />
+        <span class="caption">Часы работы</span>
+        <strong>{CONTACTS.hours}</strong>
+        <p class="caption c__note">Выставки: {TERMS.exhibitionsArea}.<br />Производство: {TERMS.productionArea}.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--surface">
+    <div class="shell">
+      <LeadForm />
+    </div>
+  </section>
+
+  <section class="section--tight">
+    <div class="shell">
+      <div class="req">
+        <span class="eyebrow">Реквизиты</span>
+        <p>{LEGAL.name}</p>
+        <p class="caption">Лицензия {LEGAL.licence} · {LEGAL.address}</p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .c {
+    color: var(--ink);
+    gap: 6px;
+  }
+  .c:hover {
+    color: var(--ink);
+  }
+  .c > :global(svg:first-child) {
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .c strong {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .c__note {
+    margin-top: 12px;
+  }
+  .req p {
+    margin-top: 8px;
+  }
+</style>

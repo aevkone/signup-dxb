@@ -1,0 +1,521 @@
+---
+import { link } from '@/lib/link';
+import Base from '@/layouts/Base.astro';
+import Icon from '@/components/Icon.astro';
+import ProcessSteps from '@/components/ProcessSteps.astro';
+import Configurator from '@/components/Configurator.astro';
+import LeadForm from '@/components/LeadForm.astro';
+import { BLOCKS } from '@/data/exhibitions';
+import { CATEGORIES, TOTAL_ITEMS } from '@/data/production';
+import { FAQ } from '@/data/process';
+import { CONTACTS, TERMS } from '@/consts';
+
+const plural = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'позиция' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'позиции' : 'позиций');
+---
+
+<Base>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="shell hero__grid">
+      <div>
+        <span class="chip"><span class="chip__dot"></span>Дубай · Абу-Даби · Шарджа · Аджман</span>
+        <h1 class="h1 hero__title">Организуем участие в выставках в Дубае под ключ</h1>
+        <p class="lead hero__lead">
+          Полный цикл — от контракта до демонтажа после выставки. Берите весь пакет или отдельные блоки: подберём объём услуг под ваш бюджет.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href={link('/configurator/')}>Рассчитать проект</a>
+          <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+            <Icon name="whatsapp" size={20} /> Написать в WhatsApp
+          </a>
+        </div>
+        <ul class="hero__facts">
+          <li><strong>Мы организатор</strong><span>Ведём проект целиком, а не отдельную поставку</span></li>
+          <li><strong>Прямая связь с площадками</strong><span>Выходим на организаторов напрямую</span></li>
+          <li><strong>Своё производство</strong><span>Печать и конструкции делаем сами</span></li>
+        </ul>
+      </div>
+      <div class="hero__visual" aria-hidden="true">
+        <div class="hero__card">
+          <div class="eyebrow">Один договор</div>
+          <ul class="hero__list">
+            {BLOCKS.slice(0, 6).map((b) => (
+              <li><Icon name={b.icon} size={20} />{b.title}</li>
+            ))}
+          </ul>
+          <div class="hero__rule"></div>
+          <p class="caption">Вам не нужно собирать подрядчиков по одному.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ТРИ ВХОДА -->
+  <section class="section--tight">
+    <div class="shell grid grid--3">
+      <a class="card card--edge card--link entry" href={link('/exhibitions/')}>
+        <h2 class="h3">Выставки под ключ</h2>
+        <p>Восемь блоков от концепции стенда до демонтажа. Берите все или один.</p>
+        <span class="more">Смотреть состав <Icon name="arrow" size={18} /></span>
+      </a>
+      <a class="card card--edge card--link entry" href={link('/production/')}>
+        <h2 class="h3">Наружная реклама и производство</h2>
+        <p>Девять направлений: свет, печать, транспорт, витрины, полиграфия.</p>
+        <span class="more">Открыть каталог <Icon name="arrow" size={18} /></span>
+      </a>
+      <a class="card card--edge card--link entry" href={link('/exhibitions/concierge/')}>
+        <h2 class="h3">Консьерж-сервис</h2>
+        <p>Встреча, размещение, сим-карты, обмен валюты, перемещение по городу.</p>
+        <span class="more">Что входит <Icon name="arrow" size={18} /></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- СОСТАВ -->
+  <section class="section section--surface">
+    <div class="shell">
+      <div class="sec-head">
+        <div>
+          <h2 class="h2">Что входит в работу под ключ</h2>
+          <p class="measure sec-head__sub">Полный цикл — от контракта до демонтажа. Клиент берёт как весь пакет, так и отдельные блоки.</p>
+        </div>
+        <a class="btn btn--ghost" href={link('/exhibitions/')}>Все блоки</a>
+      </div>
+      <div class="grid grid--4">
+        {
+          BLOCKS.map((b) => (
+            <a class="card card--link block" href={link(`/exhibitions/${b.slug}/`)}>
+              <Icon name={b.icon} size={26} class="block__icon" />
+              <h3 class="block__title">{b.title}</h3>
+              <p class="block__text">{b.short}</p>
+              <span class="more">Подробнее <Icon name="arrow" size={16} /></span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- СХЕМА РАБОТЫ -->
+  <section class="section">
+    <div class="shell">
+      <div class="sec-head">
+        <div>
+          <h2 class="h2">Как мы работаем</h2>
+          <p class="measure sec-head__sub">Шесть этапов. На каждом у вас один ответственный контакт, а не пять подрядчиков.</p>
+        </div>
+      </div>
+      <ProcessSteps />
+    </div>
+  </section>
+
+  <!-- БЫСТРЫЙ РАСЧЁТ -->
+  <section class="section section--surface" id="calc">
+    <div class="shell">
+      <div class="sec-head">
+        <div>
+          <span class="eyebrow">Быстрый расчёт</span>
+          <h2 class="h2" style="margin-top:10px">Соберите заявку за минуту</h2>
+          <p class="measure sec-head__sub">Выберите, что нужно, укажите параметры — вернёмся с вариантами под ваш бюджет. Без звонков, если вам так удобнее.</p>
+        </div>
+      </div>
+      <Configurator />
+    </div>
+  </section>
+
+  <!-- ПОЧЕМУ + КЕЙС -->
+  <section class="section">
+    <div class="shell why">
+      <div>
+        <h2 class="h2">Почему с нами проще</h2>
+        <ul class="why__list">
+          <li><h3 class="h3">Один договор вместо пяти</h3><p>Стенд, печать, персонал, питание и логистика идут через одного исполнителя.</p></li>
+          <li><h3 class="h3">Прямая связь с площадками</h3><p>Выходим на организаторов павильонов напрямую, а не через цепочку посредников.</p></li>
+          <li><h3 class="h3">Собственное производство</h3><p>Конструкции и печать делаем сами — сроки не зависят от чужой загрузки.</p></li>
+          <li><h3 class="h3">Объём под ваш бюджет</h3><p>Показываем, что входит в каждый уровень, и собираем пакет под вашу сумму.</p></li>
+        </ul>
+      </div>
+      <figure class="case">
+        <span class="eyebrow case__eyebrow">Случай из практики</span>
+        <blockquote>Клиенты неделями не могли выйти на организаторов выставки. Вопрос решился за короткое время — прямым звонком и сообщением в WhatsApp.</blockquote>
+        <figcaption><span class="case__dot"></span>Переговоры с организаторами</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ПРОИЗВОДСТВО -->
+  <section class="section section--surface">
+    <div class="shell">
+      <div class="sec-head">
+        <div>
+          <span class="eyebrow">Собственное производство</span>
+          <h2 class="h2" style="margin-top:10px">Наружная реклама и печать</h2>
+          <p class="measure sec-head__sub">
+            Девять направлений и {TOTAL_ITEMS} позиций — от световых букв до брендирования транспорта. Заказать можно отдельно от выставки. Работаем в эмиратах: {TERMS.productionArea}.
+          </p>
+        </div>
+        <a class="btn btn--ghost" href={link('/production/')}>Открыть каталог</a>
+      </div>
+      <div class="grid grid--3 cats">
+        {
+          CATEGORIES.map((c) => (
+            <a class="cat" href={link(`/production/${c.slug}/`)}>
+              <Icon name={c.icon} size={24} />
+              <span class="cat__title">{c.title}</span>
+              <span class="caption">{c.items.length ? `${c.items.length} ${plural(c.items.length)}` : 'по проекту'}</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section">
+    <div class="shell faq">
+      <div>
+        <h2 class="h2">Частые вопросы</h2>
+        <p class="sec-head__sub">Не нашли свой — напишите в WhatsApp, ответим текстом.</p>
+      </div>
+      <div class="faq__list">
+        {
+          FAQ.map((f) => (
+            <details class="faq__item">
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ЗАЯВКА -->
+  <section class="section section--surface" id="lead">
+    <div class="shell">
+      <LeadForm />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding-block: 64px 72px;
+  }
+  .hero__grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+  .hero__grid > * {
+    min-width: 0;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    background: var(--surface);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .chip__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--spectrum-d);
+  }
+  .hero__title {
+    margin-top: 22px;
+    font-size: 54px;
+    line-height: 62px;
+    letter-spacing: -1.4px;
+  }
+  .hero__lead {
+    margin-top: 20px;
+    max-width: 560px;
+  }
+  .hero__actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+  .hero__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 44px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+  .hero__facts li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+    line-height: 21px;
+    color: var(--muted);
+  }
+  .hero__facts strong {
+    color: var(--ink);
+    font-size: 15px;
+  }
+  .hero__visual {
+    position: relative;
+    aspect-ratio: 1 / 1.02;
+    border-radius: 16px;
+    background:
+      linear-gradient(transparent 95%, rgb(20 22 26 / 0.05) 95%) 0 0 / 100% 36px,
+      linear-gradient(90deg, transparent 95%, rgb(20 22 26 / 0.05) 95%) 0 0 / 36px 100%,
+      var(--sand);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .hero__visual::after {
+    content: '';
+    position: absolute;
+    right: 12%;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    background: var(--spectrum-v);
+    opacity: 0.85;
+  }
+  .hero__card {
+    position: relative;
+    z-index: 1;
+    width: min(360px, 82%);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: 0 24px 60px rgb(20 22 26 / 0.08);
+  }
+  .hero__list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .hero__list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .hero__list :global(svg) {
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .hero__rule {
+    height: 1px;
+    background: var(--line);
+    margin: 22px 0 14px;
+  }
+
+  .entry {
+    gap: 10px;
+  }
+  .entry p {
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 26px;
+  }
+
+  .block {
+    padding: 26px;
+    color: var(--ink);
+  }
+  .block:hover {
+    color: var(--ink);
+  }
+  .block :global(.block__icon) {
+    color: var(--accent);
+  }
+  .block__title {
+    margin-top: 16px;
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .block__text {
+    margin-top: 8px;
+    font-size: 15px;
+    line-height: 23px;
+    color: var(--muted);
+  }
+
+  .why {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+  .why__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+    margin-top: 36px;
+  }
+  .why__list p {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 26px;
+  }
+  .case {
+    margin: 0;
+    background: var(--ink);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 44px;
+  }
+  .case__eyebrow {
+    color: #8b8f96;
+  }
+  .case blockquote {
+    margin: 20px 0 0;
+    font-size: 24px;
+    line-height: 36px;
+    font-weight: 600;
+  }
+  .case figcaption {
+    margin-top: 32px;
+    padding-top: 22px;
+    border-top: 1px solid #2c2f35;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #b9bcc2;
+    font-size: 15px;
+  }
+  .case__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--spectrum-d);
+  }
+
+  .cats {
+    gap: 16px;
+  }
+  .cat {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 14px;
+    align-items: center;
+    padding: 20px 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--base);
+    color: var(--ink);
+    transition: border-color 0.18s ease;
+  }
+  .cat:hover {
+    border-color: #cfcbc3;
+    color: var(--ink);
+  }
+  .cat :global(svg) {
+    grid-row: span 2;
+    color: var(--accent);
+  }
+  .cat__title {
+    font-weight: 600;
+    line-height: 22px;
+  }
+
+  .faq {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 64px;
+  }
+  .faq__list {
+    border-top: 1px solid var(--line);
+  }
+  .faq__item {
+    border-bottom: 1px solid var(--line);
+  }
+  .faq__item summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 22px 40px 22px 0;
+    position: relative;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq__item summary::after {
+    content: '+';
+    position: absolute;
+    right: 4px;
+    top: 18px;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--muted);
+    transition: transform 0.2s ease;
+  }
+  .faq__item[open] summary::after {
+    transform: rotate(45deg);
+  }
+  .faq__item p {
+    padding-bottom: 22px;
+    color: #4a4e55;
+  }
+
+  @media (max-width: 1080px) {
+    .hero__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 40px;
+    }
+    .hero__visual {
+      aspect-ratio: 16 / 10;
+    }
+    .why,
+    .faq {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+  }
+  @media (max-width: 860px) {
+    .hero {
+      padding-block: 32px 48px;
+    }
+    .hero__title {
+      font-size: 34px;
+      line-height: 42px;
+      letter-spacing: -0.8px;
+    }
+    .hero__actions .btn {
+      width: 100%;
+    }
+    .hero__facts {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .hero__visual {
+      aspect-ratio: auto;
+      padding: 32px 0;
+    }
+
+    .why__list {
+      grid-template-columns: 1fr;
+      gap: 22px;
+    }
+    .case {
+      padding: 28px;
+    }
+    .case blockquote {
+      font-size: 20px;
+      line-height: 30px;
+    }
+  }
+</style>

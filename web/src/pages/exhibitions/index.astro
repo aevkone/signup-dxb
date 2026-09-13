@@ -1,0 +1,126 @@
+---
+import { link } from '@/lib/link';
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Icon from '@/components/Icon.astro';
+import ProcessSteps from '@/components/ProcessSteps.astro';
+import LeadForm from '@/components/LeadForm.astro';
+import { BLOCKS } from '@/data/exhibitions';
+import { TERMS } from '@/consts';
+---
+
+<Base
+  title="Выставки под ключ"
+  description="Организация участия в выставках в Дубае и Абу-Даби под ключ: стенд, печать, персонал, питание, логистика, консьерж-сервис, оплата участия, переговоры с организаторами."
+>
+  <PageHero
+    title="Выставки под ключ"
+    lead="Полный цикл — от контракта с заказчиком до демонтажа после выставки. Восемь блоков: берите весь пакет или только те, что нужны."
+    crumbs={[{ label: 'Выставки под ключ' }]}
+  >
+    <p class="caption area">Работаем на выставках в эмиратах: {TERMS.exhibitionsArea}.</p>
+  </PageHero>
+
+  <section class="section--tight">
+    <div class="shell">
+      <ol class="grid grid--2 blocks">
+        {
+          BLOCKS.map((b, i) => (
+            <li>
+              <a class="card card--link row" href={link(`/exhibitions/${b.slug}/`)}>
+                <span class="row__num">{String(i + 1).padStart(2, '0')}</span>
+                <Icon name={b.icon} size={28} class="row__icon" />
+                <div class="row__body">
+                  <h2 class="h3">{b.title}</h2>
+                  <p>{b.short}</p>
+                  <ul class="row__inc caption">
+                    {b.includes.map((x) => (
+                      <li>{x.title}</li>
+                    ))}
+                  </ul>
+                </div>
+                <Icon name="arrow" size={20} class="row__arrow" />
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--surface">
+    <div class="shell">
+      <div class="sec-head">
+        <div>
+          <h2 class="h2">Как мы работаем</h2>
+          <p class="measure sec-head__sub">На каждом этапе у вас один ответственный контакт.</p>
+        </div>
+      </div>
+      <ProcessSteps />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <LeadForm title="Расскажите о выставке" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .area {
+    margin-top: 14px;
+  }
+  .blocks {
+    gap: 20px;
+  }
+  .row {
+    position: relative;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 18px;
+    height: 100%;
+    color: var(--ink);
+  }
+  .row:hover {
+    color: var(--ink);
+  }
+  .row__num {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--disabled-ink);
+  }
+  :global(.row__icon) {
+    flex-shrink: 0;
+    color: var(--accent);
+    margin-top: 2px;
+  }
+  .row__body {
+    flex: 1;
+    padding-right: 24px;
+  }
+  .row__body > p {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 25px;
+  }
+  .row__inc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-top: 14px;
+  }
+  .row__inc li::before {
+    content: '· ';
+  }
+  :global(.row__arrow) {
+    position: absolute;
+    right: 26px;
+    bottom: 26px;
+    color: var(--accent);
+  }
+</style>

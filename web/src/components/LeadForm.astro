@@ -1,0 +1,167 @@
+---
+import { link } from '@/lib/link';
+import Icon from './Icon.astro';
+import { CONTACTS } from '@/consts';
+
+interface Props {
+  title?: string;
+  /** Подставляется в поле «Задача», когда форма стоит на странице услуги. */
+  context?: string;
+}
+const { title = 'Расскажите о задаче', context } = Astro.props;
+---
+
+<div class="lead">
+  <div class="lead__info">
+    <h2 class="h2">{title}</h2>
+    <p class="lead__sub">
+      Ответим {CONTACTS.replyTime} и вернёмся с вариантами под ваш бюджет.
+    </p>
+    <ul class="lead__contacts">
+      <li>
+        <Icon name="phone" size={20} />
+        <div>
+          <span class="caption">Телефон и WhatsApp</span>
+          <a href={CONTACTS.phoneHref}>{CONTACTS.phone}</a>
+        </div>
+      </li>
+      <li>
+        <Icon name="clock" size={20} />
+        <div>
+          <span class="caption">Часы работы</span>
+          <span>{CONTACTS.hours}</span>
+        </div>
+      </li>
+    </ul>
+    <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+      <Icon name="whatsapp" size={20} /> Написать в WhatsApp
+    </a>
+  </div>
+
+  <form class="lead__form card" data-lead-form novalidate>
+    <label class="field">
+      <span>Имя</span>
+      <input class="input" name="name" autocomplete="name" placeholder="Как к вам обращаться" />
+    </label>
+    <label class="field">
+      <span>Телефон или WhatsApp</span>
+      <input class="input" name="contact" type="tel" autocomplete="tel" placeholder="+971" required />
+    </label>
+    <label class="field">
+      <span>Задача</span>
+      <textarea class="textarea" name="task" rows="3" placeholder="Выставка, даты, площадь стенда, что уже есть"
+        >{context}</textarea
+      >
+    </label>
+    <p class="lead__error" data-error hidden>Оставьте телефон или WhatsApp — без него мы не сможем ответить.</p>
+    <button class="btn btn--primary" type="submit">Отправить заявку</button>
+    <p class="caption">
+      Нажимая кнопку, вы соглашаетесь с <a href={link('/privacy/')}>политикой обработки данных</a>.
+    </p>
+    <div class="lead__done" data-done hidden>
+      <Icon name="check" size={28} />
+      <div>
+        <strong>Заявка отправлена</strong>
+        <p class="caption">Ответим {CONTACTS.replyTime}.</p>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  import { sendLead } from '@/scripts/lead';
+
+  document.querySelectorAll<HTMLFormElement>('[data-lead-form]').forEach((form) => {
+    const error = form.querySelector<HTMLElement>('[data-error]')!;
+    const done = form.querySelector<HTMLElement>('[data-done]')!;
+    const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+      if (!data.contact?.trim()) {
+        error.hidden = false;
+        form.querySelector<HTMLInputElement>('[name="contact"]')?.focus();
+        return;
+      }
+      error.hidden = true;
+      btn.disabled = true;
+      btn.textContent = 'Отправляем…';
+      const how = await sendLead(data);
+      btn.disabled = false;
+      btn.textContent = 'Отправить заявку';
+      if (how === 'sent') {
+        form.reset();
+        done.hidden = false;
+      }
+    });
+  });
+</script>
+
+<style>
+  .lead {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 64px;
+    align-items: start;
+  }
+  .lead__sub {
+    margin-top: 14px;
+    color: var(--muted);
+  }
+  .lead__contacts {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 32px 0;
+  }
+  .lead__contacts li {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .lead__contacts li > :global(svg) {
+    margin-top: 4px;
+    color: var(--accent);
+  }
+  .lead__contacts li div {
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+  }
+  .lead__contacts a {
+    color: var(--ink);
+  }
+  .lead__form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 32px;
+  }
+  .lead__error {
+    color: var(--warn);
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .lead__done {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    background: #eef4f0;
+    color: var(--ok);
+  }
+  .lead__done strong {
+    color: var(--ink);
+  }
+  @media (max-width: 860px) {
+    .lead {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    .lead__form {
+      padding: 22px;
+    }
+  }
+</style>

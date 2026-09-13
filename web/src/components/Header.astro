@@ -1,0 +1,193 @@
+---
+import { link, unbase } from '@/lib/link';
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { NAV, CONTACTS } from '@/consts';
+
+const path = unbase(Astro.url.pathname);
+const isActive = (href: string) =>
+  href === '/exhibitions/'
+    ? path.startsWith('/exhibitions/') && !path.startsWith('/exhibitions/concierge/')
+    : path.startsWith(href);
+---
+
+<header class="hdr">
+  <div class="shell hdr__row">
+    <a href={link('/')} class="hdr__logo" aria-label="SIGNUP DXB — на главную">
+      <Logo width={84} />
+    </a>
+
+    <nav class="hdr__nav" aria-label="Основное меню">
+      {
+        NAV.map((item) => (
+          <a href={link(item.href)} class:list={['hdr__link', { 'is-active': isActive(item.href) }]}>
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="hdr__actions">
+      <a class="hdr__wa" href={CONTACTS.whatsapp} target="_blank" rel="noopener" aria-label="Написать в WhatsApp">
+        <Icon name="whatsapp" size={22} />
+      </a>
+      <a class="btn btn--primary hdr__cta" href={link('/configurator/')}>Рассчитать проект</a>
+    </div>
+
+    <details class="mnav">
+      <summary class="mnav__toggle" aria-label="Меню">
+        <Icon name="menu" size={22} class="mnav__open" />
+        <Icon name="close" size={22} class="mnav__close" />
+      </summary>
+      <div class="mnav__panel">
+        <nav aria-label="Мобильное меню">
+          {
+            NAV.map((item) => (
+              <a href={link(item.href)} class:list={['mnav__link', { 'is-active': isActive(item.href) }]}>
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+        <a class="btn btn--primary" href={link('/configurator/')}>Рассчитать проект</a>
+        <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+          <Icon name="whatsapp" size={20} /> Написать в WhatsApp
+        </a>
+        <a class="mnav__phone" href={CONTACTS.phoneHref}>{CONTACTS.phone}</a>
+      </div>
+    </details>
+  </div>
+</header>
+
+<style>
+  .hdr {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgb(247 246 244 / 0.94);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .hdr__row {
+    height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+  }
+  .hdr__logo {
+    flex-shrink: 0;
+    display: block;
+  }
+  .hdr__nav {
+    display: flex;
+    gap: 34px;
+  }
+  .hdr__link {
+    color: var(--ink);
+    font-size: 16px;
+    padding-block: 8px 5px;
+    border-bottom: 3px solid transparent;
+  }
+  .hdr__link:hover {
+    color: var(--accent);
+  }
+  .hdr__link.is-active {
+    font-weight: 600;
+    border-image: var(--spectrum) 1;
+  }
+  .hdr__actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .hdr__wa {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .hdr__wa:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  .hdr__cta {
+    height: 46px;
+    padding-inline: 22px;
+    font-size: 15px;
+  }
+
+  .mnav {
+    display: none;
+  }
+
+  @media (max-width: 1080px) {
+    .hdr__nav,
+    .hdr__actions {
+      display: none;
+    }
+    .hdr__row {
+      height: 68px;
+    }
+    .mnav {
+      display: block;
+    }
+    .mnav__toggle {
+      list-style: none;
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+    }
+    .mnav__toggle::-webkit-details-marker {
+      display: none;
+    }
+    .mnav :global(.mnav__close),
+    .mnav[open] :global(.mnav__open) {
+      display: none;
+    }
+    .mnav[open] :global(.mnav__close) {
+      display: block;
+    }
+    .mnav__panel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 68px;
+      height: calc(100dvh - 68px);
+      overflow-y: auto;
+      background: var(--base);
+      border-top: 1px solid var(--line);
+      padding: 20px var(--gutter) 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .mnav__panel nav {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 12px;
+    }
+    .mnav__link {
+      color: var(--ink);
+      font-size: 20px;
+      font-weight: 600;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .mnav__phone {
+      margin-top: 8px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--ink);
+    }
+  }
+</style>

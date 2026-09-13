@@ -1,0 +1,222 @@
+---
+import { link } from '@/lib/link';
+import type { GetStaticPaths } from 'astro';
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Icon from '@/components/Icon.astro';
+import LeadForm from '@/components/LeadForm.astro';
+import { CATEGORIES, type Category } from '@/data/production';
+import { CONTACTS, TERMS } from '@/consts';
+
+export const getStaticPaths = (() =>
+  CATEGORIES.map((category) => ({ params: { slug: category.slug }, props: { category } }))) satisfies GetStaticPaths;
+
+const { category: c } = Astro.props as { category: Category };
+const others = CATEGORIES.filter((x) => x.slug !== c.slug);
+---
+
+<Base title={c.title} description={`${c.title} в Дубае, Шардже и Аджмане. ${c.short}.`}>
+  <PageHero title={c.title} lead={c.lead} crumbs={[{ href: '/production/', label: 'Производство' }, { label: c.title }]}>
+    <div class="hero-actions">
+      <a class="btn btn--primary" href="#lead">Заказать расчёт</a>
+      <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+        <Icon name="whatsapp" size={20} /> WhatsApp
+      </a>
+    </div>
+  </PageHero>
+
+  <section class="section section--surface">
+    <div class="shell">
+      <h2 class="h2">Преимущества</h2>
+      <div class="grid grid--4 adv">
+        {
+          c.advantages.map((a) => (
+            <div class="adv__item">
+              <h3 class="adv__t">{a.title}</h3>
+              <p>{a.text}</p>
+            </div>
+          ))
+        }
+      </div>
+      {c.materials && <p class="materials measure">{c.materials}</p>}
+    </div>
+  </section>
+
+  {
+    c.items.length > 0 && (
+      <section class="section">
+        <div class="shell">
+          <div class="sec-head">
+            <div>
+              <h2 class="h2">Мы предлагаем</h2>
+              <p class="sec-head__sub">
+                Цены по запросу. Минимальный заказ {TERMS.minOrder}. Замер {TERMS.survey} — засчитывается в стоимость.
+              </p>
+            </div>
+          </div>
+          <div class="grid grid--3 items">
+            {c.items.map((it) => (
+              <article class="card card--edge item">
+                <h3 class="item__t">{it.title}</h3>
+                <p class="item__text">{it.text}</p>
+                <p class="item__use caption">{it.use}</p>
+                <ul class="plus">
+                  {it.plus.map((p) => (
+                    <li>{p}</li>
+                  ))}
+                </ul>
+                <a class="btn btn--order" href="#lead" data-order={`${c.title}: ${it.title}`}>
+                  Заказать
+                </a>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    c.uae && (
+      <section class="section--tight">
+        <div class="shell">
+          <aside class="uae">
+            <span class="eyebrow">{c.uae.title}</span>
+            <p>{c.uae.text}</p>
+          </aside>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section section--surface" id="lead">
+    <div class="shell">
+      <LeadForm title={`Заказать: ${c.title.toLowerCase()}`} context={`Интересует: ${c.title}`} />
+    </div>
+  </section>
+
+  <section class="section--tight">
+    <div class="shell">
+      <h2 class="h3 others-h">Другие направления</h2>
+      <div class="others">
+        {
+          others.map((x) => (
+            <a class="other" href={link(`/production/${x.slug}/`)}>
+              <Icon name={x.icon} size={20} />
+              {x.title}
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // «Заказать» в карточке подставляет позицию в поле задачи формы.
+  document.querySelectorAll<HTMLAnchorElement>('[data-order]').forEach((a) => {
+    a.addEventListener('click', () => {
+      const task = document.querySelector<HTMLTextAreaElement>('#lead textarea[name="task"]');
+      if (task) task.value = `Интересует: ${a.dataset.order}`;
+      setTimeout(() => document.querySelector<HTMLInputElement>('#lead input[name="name"]')?.focus(), 450);
+    });
+  });
+</script>
+
+<style>
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+  }
+  .adv {
+    margin-top: 36px;
+    gap: 32px;
+  }
+  .adv__item {
+    padding-top: 18px;
+    border-top: 3px solid var(--line);
+  }
+  .adv__t {
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .adv__item p {
+    margin-top: 8px;
+    font-size: 15px;
+    line-height: 24px;
+    color: var(--muted);
+  }
+  .materials {
+    margin-top: 44px;
+    padding: 24px 28px;
+    background: var(--base);
+    border-radius: var(--radius);
+    color: #4a4e55;
+  }
+  .items {
+    gap: 20px;
+  }
+  .item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .item__t {
+    font-size: 20px;
+    line-height: 26px;
+    font-weight: 600;
+  }
+  .item__text {
+    font-size: 15px;
+    line-height: 24px;
+    color: #4a4e55;
+  }
+  .item .plus {
+    margin-top: 4px;
+  }
+  .item .btn--order {
+    margin-top: auto;
+  }
+  .item .plus + .btn--order {
+    margin-top: 18px;
+  }
+  .uae {
+    background: var(--sand);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+  }
+  .uae p {
+    margin-top: 10px;
+  }
+  .others-h {
+    margin-bottom: 18px;
+  }
+  .others {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .other {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 18px;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .other:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  .other :global(svg) {
+    color: var(--accent);
+  }
+</style>

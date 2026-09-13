@@ -1,0 +1,97 @@
+---
+import { link } from '@/lib/link';
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Icon from '@/components/Icon.astro';
+import CtaBand from '@/components/CtaBand.astro';
+import { CATEGORIES, TOTAL_ITEMS } from '@/data/production';
+import { TERMS } from '@/consts';
+---
+
+<Base
+  title="Наружная реклама и производство"
+  description="Собственное производство наружной рекламы в Дубае, Шардже и Аджмане: световые вывески, широкоформатная печать, брендирование транспорта, таблички, витрины, полиграфия и сувениры."
+>
+  <PageHero
+    title="Наружная реклама и производство"
+    lead={`Девять направлений и ${TOTAL_ITEMS} позиций собственного производства. Заказывается отдельно от выставки — или вместе с ней.`}
+    crumbs={[{ label: 'Производство' }]}
+  >
+    <ul class="terms">
+      <li><Icon name="pin" size={18} />{TERMS.productionArea}</li>
+      <li><Icon name="payment" size={18} />Цены по запросу · минимальный заказ {TERMS.minOrder}</li>
+      <li><Icon name="stand" size={18} />Замер {TERMS.survey}, засчитывается в стоимость заказа</li>
+    </ul>
+  </PageHero>
+
+  <section class="section--tight">
+    <div class="shell grid grid--3 cats">
+      {
+        CATEGORIES.map((c) => (
+          <a class="card card--link cat" href={link(`/production/${c.slug}/`)}>
+            <Icon name={c.icon} size={28} class="cat__icon" />
+            <h2 class="h3">{c.title}</h2>
+            <p>{c.short}</p>
+            <ul class="cat__items caption">
+              {c.items.slice(0, 4).map((it) => (
+                <li>{it.title}</li>
+              ))}
+              {c.items.length > 4 && <li>и ещё {c.items.length - 4}</li>}
+            </ul>
+            <span class="more">
+              Открыть <Icon name="arrow" size={16} />
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<style>
+  .terms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+    margin-top: 26px;
+    font-size: 15px;
+    color: #4a4e55;
+  }
+  .terms li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .terms :global(svg) {
+    color: var(--accent);
+  }
+  .cats {
+    gap: 20px;
+  }
+  .cat {
+    color: var(--ink);
+    gap: 10px;
+  }
+  .cat:hover {
+    color: var(--ink);
+  }
+  :global(.cat__icon) {
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .cat > p {
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 25px;
+  }
+  .cat__items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+</style>

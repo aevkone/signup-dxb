@@ -1,0 +1,62 @@
+---
+import { link } from '@/lib/link';
+import Icon from './Icon.astro';
+import { CONTACTS } from '@/consts';
+interface Props {
+  title?: string;
+  text?: string;
+}
+const {
+  title = 'Соберём объём работ под ваш бюджет',
+  text = 'Опишите задачу — вернёмся с вариантами. Цены по запросу, минимальный заказ от 2 000 AED.',
+} = Astro.props;
+---
+
+<section class="section--tight">
+  <div class="shell">
+    <div class="band">
+      <div>
+        <h2 class="h2">{title}</h2>
+        <p class="band__text">{text}</p>
+      </div>
+      <div class="band__actions">
+        <a class="btn btn--primary" href={link('/configurator/')}>Рассчитать проект</a>
+        <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+          <Icon name="whatsapp" size={20} /> WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .band {
+    background: var(--sand);
+    border-radius: var(--radius);
+    padding: 44px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+  }
+  .band__text {
+    margin-top: 10px;
+    color: #4a4e55;
+    max-width: 560px;
+  }
+  .band__actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  @media (max-width: 860px) {
+    .band {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 28px 22px;
+    }
+    .band__actions {
+      flex-direction: column;
+    }
+  }
+</style>

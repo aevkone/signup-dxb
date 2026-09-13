@@ -1,0 +1,33 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import { CONTACTS, LEGAL } from '@/consts';
+---
+
+<Base title="Политика обработки данных">
+  <PageHero title="Политика обработки данных" crumbs={[{ label: 'Политика данных' }]} />
+  <section class="section--tight" style="padding-top:0">
+    <div class="shell prose measure">
+      <p>Оператор данных — {LEGAL.name}, лицензия {LEGAL.licence}, {LEGAL.address}.</p>
+      <h2 class="h3">Какие данные мы получаем</h2>
+      <p>Только то, что вы сами указываете в форме заявки: имя, телефон или WhatsApp, описание задачи и параметры проекта.</p>
+      <h2 class="h3">Зачем</h2>
+      <p>Чтобы связаться с вами по заявке и подготовить предложение. Данные не используются для рассылок и не передаются третьим лицам для рекламы.</p>
+      <h2 class="h3">Где хранятся</h2>
+      <p>Заявка приходит нам на почту и в мессенджер. Отдельной базы данных на сайте нет.</p>
+      <h2 class="h3">Как удалить данные</h2>
+      <p>Напишите на номер {CONTACTS.phone} в WhatsApp — удалим переписку и заявку.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .prose {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .prose h2 {
+    margin-top: 18px;
+  }
+</style>

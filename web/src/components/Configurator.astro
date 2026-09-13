@@ -1,0 +1,418 @@
+---
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
+import { CONTACTS, TERMS } from '@/consts';
+
+const SERVICES: { id: string; label: string; icon: IconName }[] = [
+  { id: 'Выставка под ключ', label: 'Выставка под ключ', icon: 'talks' },
+  { id: 'Стенд', label: 'Стенд', icon: 'stand' },
+  { id: 'Вывеска', label: 'Вывеска', icon: 'light' },
+  { id: 'Печать', label: 'Печать', icon: 'print' },
+  { id: 'Персонал', label: 'Персонал', icon: 'staff' },
+  { id: 'Консьерж-сервис', label: 'Консьерж', icon: 'concierge' },
+];
+const AREAS = ['до 12 м²', '12–36 м²', '36–100 м²', 'больше 100 м²', 'пока не знаю'];
+---
+
+<div class="cfg" data-cfg>
+  <div class="cfg__main card">
+    <div class="cfg__progress" data-progress>
+      <span class="caption" data-step-label>Шаг 1 из 3</span>
+      <span class="cfg__bar"><span data-bar></span></span>
+    </div>
+
+    <!-- Шаг 1 -->
+    <fieldset class="cfg__step" data-step="1">
+      <legend class="visually-hidden">Что вам нужно?</legend>
+      <div class="cfg__head" aria-hidden="true">
+        <p class="h3">Что вам нужно?</p>
+        <p class="caption">Выберите направление — детали уточним дальше.</p>
+      </div>
+      <div class="cfg__tiles">
+        {
+          SERVICES.map((s) => (
+            <label class="tile">
+              <input type="radio" name="service" value={s.id} />
+              <Icon name={s.icon} size={26} />
+              <span>{s.label}</span>
+            </label>
+          ))
+        }
+      </div>
+    </fieldset>
+
+    <!-- Шаг 2 -->
+    <fieldset class="cfg__step" data-step="2" hidden>
+      <legend class="visually-hidden">Параметры</legend>
+      <div class="cfg__head" aria-hidden="true">
+        <p class="h3">Параметры</p>
+        <p class="caption">Заполните то, что уже известно. Можно пропустить.</p>
+      </div>
+      <label class="field">
+        <span>Выставка или объект</span>
+        <input class="input" name="expo" placeholder="Название выставки или адрес объекта" />
+      </label>
+      <div class="field">
+        <span>Площадь стенда</span>
+        <div class="pills">
+          {
+            AREAS.map((a) => (
+              <label class="pill">
+                <input type="radio" name="area" value={a} />
+                <span>{a}</span>
+              </label>
+            ))
+          }
+        </div>
+      </div>
+      <label class="field">
+        <span>Даты</span>
+        <input class="input" name="dates" placeholder="Когда выставка или когда нужно" />
+      </label>
+    </fieldset>
+
+    <!-- Шаг 3 -->
+    <fieldset class="cfg__step" data-step="3" hidden>
+      <legend class="visually-hidden">Бюджет и контакт</legend>
+      <div class="cfg__head" aria-hidden="true">
+        <p class="h3">Бюджет и контакт</p>
+        <p class="caption">Бюджет помогает подобрать объём услуг. Точной суммы не нужно.</p>
+      </div>
+      <div class="field">
+        <span>Ориентировочный бюджет</span>
+        <div class="pills">
+          {
+            TERMS.budgets.map((b) => (
+              <label class="pill">
+                <input type="radio" name="budget" value={b} />
+                <span>{b}</span>
+              </label>
+            ))
+          }
+        </div>
+      </div>
+      <div class="grid grid--2">
+        <label class="field">
+          <span>Имя</span>
+          <input class="input" name="name" autocomplete="name" placeholder="Как к вам обращаться" />
+        </label>
+        <label class="field">
+          <span>Телефон или WhatsApp</span>
+          <input class="input" name="contact" type="tel" autocomplete="tel" placeholder="+971" />
+        </label>
+      </div>
+    </fieldset>
+
+    <!-- Готово -->
+    <div class="cfg__step cfg__done" data-step="4" hidden>
+      <span class="cfg__done-icon"><Icon name="check" size={30} /></span>
+      <h3 class="h3">Заявка собрана</h3>
+      <p class="caption">Свяжемся {CONTACTS.replyTime} и вернёмся с вариантами под ваш бюджет.</p>
+    </div>
+
+    <p class="cfg__hint" data-hint hidden></p>
+
+    <div class="cfg__nav" data-nav>
+      <button type="button" class="btn btn--ghost" data-back hidden>Назад</button>
+      <button type="button" class="btn btn--primary" data-next>Далее</button>
+      <a class="cfg__wa" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+        <Icon name="whatsapp" size={18} /> Лучше напишу в WhatsApp
+      </a>
+    </div>
+  </div>
+
+  <aside class="cfg__summary card" aria-live="polite">
+    <div class="eyebrow">Ваша заявка</div>
+    <dl data-summary></dl>
+    <p class="caption">Цены — по запросу. Минимальный заказ {TERMS.minOrder}.</p>
+  </aside>
+</div>
+
+<script>
+  import { sendLead } from '@/scripts/lead';
+
+  const SUMMARY: [string, string][] = [
+    ['service', 'Направление'],
+    ['expo', 'Объект'],
+    ['area', 'Площадь'],
+    ['dates', 'Даты'],
+    ['budget', 'Бюджет'],
+    ['name', 'Имя'],
+    ['contact', 'Контакт'],
+  ];
+
+  document.querySelectorAll<HTMLElement>('[data-cfg]').forEach((root) => {
+    let step = 1;
+    const steps = root.querySelectorAll<HTMLElement>('[data-step]');
+    const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+    const back = root.querySelector<HTMLButtonElement>('[data-back]')!;
+    const nav = root.querySelector<HTMLElement>('[data-nav]')!;
+    const hint = root.querySelector<HTMLElement>('[data-hint]')!;
+    const bar = root.querySelector<HTMLElement>('[data-bar]')!;
+    const label = root.querySelector<HTMLElement>('[data-step-label]')!;
+    const summary = root.querySelector<HTMLElement>('[data-summary]')!;
+
+    const values = () => {
+      const out: Record<string, string> = {};
+      root.querySelectorAll<HTMLInputElement>('input').forEach((el) => {
+        if ((el.type === 'radio' && el.checked) || (el.type !== 'radio' && el.value.trim())) out[el.name] = el.value.trim();
+      });
+      return out;
+    };
+
+    const problem = (v: Record<string, string>) =>
+      step === 1 && !v.service
+        ? 'Выберите направление, чтобы продолжить'
+        : step === 3 && !v.contact
+          ? 'Оставьте телефон или WhatsApp, чтобы отправить'
+          : '';
+
+    const render = () => {
+      const v = values();
+      steps.forEach((el) => (el.hidden = Number(el.dataset.step) !== step));
+      back.hidden = step === 1 || step === 4;
+      nav.hidden = step === 4;
+      next.textContent = step === 3 ? 'Отправить заявку' : 'Далее';
+      next.setAttribute('aria-disabled', String(Boolean(problem(v))));
+      label.textContent = step === 4 ? 'Готово' : `Шаг ${step} из 3`;
+      bar.style.width = `${(Math.min(step, 3) / 3) * 100}%`;
+      summary.innerHTML = SUMMARY.map(
+        ([k, t]) => `<div><dt>${t}</dt><dd>${(v[k] ?? '—').replace(/</g, '&lt;')}</dd></div>`
+      ).join('');
+      if (!problem(v)) hint.hidden = true;
+    };
+
+    root.addEventListener('input', render);
+    root.addEventListener('change', render);
+
+    back.addEventListener('click', () => {
+      step = Math.max(1, step - 1);
+      render();
+    });
+
+    next.addEventListener('click', async () => {
+      const v = values();
+      const p = problem(v);
+      if (p) {
+        hint.textContent = p;
+        hint.hidden = false;
+        return;
+      }
+      if (step < 3) {
+        step += 1;
+        render();
+        root.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        return;
+      }
+      next.disabled = true;
+      next.textContent = 'Отправляем…';
+      const how = await sendLead(v);
+      next.disabled = false;
+      if (how === 'sent') step = 4;
+      render();
+    });
+
+    render();
+  });
+</script>
+
+<style>
+  .cfg {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  .cfg__main {
+    padding: 36px;
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+  }
+  .cfg__progress {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .cfg__bar {
+    flex: 1;
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .cfg__bar span {
+    display: block;
+    height: 100%;
+    background: var(--spectrum);
+    transition: width 0.3s ease;
+  }
+  .cfg__step {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    flex: 1;
+  }
+  .cfg__head .caption {
+    margin-top: 6px;
+  }
+  .cfg__tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .tile {
+    position: relative;
+    min-height: 112px;
+    padding: 18px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--accent);
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+  }
+  .tile span {
+    color: var(--ink);
+  }
+  .tile:hover {
+    border-color: #cfcbc3;
+  }
+  .tile:has(input:checked) {
+    border-color: var(--accent);
+    background: #f4f5f8;
+  }
+  .tile input,
+  .pill input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .tile:has(input:focus-visible),
+  .pill:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .pill {
+    position: relative;
+    height: 44px;
+    padding: 0 18px;
+    border: 1.5px solid var(--line);
+    border-radius: 100px;
+    background: var(--surface);
+    display: inline-flex;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .pill:has(input:checked) {
+    border-color: var(--accent);
+    background: #f4f5f8;
+  }
+  .cfg__done {
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .cfg__done-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #eef4f0;
+    color: var(--ok);
+  }
+  .cfg__hint {
+    margin-top: 16px;
+    color: #8a6a55;
+    font-size: 14px;
+  }
+  .cfg__nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .cfg__nav .btn[aria-disabled='true'] {
+    background: #b9bcc2;
+  }
+  .cfg__wa {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .cfg__summary {
+    position: sticky;
+    top: 112px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .cfg__summary :global(dl) {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .cfg__summary :global(dl > div) {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+  }
+  .cfg__summary :global(dt) {
+    color: var(--muted);
+  }
+  .cfg__summary :global(dd) {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+  }
+  @media (max-width: 960px) {
+    .cfg {
+      grid-template-columns: 1fr;
+    }
+    .cfg__summary {
+      position: static;
+    }
+  }
+  @media (max-width: 640px) {
+    .cfg__main {
+      padding: 22px;
+      min-height: 0;
+    }
+    .cfg__tiles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .cfg__nav .btn {
+      flex: 1;
+    }
+    .cfg__wa {
+      margin-left: 0;
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
