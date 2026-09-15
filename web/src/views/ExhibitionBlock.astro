@@ -1,0 +1,222 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Icon from '@/components/Icon.astro';
+import LeadForm from '@/components/LeadForm.astro';
+import CtaBand from '@/components/CtaBand.astro';
+import { getLang, link } from '@/i18n';
+import { ui } from '@/i18n/ui';
+import { blocks } from '@/data/exhibitions';
+import { CONTACTS } from '@/consts';
+
+interface Props {
+  slug: string;
+}
+const lang = getLang(Astro.url);
+const u = ui(lang);
+const BLOCKS = blocks(lang);
+const index = BLOCKS.findIndex((b) => b.slug === Astro.props.slug);
+const block = BLOCKS[index]!;
+const others = BLOCKS.filter((b) => b.slug !== block.slug);
+const T = {
+  ru: {
+    parent: 'Выставки под ключ',
+    discuss: 'Обсудить задачу',
+    of: (i: number, n: number) => `Блок ${i} из ${n} · можно заказать отдельно`,
+    incl: 'Что входит',
+    know: 'Что важно знать',
+    others: 'Другие блоки',
+    all: 'Весь состав',
+  },
+  en: {
+    parent: 'Turnkey exhibitions',
+    discuss: 'Discuss your project',
+    of: (i: number, n: number) => `Block ${i} of ${n} · can be ordered separately`,
+    incl: 'What’s included',
+    know: 'Good to know',
+    others: 'Other blocks',
+    all: 'Full scope',
+  },
+}[lang];
+---
+
+<Base title={block.title} description={`${block.title}. ${block.lead}`}>
+  <PageHero title={block.title} lead={block.lead} crumbs={[{ href: '/exhibitions/', label: T.parent }, { label: block.title }]}>
+    <div class="hero-actions">
+      <a class="btn btn--primary" href="#lead">{T.discuss}</a>
+      <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+        <Icon name="whatsapp" size={20} /> {u.whatsappShort}
+      </a>
+      <span class="caption">{T.of(index + 1, BLOCKS.length)}</span>
+    </div>
+  </PageHero>
+
+  <section class="section section--surface">
+    <div class="shell">
+      <h2 class="h2">{T.incl}</h2>
+      <div class="grid grid--2 inc">
+        {
+          block.includes.map((x, i) => (
+            <div class="inc__item">
+              <span class="inc__n">{i + 1}</span>
+              <div>
+                <h3 class="h3">{x.title}</h3>
+                <p>{x.text}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell split">
+      <div>
+        <h2 class="h2">{T.know}</h2>
+        <ul class="points">
+          {
+            block.points.map((p) => (
+              <li>
+                <Icon name="check" size={20} />
+                {p}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      {
+        block.note && (
+          <aside class="note">
+            <span class="eyebrow">{block.note.title}</span>
+            <p>{block.note.text}</p>
+          </aside>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section section--surface">
+    <div class="shell">
+      <div class="sec-head">
+        <h2 class="h2">{T.others}</h2>
+        <a class="btn btn--ghost" href={link('/exhibitions/', lang)}>{T.all}</a>
+      </div>
+      <div class="grid grid--4 others">
+        {
+          others.map((b) => (
+            <a class="card card--link other" href={link(`/exhibitions/${b.slug}/`, lang)}>
+              <Icon name={b.icon} size={24} />
+              <span class="other__t">{b.title}</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+
+  <section class="section" id="lead">
+    <div class="shell">
+      <LeadForm context={`${u.interested}: ${block.title}`} />
+    </div>
+  </section>
+</Base>
+<style>
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    margin-top: 30px;
+  }
+  .inc {
+    margin-top: 36px;
+    gap: 36px 48px;
+  }
+  .inc__item {
+    display: flex;
+    gap: 18px;
+  }
+  .inc__n {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .inc__item p {
+    margin-top: 8px;
+    color: #4a4e55;
+  }
+  .split {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+  .points {
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .points li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .points :global(svg) {
+    flex-shrink: 0;
+    margin-top: 4px;
+    color: var(--ok);
+  }
+  .note {
+    background: var(--ink);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 36px;
+  }
+  .note .eyebrow {
+    color: #8b8f96;
+  }
+  .note p {
+    margin-top: 16px;
+    font-size: 20px;
+    line-height: 31px;
+    font-weight: 600;
+  }
+  .others {
+    gap: 14px;
+  }
+  .other {
+    gap: 14px;
+    padding: 22px;
+    color: var(--ink);
+  }
+  .other:hover {
+    color: var(--ink);
+  }
+  .other :global(svg) {
+    color: var(--accent);
+  }
+  .other__t {
+    font-weight: 600;
+    line-height: 22px;
+  }
+  @media (max-width: 860px) {
+    .split {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .note {
+      padding: 26px;
+    }
+  }
+</style>

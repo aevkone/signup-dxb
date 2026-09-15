@@ -22,7 +22,7 @@ export type Category = {
   uae?: { title: string; text: string };
 };
 
-export const CATEGORIES: Category[] = [
+const CATEGORIES_RU: Category[] = [
   {
     slug: 'illuminated-signage',
     title: 'Световая реклама',
@@ -43,7 +43,7 @@ export const CATEGORIES: Category[] = [
         text: 'Технология не ограничивает дизайн — реализуем логотип таким, какой он есть.',
       },
       {
-        title: 'Экономична в работе',
+        title: 'Мало потребляет',
         text: 'Современные LED-модули потребляют мало и почти не греются.',
       },
     ],
@@ -153,7 +153,7 @@ export const CATEGORIES: Category[] = [
         title: 'Печать на бумаге',
         text: 'Широкоформатная печать на афишной бумаге, фотобумаге или холсте на бумажной основе.',
         use: 'Постеры, выставочные стенды, презентационные панели, репродукции.',
-        plus: ['Экономично', 'Точная цветопередача', 'Матовая или глянцевая поверхность'],
+        plus: ['Доступная стоимость', 'Точная цветопередача', 'Матовая или глянцевая поверхность'],
       },
     ],
   },
@@ -561,6 +561,11 @@ export const CATEGORIES: Category[] = [
   },
 ];
 
-export const CATEGORY_BY_SLUG = new Map(CATEGORIES.map((c) => [c.slug, c]));
+import { CATEGORIES_EN } from './production.en';
+import type { Lang } from '@/i18n';
 
-export const TOTAL_ITEMS = CATEGORIES.reduce((n, c) => n + c.items.length, 0);
+export const categories = (lang: Lang): Category[] => (lang === 'en' ? CATEGORIES_EN : CATEGORIES_RU);
+
+export const CATEGORY_SLUGS = CATEGORIES_RU.map((c) => c.slug);
+
+export const TOTAL_ITEMS = CATEGORIES_RU.reduce((n, c) => n + c.items.length, 0);

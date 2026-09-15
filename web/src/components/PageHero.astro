@@ -1,23 +1,27 @@
 ---
-import { link } from '@/lib/link';
+import { getLang, link } from '@/i18n';
+import { ui } from '@/i18n/ui';
+
 interface Props {
   title: string;
   lead?: string;
   crumbs?: { href?: string; label: string }[];
 }
 const { title, lead, crumbs = [] } = Astro.props;
+const lang = getLang(Astro.url);
+const t = ui(lang);
 ---
 
 <section class="phero">
   <div class="shell">
     {
       crumbs.length > 0 && (
-        <nav class="crumbs caption" aria-label="Навигационная цепочка">
-          <a href={link('/')}>Главная</a>
+        <nav class="crumbs caption" aria-label={t.breadcrumbs}>
+          <a href={link('/', lang)}>{t.home}</a>
           {crumbs.map((c) => (
             <>
               <span aria-hidden="true">/</span>
-              {c.href ? <a href={link(c.href)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+              {c.href ? <a href={link(c.href, lang)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
             </>
           ))}
         </nav>
@@ -28,7 +32,6 @@ const { title, lead, crumbs = [] } = Astro.props;
     <slot />
   </div>
 </section>
-
 <style>
   .phero {
     padding-block: 52px 56px;

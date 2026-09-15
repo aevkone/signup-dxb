@@ -1,7 +1,12 @@
 ---
-import { link } from '@/lib/link';
 import Logo from './Logo.astro';
-import { CONTACTS, LEGAL, TERMS } from '@/consts';
+import { getLang, link } from '@/i18n';
+import { ui } from '@/i18n/ui';
+import { CONTACTS, local } from '@/consts';
+
+const lang = getLang(Astro.url);
+const t = ui(lang);
+const L = local(lang);
 const year = new Date().getFullYear();
 ---
 
@@ -10,41 +15,40 @@ const year = new Date().getFullYear();
     <div class="ftr__grid">
       <div class="ftr__about">
         <Logo width={96} />
-        <p>Организация участия в выставках под ключ и собственное производство наружной рекламы.</p>
-        <p class="ftr__area">Выставки: {TERMS.exhibitionsArea}.<br />Производство: {TERMS.productionArea}.</p>
+        <p>{t.footerAbout}</p>
+        <p class="ftr__area">{t.footerExhibitions}: {L.exhibitionsArea}.<br />{t.footerProduction}: {L.productionArea}.</p>
       </div>
       <div>
-        <div class="ftr__h">Услуги</div>
+        <div class="ftr__h">{t.footerServices}</div>
         <ul>
-          <li><a href={link('/exhibitions/')}>Выставки под ключ</a></li>
-          <li><a href={link('/production/')}>Наружная реклама и производство</a></li>
-          <li><a href={link('/exhibitions/concierge/')}>Консьерж-сервис</a></li>
-          <li><a href={link('/configurator/')}>Быстрый расчёт</a></li>
+          <li><a href={link('/exhibitions/', lang)}>{t.turnkey}</a></li>
+          <li><a href={link('/production/', lang)}>{t.outdoor}</a></li>
+          <li><a href={link('/exhibitions/concierge/', lang)}>{t.concierge}</a></li>
+          <li><a href={link('/configurator/', lang)}>{t.quickCalc}</a></li>
         </ul>
       </div>
       <div>
-        <div class="ftr__h">Компания</div>
+        <div class="ftr__h">{t.footerCompany}</div>
         <ul>
-          <li><a href={link('/contacts/')}>Контакты</a></li>
-          <li><a href={link('/privacy/')}>Политика данных</a></li>
+          <li><a href={link('/contacts/', lang)}>{t.contacts}</a></li>
+          <li><a href={link('/privacy/', lang)}>{t.privacy}</a></li>
         </ul>
       </div>
       <div>
-        <div class="ftr__h">Связь</div>
+        <div class="ftr__h">{t.footerContact}</div>
         <ul>
           <li><a href={CONTACTS.phoneHref}>{CONTACTS.phone}</a></li>
           <li><a href={CONTACTS.whatsapp} target="_blank" rel="noopener">WhatsApp</a></li>
-          <li class="ftr__muted">{CONTACTS.hours}</li>
+          <li class="ftr__muted">{L.hours}</li>
         </ul>
       </div>
     </div>
     <div class="ftr__legal">
-      <span>{LEGAL.name} · Лицензия {LEGAL.licence} · {LEGAL.address}</span>
+      <span>{L.legalName} · {t.licence} {L.licence} · {L.address}</span>
       <span>© {year} SIGNUP DXB</span>
     </div>
   </div>
 </footer>
-
 <style>
   .ftr {
     background: var(--ink);

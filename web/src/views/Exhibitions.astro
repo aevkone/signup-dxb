@@ -1,0 +1,142 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Icon from '@/components/Icon.astro';
+import ProcessSteps from '@/components/ProcessSteps.astro';
+import LeadForm from '@/components/LeadForm.astro';
+import { getLang, link } from '@/i18n';
+import { blocks } from '@/data/exhibitions';
+import { local } from '@/consts';
+
+const lang = getLang(Astro.url);
+const L = local(lang);
+const BLOCKS = blocks(lang);
+const T = {
+  ru: {
+    title: 'Выставки под ключ',
+    description: 'Организация участия в выставках в Дубае и Абу-Даби под ключ: стенд, печать, персонал, питание, логистика, консьерж-сервис, оплата участия, переговоры с организаторами.',
+    lead: 'Полный цикл — от контракта с заказчиком до демонтажа после выставки. Восемь блоков: берите весь пакет или только те, что нужны.',
+    area: 'Работаем на выставках в эмиратах',
+    howH: 'Как мы работаем',
+    howSub: 'На каждом этапе у вас один ответственный контакт.',
+    leadTitle: 'Расскажите о выставке',
+  },
+  en: {
+    title: 'Turnkey exhibitions',
+    description: 'Turnkey exhibition participation in Dubai and Abu Dhabi: stand, print, staff, catering, logistics, concierge, participation payment and negotiations with organisers.',
+    lead: 'The full cycle — from contract to breakdown after the show. Eight blocks: take the whole package or only the ones you need.',
+    area: 'We work at exhibitions in',
+    howH: 'How we work',
+    howSub: 'At every stage you have a single point of contact.',
+    leadTitle: 'Tell us about your exhibition',
+  },
+}[lang];
+---
+
+<Base title={T.title} description={T.description}>
+  <PageHero title={T.title} lead={T.lead} crumbs={[{ label: T.title }]}>
+    <p class="caption area">{T.area}: {L.exhibitionsArea}.</p>
+  </PageHero>
+
+  <section class="section--tight">
+    <div class="shell">
+      <ol class="grid grid--2 blocks">
+        {
+          BLOCKS.map((b, i) => (
+            <li>
+              <a class="card card--link row" href={link(`/exhibitions/${b.slug}/`, lang)}>
+                <span class="row__num">{String(i + 1).padStart(2, '0')}</span>
+                <Icon name={b.icon} size={28} class="row__icon" />
+                <div class="row__body">
+                  <h2 class="h3">{b.title}</h2>
+                  <p>{b.short}</p>
+                  <ul class="row__inc caption">
+                    {b.includes.map((x) => (
+                      <li>{x.title}</li>
+                    ))}
+                  </ul>
+                </div>
+                <Icon name="arrow" size={20} class="row__arrow" />
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--surface">
+    <div class="shell">
+      <div class="sec-head">
+        <div>
+          <h2 class="h2">{T.howH}</h2>
+          <p class="measure sec-head__sub">{T.howSub}</p>
+        </div>
+      </div>
+      <ProcessSteps />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <LeadForm title={T.leadTitle} />
+    </div>
+  </section>
+</Base>
+<style>
+  .area {
+    margin-top: 14px;
+  }
+  .blocks {
+    gap: 20px;
+  }
+  .row {
+    position: relative;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 18px;
+    height: 100%;
+    color: var(--ink);
+  }
+  .row:hover {
+    color: var(--ink);
+  }
+  .row__num {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--disabled-ink);
+  }
+  :global(.row__icon) {
+    flex-shrink: 0;
+    color: var(--accent);
+    margin-top: 2px;
+  }
+  .row__body {
+    flex: 1;
+    padding-right: 24px;
+  }
+  .row__body > p {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 25px;
+  }
+  .row__inc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-top: 14px;
+  }
+  .row__inc li::before {
+    content: '· ';
+  }
+  :global(.row__arrow) {
+    position: absolute;
+    right: 26px;
+    bottom: 26px;
+    color: var(--accent);
+  }
+</style>

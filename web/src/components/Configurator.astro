@@ -1,62 +1,69 @@
 ---
 import Icon from './Icon.astro';
 import type { IconName } from './Icon.astro';
-import { CONTACTS, TERMS } from '@/consts';
+import { getLang } from '@/i18n';
+import { ui } from '@/i18n/ui';
+import { CONTACTS, local } from '@/consts';
 
-const SERVICES: { id: string; label: string; icon: IconName }[] = [
-  { id: 'Выставка под ключ', label: 'Выставка под ключ', icon: 'talks' },
-  { id: 'Стенд', label: 'Стенд', icon: 'stand' },
-  { id: 'Вывеска', label: 'Вывеска', icon: 'light' },
-  { id: 'Печать', label: 'Печать', icon: 'print' },
-  { id: 'Персонал', label: 'Персонал', icon: 'staff' },
-  { id: 'Консьерж-сервис', label: 'Консьерж', icon: 'concierge' },
-];
-const AREAS = ['до 12 м²', '12–36 м²', '36–100 м²', 'больше 100 м²', 'пока не знаю'];
+const lang = getLang(Astro.url);
+const c = ui(lang).cfg;
+const L = local(lang);
+const ICONS: IconName[] = ['talks', 'stand', 'light', 'print', 'staff', 'concierge'];
+
+/** Строки для клиентского скрипта. */
+const i18n = {
+  labels: c.labels,
+  step: c.step(0),
+  done: c.done,
+  next: c.next,
+  submit: c.submit,
+  sending: c.sending,
+  needService: c.needService,
+  needContact: c.needContact,
+};
 ---
 
-<div class="cfg" data-cfg>
+<div class="cfg" data-cfg data-i18n={JSON.stringify(i18n)}>
   <div class="cfg__main card">
     <div class="cfg__progress" data-progress>
-      <span class="caption" data-step-label>Шаг 1 из 3</span>
+      <span class="caption" data-step-label>{c.step(1)}</span>
       <span class="cfg__bar"><span data-bar></span></span>
     </div>
 
-    <!-- Шаг 1 -->
     <fieldset class="cfg__step" data-step="1">
-      <legend class="visually-hidden">Что вам нужно?</legend>
+      <legend class="visually-hidden">{c.s1}</legend>
       <div class="cfg__head" aria-hidden="true">
-        <p class="h3">Что вам нужно?</p>
-        <p class="caption">Выберите направление — детали уточним дальше.</p>
+        <p class="h3">{c.s1}</p>
+        <p class="caption">{c.s1sub}</p>
       </div>
       <div class="cfg__tiles">
         {
-          SERVICES.map((s) => (
+          c.services.map((label, i) => (
             <label class="tile">
-              <input type="radio" name="service" value={s.id} />
-              <Icon name={s.icon} size={26} />
-              <span>{s.label}</span>
+              <input type="radio" name="service" value={label} />
+              <Icon name={ICONS[i]} size={26} />
+              <span>{label}</span>
             </label>
           ))
         }
       </div>
     </fieldset>
 
-    <!-- Шаг 2 -->
     <fieldset class="cfg__step" data-step="2" hidden>
-      <legend class="visually-hidden">Параметры</legend>
+      <legend class="visually-hidden">{c.s2}</legend>
       <div class="cfg__head" aria-hidden="true">
-        <p class="h3">Параметры</p>
-        <p class="caption">Заполните то, что уже известно. Можно пропустить.</p>
+        <p class="h3">{c.s2}</p>
+        <p class="caption">{c.s2sub}</p>
       </div>
       <label class="field">
-        <span>Выставка или объект</span>
-        <input class="input" name="expo" placeholder="Название выставки или адрес объекта" />
+        <span>{c.expo}</span>
+        <input class="input" name="expo" placeholder={c.expoPh} />
       </label>
       <div class="field">
-        <span>Площадь стенда</span>
+        <span>{c.area}</span>
         <div class="pills">
           {
-            AREAS.map((a) => (
+            L.areas.map((a) => (
               <label class="pill">
                 <input type="radio" name="area" value={a} />
                 <span>{a}</span>
@@ -66,23 +73,22 @@ const AREAS = ['до 12 м²', '12–36 м²', '36–100 м²', 'больше 10
         </div>
       </div>
       <label class="field">
-        <span>Даты</span>
-        <input class="input" name="dates" placeholder="Когда выставка или когда нужно" />
+        <span>{c.dates}</span>
+        <input class="input" name="dates" placeholder={c.datesPh} />
       </label>
     </fieldset>
 
-    <!-- Шаг 3 -->
     <fieldset class="cfg__step" data-step="3" hidden>
-      <legend class="visually-hidden">Бюджет и контакт</legend>
+      <legend class="visually-hidden">{c.s3}</legend>
       <div class="cfg__head" aria-hidden="true">
-        <p class="h3">Бюджет и контакт</p>
-        <p class="caption">Бюджет помогает подобрать объём услуг. Точной суммы не нужно.</p>
+        <p class="h3">{c.s3}</p>
+        <p class="caption">{c.s3sub}</p>
       </div>
       <div class="field">
-        <span>Ориентировочный бюджет</span>
+        <span>{c.budget}</span>
         <div class="pills">
           {
-            TERMS.budgets.map((b) => (
+            L.budgets.map((b) => (
               <label class="pill">
                 <input type="radio" name="budget" value={b} />
                 <span>{b}</span>
@@ -93,55 +99,60 @@ const AREAS = ['до 12 м²', '12–36 м²', '36–100 м²', 'больше 10
       </div>
       <div class="grid grid--2">
         <label class="field">
-          <span>Имя</span>
-          <input class="input" name="name" autocomplete="name" placeholder="Как к вам обращаться" />
+          <span>{ui(lang).name}</span>
+          <input class="input" name="name" autocomplete="name" placeholder={ui(lang).namePh} />
         </label>
         <label class="field">
-          <span>Телефон или WhatsApp</span>
+          <span>{ui(lang).contact}</span>
           <input class="input" name="contact" type="tel" autocomplete="tel" placeholder="+971" />
         </label>
       </div>
     </fieldset>
 
-    <!-- Готово -->
     <div class="cfg__step cfg__done" data-step="4" hidden>
       <span class="cfg__done-icon"><Icon name="check" size={30} /></span>
-      <h3 class="h3">Заявка собрана</h3>
-      <p class="caption">Свяжемся {CONTACTS.replyTime} и вернёмся с вариантами под ваш бюджет.</p>
+      <h3 class="h3">{c.doneTitle}</h3>
+      <p class="caption">{c.doneText(L.replyTime)}</p>
     </div>
 
     <p class="cfg__hint" data-hint hidden></p>
 
     <div class="cfg__nav" data-nav>
-      <button type="button" class="btn btn--ghost" data-back hidden>Назад</button>
-      <button type="button" class="btn btn--primary" data-next>Далее</button>
+      <button type="button" class="btn btn--ghost" data-back hidden>{c.back}</button>
+      <button type="button" class="btn btn--primary" data-next>{c.next}</button>
       <a class="cfg__wa" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
-        <Icon name="whatsapp" size={18} /> Лучше напишу в WhatsApp
+        <Icon name="whatsapp" size={18} /> {c.preferWa}
       </a>
     </div>
   </div>
 
   <aside class="cfg__summary card" aria-live="polite">
-    <div class="eyebrow">Ваша заявка</div>
+    <div class="eyebrow">{c.summary}</div>
     <dl data-summary></dl>
-    <p class="caption">Цены — по запросу. Минимальный заказ {TERMS.minOrder}.</p>
+    <p class="caption">{c.summaryNote(L.minOrder)}</p>
   </aside>
 </div>
 
 <script>
   import { sendLead } from '@/scripts/lead';
 
-  const SUMMARY: [string, string][] = [
-    ['service', 'Направление'],
-    ['expo', 'Объект'],
-    ['area', 'Площадь'],
-    ['dates', 'Даты'],
-    ['budget', 'Бюджет'],
-    ['name', 'Имя'],
-    ['contact', 'Контакт'],
-  ];
+  type Strings = {
+    labels: Record<string, string>;
+    step: string;
+    done: string;
+    next: string;
+    submit: string;
+    sending: string;
+    needService: string;
+    needContact: string;
+  };
+
+  const ORDER = ['service', 'expo', 'area', 'dates', 'budget', 'name', 'contact'];
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
   document.querySelectorAll<HTMLElement>('[data-cfg]').forEach((root) => {
+    const S = JSON.parse(root.dataset.i18n!) as Strings;
+    const stepText = (n: number) => S.step.replace('0', String(n));
     let step = 1;
     const steps = root.querySelectorAll<HTMLElement>('[data-step]');
     const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
@@ -161,24 +172,18 @@ const AREAS = ['до 12 м²', '12–36 м²', '36–100 м²', 'больше 10
     };
 
     const problem = (v: Record<string, string>) =>
-      step === 1 && !v.service
-        ? 'Выберите направление, чтобы продолжить'
-        : step === 3 && !v.contact
-          ? 'Оставьте телефон или WhatsApp, чтобы отправить'
-          : '';
+      step === 1 && !v.service ? S.needService : step === 3 && !v.contact ? S.needContact : '';
 
     const render = () => {
       const v = values();
       steps.forEach((el) => (el.hidden = Number(el.dataset.step) !== step));
       back.hidden = step === 1 || step === 4;
       nav.hidden = step === 4;
-      next.textContent = step === 3 ? 'Отправить заявку' : 'Далее';
+      next.textContent = step === 3 ? S.submit : S.next;
       next.setAttribute('aria-disabled', String(Boolean(problem(v))));
-      label.textContent = step === 4 ? 'Готово' : `Шаг ${step} из 3`;
+      label.textContent = step === 4 ? S.done : stepText(step);
       bar.style.width = `${(Math.min(step, 3) / 3) * 100}%`;
-      summary.innerHTML = SUMMARY.map(
-        ([k, t]) => `<div><dt>${t}</dt><dd>${(v[k] ?? '—').replace(/</g, '&lt;')}</dd></div>`
-      ).join('');
+      summary.innerHTML = ORDER.map((k) => `<div><dt>${S.labels[k]}</dt><dd>${esc(v[k] ?? '—')}</dd></div>`).join('');
       if (!problem(v)) hint.hidden = true;
     };
 
@@ -205,7 +210,7 @@ const AREAS = ['до 12 м²', '12–36 м²', '36–100 м²', 'больше 10
         return;
       }
       next.disabled = true;
-      next.textContent = 'Отправляем…';
+      next.textContent = S.sending;
       const how = await sendLead(v);
       next.disabled = false;
       if (how === 'sent') step = 4;
@@ -215,7 +220,6 @@ const AREAS = ['до 12 м²', '12–36 м²', '36–100 м²', 'больше 10
     render();
   });
 </script>
-
 <style>
   .cfg {
     display: grid;

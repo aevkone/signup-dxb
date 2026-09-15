@@ -1,0 +1,60 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import { getLang } from '@/i18n';
+import { CONTACTS, local } from '@/consts';
+
+const lang = getLang(Astro.url);
+const L = local(lang);
+const T = {
+  ru: {
+    title: 'Политика обработки данных',
+    crumb: 'Политика данных',
+    blocks: [
+      ['', `Оператор данных — ${L.legalName}, лицензия ${L.licence}, ${L.address}.`],
+      ['Какие данные мы получаем', 'Только то, что вы сами указываете в форме заявки: имя, телефон или WhatsApp, описание задачи и параметры проекта.'],
+      ['Зачем', 'Чтобы связаться с вами по заявке и подготовить предложение. Данные не используются для рассылок и не передаются третьим лицам для рекламы.'],
+      ['Где хранятся', 'Заявка приходит нам на почту и в мессенджер. Отдельной базы данных на сайте нет.'],
+      ['Как удалить данные', `Напишите на номер ${CONTACTS.phone} в WhatsApp — удалим переписку и заявку.`],
+    ],
+  },
+  en: {
+    title: 'Privacy policy',
+    crumb: 'Privacy policy',
+    blocks: [
+      ['', `Data controller — ${L.legalName}, licence ${L.licence}, ${L.address}.`],
+      ['What data we receive', 'Only what you enter in the request form yourself: your name, phone or WhatsApp number, a description of your request and project details.'],
+      ['Why', 'To contact you about your request and prepare a proposal. The data is not used for mailings and is not shared with third parties for advertising.'],
+      ['Where it is stored', 'Requests arrive in our email and messenger. The website has no separate database.'],
+      ['How to delete your data', `Message ${CONTACTS.phone} on WhatsApp and we’ll delete the conversation and your request.`],
+    ],
+  },
+}[lang];
+---
+
+<Base title={T.title}>
+  <PageHero title={T.title} crumbs={[{ label: T.crumb }]} />
+  <section class="section--tight" style="padding-top:0">
+    <div class="shell prose measure">
+      {
+        T.blocks.map(([h, p]) => (
+          <>
+            {h && <h2 class="h3">{h}</h2>}
+            <p>{p}</p>
+          </>
+        ))
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .prose {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .prose h2 {
+    margin-top: 18px;
+  }
+</style>

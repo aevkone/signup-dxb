@@ -1,0 +1,104 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Icon from '@/components/Icon.astro';
+import LeadForm from '@/components/LeadForm.astro';
+import { getLang } from '@/i18n';
+import { ui } from '@/i18n/ui';
+import { CONTACTS, local } from '@/consts';
+
+const lang = getLang(Astro.url);
+const u = ui(lang);
+const L = local(lang);
+const T = {
+  ru: {
+    title: 'Контакты',
+    description: `Телефон и WhatsApp ${CONTACTS.phone}. ${L.hours}. Отвечаем ${L.replyTime}.`,
+    lead: `Быстрее всего — WhatsApp. Отвечаем ${L.replyTime}.`,
+    phone: 'Телефон',
+    write: 'Написать',
+    call: 'Позвонить',
+    exh: 'Выставки',
+    prod: 'Производство',
+    details: 'Реквизиты',
+  },
+  en: {
+    title: 'Contacts',
+    description: `Phone and WhatsApp ${CONTACTS.phone}. ${L.hours}. We reply ${L.replyTime}.`,
+    lead: `WhatsApp is the fastest way to reach us. We reply ${L.replyTime}.`,
+    phone: 'Phone',
+    write: 'Send a message',
+    call: 'Call',
+    exh: 'Exhibitions',
+    prod: 'Production',
+    details: 'Company details',
+  },
+}[lang];
+---
+
+<Base title={T.title} description={T.description}>
+  <PageHero title={T.title} lead={T.lead} crumbs={[{ label: T.title }]} />
+
+  <section class="section--tight" style="padding-top:0">
+    <div class="shell grid grid--3">
+      <a class="card card--link c" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+        <Icon name="whatsapp" size={28} />
+        <span class="caption">WhatsApp</span>
+        <strong>{CONTACTS.phone}</strong>
+        <span class="more">{T.write} <Icon name="arrow" size={16} /></span>
+      </a>
+      <a class="card card--link c" href={CONTACTS.phoneHref}>
+        <Icon name="phone" size={28} />
+        <span class="caption">{T.phone}</span>
+        <strong>{CONTACTS.phone}</strong>
+        <span class="more">{T.call} <Icon name="arrow" size={16} /></span>
+      </a>
+      <div class="card c">
+        <Icon name="clock" size={28} />
+        <span class="caption">{u.hours}</span>
+        <strong>{L.hours}</strong>
+        <p class="caption c__note">{T.exh}: {L.exhibitionsArea}.<br />{T.prod}: {L.productionArea}.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--surface">
+    <div class="shell">
+      <LeadForm />
+    </div>
+  </section>
+
+  <section class="section--tight">
+    <div class="shell">
+      <div class="req">
+        <span class="eyebrow">{T.details}</span>
+        <p>{L.legalName}</p>
+        <p class="caption">{u.licence} {L.licence} · {L.address}</p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .c {
+    color: var(--ink);
+    gap: 6px;
+  }
+  .c:hover {
+    color: var(--ink);
+  }
+  .c > :global(svg:first-child) {
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .c strong {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .c__note {
+    margin-top: 12px;
+  }
+  .req p {
+    margin-top: 8px;
+  }
+</style>

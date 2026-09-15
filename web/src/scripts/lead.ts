@@ -2,30 +2,51 @@
  * Отправка заявки.
  *
  * Основной путь — POST /api/lead (functions/api/lead.ts): письмо на почту и
- * сообщение в Telegram. Если функция ещё не настроена или недоступна, заявка
- * не теряется — открываем WhatsApp с уже заполненным текстом.
+ * сообщение в Telegram. Если функция ещё не настроена или недоступна (как на
+ * GitHub Pages), заявка не теряется — открываем WhatsApp с уже заполненным
+ * текстом на языке посетителя.
  */
 
 export type Lead = Record<string, string>;
 
 const WA_NUMBER = '971502457669';
 
-const LABELS: Record<string, string> = {
-  name: 'Имя',
-  contact: 'Контакт',
-  task: 'Задача',
-  service: 'Направление',
-  expo: 'Выставка или объект',
-  area: 'Площадь',
-  dates: 'Даты',
-  budget: 'Бюджет',
-  page: 'Страница',
+const TEXT = {
+  ru: {
+    head: 'Заявка с сайта SIGNUP DXB',
+    labels: {
+      name: 'Имя',
+      contact: 'Контакт',
+      task: 'Задача',
+      service: 'Направление',
+      expo: 'Выставка или объект',
+      area: 'Площадь',
+      dates: 'Даты',
+      budget: 'Бюджет',
+    } as Record<string, string>,
+  },
+  en: {
+    head: 'Request from the SIGNUP DXB website',
+    labels: {
+      name: 'Name',
+      contact: 'Contact',
+      task: 'Request',
+      service: 'Direction',
+      expo: 'Exhibition or site',
+      area: 'Stand size',
+      dates: 'Dates',
+      budget: 'Budget',
+    } as Record<string, string>,
+  },
 };
 
+const pageLang = () => (document.documentElement.lang === 'en' ? 'en' : 'ru');
+
 export function leadToText(lead: Lead): string {
-  const lines = ['Заявка с сайта SIGNUP DXB'];
+  const t = TEXT[pageLang()];
+  const lines = [t.head];
   for (const [k, v] of Object.entries(lead)) {
-    if (v && k !== 'page') lines.push(`${LABELS[k] ?? k}: ${v}`);
+    if (v && t.labels[k]) lines.push(`${t.labels[k]}: ${v}`);
   }
   return lines.join('\n');
 }
@@ -35,7 +56,7 @@ export function whatsappLink(lead: Lead): string {
 }
 
 export async function sendLead(lead: Lead): Promise<'sent' | 'whatsapp'> {
-  const payload = { ...lead, page: location.pathname };
+  const payload = { ...lead, lang: pageLang().toUpperCase(), page: location.pathname };
   try {
     const res = await fetch(`${import.meta.env.BASE_URL.replace(/\/+$/, '')}/api/lead`, {
       method: 'POST',
@@ -49,6 +70,6 @@ export async function sendLead(lead: Lead): Promise<'sent' | 'whatsapp'> {
   } catch {
     /* сеть или функция недоступна — уходим в WhatsApp */
   }
-  window.open(whatsappLink(payload), '_blank', 'noopener');
+  window.open(whatsappLink(lead), '_blank', 'noopener');
   return 'whatsapp';
 }

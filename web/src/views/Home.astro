@@ -1,0 +1,596 @@
+---
+import Base from '@/layouts/Base.astro';
+import Icon from '@/components/Icon.astro';
+import ProcessSteps from '@/components/ProcessSteps.astro';
+import Configurator from '@/components/Configurator.astro';
+import LeadForm from '@/components/LeadForm.astro';
+import { getLang, link } from '@/i18n';
+import { ui } from '@/i18n/ui';
+import { blocks } from '@/data/exhibitions';
+import { categories, TOTAL_ITEMS } from '@/data/production';
+import { faq } from '@/data/process';
+import { CONTACTS, local } from '@/consts';
+
+const lang = getLang(Astro.url);
+const u = ui(lang);
+const L = local(lang);
+const BLOCKS = blocks(lang);
+const CATS = categories(lang);
+
+const count = (n: number) => {
+  if (lang === 'en') return n === 1 ? '1 item' : `${n} items`;
+  const w = n % 10 === 1 && n % 100 !== 11 ? 'позиция' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'позиции' : 'позиций';
+  return `${n} ${w}`;
+};
+
+const T = {
+  ru: {
+    chip: 'Дубай · Абу-Даби · Шарджа · Аджман',
+    h1: 'Организуем участие в выставках в Дубае под ключ',
+    lead: 'Полный цикл — от контракта до демонтажа после выставки. Берите весь пакет или отдельные блоки: подберём объём услуг под ваш бюджет.',
+    facts: [
+      ['Мы организатор', 'Ведём проект целиком, а не отдельную поставку'],
+      ['Прямая связь с площадками', 'Выходим на организаторов напрямую'],
+      ['Своё производство', 'Печать и конструкции делаем сами'],
+    ],
+    oneContract: 'Один договор',
+    noContractors: 'Вам не нужно собирать подрядчиков по одному.',
+    entries: [
+      ['/exhibitions/', 'Выставки под ключ', 'Восемь блоков от концепции стенда до демонтажа. Берите все или один.', 'Смотреть состав'],
+      ['/production/', 'Наружная реклама и производство', 'Девять направлений: свет, печать, транспорт, витрины, полиграфия.', 'Открыть каталог'],
+      ['/exhibitions/concierge/', 'Консьерж-сервис', 'Встреча, размещение, сим-карты, обмен валюты, перемещение по городу.', 'Что входит'],
+    ],
+    inclH: 'Что входит в работу под ключ',
+    inclSub: 'Полный цикл — от контракта до демонтажа. Клиент берёт как весь пакет, так и отдельные блоки.',
+    allBlocks: 'Все блоки',
+    more: 'Подробнее',
+    howH: 'Как мы работаем',
+    howSub: 'Шесть этапов. На каждом у вас один ответственный контакт, а не пять подрядчиков.',
+    calcEyebrow: 'Быстрый расчёт',
+    calcH: 'Соберите заявку за минуту',
+    calcSub: 'Выберите, что нужно, укажите параметры — вернёмся с вариантами под ваш бюджет. Без звонков, если вам так удобнее.',
+    whyH: 'Почему с нами проще',
+    why: [
+      ['Один договор вместо пяти', 'Стенд, печать, персонал, питание и логистика идут через одного исполнителя.'],
+      ['Прямая связь с площадками', 'Выходим на организаторов павильонов напрямую, а не через цепочку посредников.'],
+      ['Собственное производство', 'Конструкции и печать делаем сами — сроки не зависят от чужой загрузки.'],
+      ['Объём под ваш бюджет', 'Показываем, что входит в каждый уровень, и собираем пакет под вашу сумму.'],
+    ],
+    caseEyebrow: 'Случай из практики',
+    caseText: 'Клиенты неделями не могли выйти на организаторов выставки. Вопрос решился за короткое время — прямым звонком и сообщением в WhatsApp.',
+    caseCap: 'Переговоры с организаторами',
+    prodEyebrow: 'Собственное производство',
+    prodH: 'Наружная реклама и печать',
+    prodSub: (n: number, area: string) => `Девять направлений и ${n} позиций — от световых букв до брендирования транспорта. Заказать можно отдельно от выставки. Работаем в эмиратах: ${area}.`,
+    openCatalog: 'Открыть каталог',
+    byProject: 'по проекту',
+    faqH: 'Частые вопросы',
+    faqSub: 'Не нашли свой — напишите в WhatsApp, ответим текстом.',
+  },
+  en: {
+    chip: 'Dubai · Abu Dhabi · Sharjah · Ajman',
+    h1: 'Turnkey exhibition participation in Dubai',
+    lead: 'The full cycle — from contract to breakdown after the show. Take the whole package or individual blocks: we’ll shape the scope around your budget.',
+    facts: [
+      ['We are the organiser', 'We run the whole project, not a single delivery'],
+      ['Direct access to venues', 'We reach organisers directly'],
+      ['In-house production', 'We make the print and structures ourselves'],
+    ],
+    oneContract: 'One contract',
+    noContractors: 'No need to hire contractors one by one.',
+    entries: [
+      ['/exhibitions/', 'Turnkey exhibitions', 'Eight blocks from stand concept to breakdown. Take all of them or just one.', 'See what’s included'],
+      ['/production/', 'Outdoor advertising & production', 'Nine directions: lighting, print, vehicles, shop windows, printing.', 'Open the catalogue'],
+      ['/exhibitions/concierge/', 'Concierge service', 'Arrival, accommodation, SIM cards, currency exchange, getting around the city.', 'What’s included'],
+    ],
+    inclH: 'What turnkey service includes',
+    inclSub: 'The full cycle — from contract to breakdown. Clients take either the whole package or individual blocks.',
+    allBlocks: 'All blocks',
+    more: 'Learn more',
+    howH: 'How we work',
+    howSub: 'Six stages. At each one you have a single point of contact, not five contractors.',
+    calcEyebrow: 'Quick quote',
+    calcH: 'Put your request together in a minute',
+    calcSub: 'Choose what you need and add the details — we’ll come back with options that fit your budget. No calls needed if you prefer.',
+    whyH: 'Why it’s easier with us',
+    why: [
+      ['One contract instead of five', 'Stand, print, staff, catering and logistics all go through one provider.'],
+      ['Direct access to venues', 'We contact hall organisers directly, not through a chain of intermediaries.'],
+      ['In-house production', 'We build structures and print ourselves — timelines don’t depend on someone else’s workload.'],
+      ['Scope that fits your budget', 'We show what each level includes and put together a package for your budget.'],
+    ],
+    caseEyebrow: 'A real case',
+    caseText: 'Clients had spent weeks unable to reach the exhibition organisers. The issue was resolved quickly — with a direct phone call and a WhatsApp message.',
+    caseCap: 'Negotiations with organisers',
+    prodEyebrow: 'In-house production',
+    prodH: 'Outdoor advertising & print',
+    prodSub: (n: number, area: string) => `Nine directions and ${n} items — from illuminated letters to vehicle branding. Can be ordered separately from an exhibition. We work in ${area}.`,
+    openCatalog: 'Open the catalogue',
+    byProject: 'per project',
+    faqH: 'Frequently asked questions',
+    faqSub: 'Didn’t find yours? Message us on WhatsApp and we’ll reply in writing.',
+  },
+}[lang];
+---
+
+<Base>
+  <section class="hero">
+    <div class="shell hero__grid">
+      <div>
+        <span class="chip"><span class="chip__dot"></span>{T.chip}</span>
+        <h1 class="h1 hero__title">{T.h1}</h1>
+        <p class="lead hero__lead">{T.lead}</p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href={link('/configurator/', lang)}>{u.calc}</a>
+          <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+            <Icon name="whatsapp" size={20} /> {u.whatsapp}
+          </a>
+        </div>
+        <ul class="hero__facts">
+          {T.facts.map(([h, s]) => <li><strong>{h}</strong><span>{s}</span></li>)}
+        </ul>
+      </div>
+      <div class="hero__visual" aria-hidden="true">
+        <div class="hero__card">
+          <div class="eyebrow">{T.oneContract}</div>
+          <ul class="hero__list">
+            {BLOCKS.slice(0, 6).map((b) => (
+              <li><Icon name={b.icon} size={20} />{b.title}</li>
+            ))}
+          </ul>
+          <div class="hero__rule"></div>
+          <p class="caption">{T.noContractors}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section--tight">
+    <div class="shell grid grid--3">
+      {
+        T.entries.map(([href, h, p, m]) => (
+          <a class="card card--edge card--link entry" href={link(href, lang)}>
+            <h2 class="h3">{h}</h2>
+            <p>{p}</p>
+            <span class="more">{m} <Icon name="arrow" size={18} /></span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section section--surface">
+    <div class="shell">
+      <div class="sec-head">
+        <div>
+          <h2 class="h2">{T.inclH}</h2>
+          <p class="measure sec-head__sub">{T.inclSub}</p>
+        </div>
+        <a class="btn btn--ghost" href={link('/exhibitions/', lang)}>{T.allBlocks}</a>
+      </div>
+      <div class="grid grid--4">
+        {
+          BLOCKS.map((b) => (
+            <a class="card card--link block" href={link(`/exhibitions/${b.slug}/`, lang)}>
+              <Icon name={b.icon} size={26} class="block__icon" />
+              <h3 class="block__title">{b.title}</h3>
+              <p class="block__text">{b.short}</p>
+              <span class="more">{T.more} <Icon name="arrow" size={16} /></span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="sec-head">
+        <div>
+          <h2 class="h2">{T.howH}</h2>
+          <p class="measure sec-head__sub">{T.howSub}</p>
+        </div>
+      </div>
+      <ProcessSteps />
+    </div>
+  </section>
+
+  <section class="section section--surface" id="calc">
+    <div class="shell">
+      <div class="sec-head">
+        <div>
+          <span class="eyebrow">{T.calcEyebrow}</span>
+          <h2 class="h2" style="margin-top:10px">{T.calcH}</h2>
+          <p class="measure sec-head__sub">{T.calcSub}</p>
+        </div>
+      </div>
+      <Configurator />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell why">
+      <div>
+        <h2 class="h2">{T.whyH}</h2>
+        <ul class="why__list">
+          {T.why.map(([h, p]) => <li><h3 class="h3">{h}</h3><p>{p}</p></li>)}
+        </ul>
+      </div>
+      <figure class="case">
+        <span class="eyebrow case__eyebrow">{T.caseEyebrow}</span>
+        <blockquote>{T.caseText}</blockquote>
+        <figcaption><span class="case__dot"></span>{T.caseCap}</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section section--surface">
+    <div class="shell">
+      <div class="sec-head">
+        <div>
+          <span class="eyebrow">{T.prodEyebrow}</span>
+          <h2 class="h2" style="margin-top:10px">{T.prodH}</h2>
+          <p class="measure sec-head__sub">{T.prodSub(TOTAL_ITEMS, L.productionArea)}</p>
+        </div>
+        <a class="btn btn--ghost" href={link('/production/', lang)}>{T.openCatalog}</a>
+      </div>
+      <div class="grid grid--3 cats">
+        {
+          CATS.map((c) => (
+            <a class="cat" href={link(`/production/${c.slug}/`, lang)}>
+              <Icon name={c.icon} size={24} />
+              <span class="cat__title">{c.title}</span>
+              <span class="caption">{c.items.length ? count(c.items.length) : T.byProject}</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell faq">
+      <div>
+        <h2 class="h2">{T.faqH}</h2>
+        <p class="sec-head__sub">{T.faqSub}</p>
+      </div>
+      <div class="faq__list">
+        {
+          faq(lang).map((f) => (
+            <details class="faq__item">
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--surface" id="lead">
+    <div class="shell">
+      <LeadForm />
+    </div>
+  </section>
+</Base>
+<style>
+  .hero {
+    padding-block: 64px 72px;
+  }
+  .hero__grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+  .hero__grid > * {
+    min-width: 0;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    background: var(--surface);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .chip__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--spectrum-d);
+  }
+  .hero__title {
+    margin-top: 22px;
+    font-size: 54px;
+    line-height: 62px;
+    letter-spacing: -1.4px;
+  }
+  .hero__lead {
+    margin-top: 20px;
+    max-width: 560px;
+  }
+  .hero__actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+  .hero__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 44px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+  .hero__facts li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+    line-height: 21px;
+    color: var(--muted);
+  }
+  .hero__facts strong {
+    color: var(--ink);
+    font-size: 15px;
+  }
+  .hero__visual {
+    position: relative;
+    aspect-ratio: 1 / 1.02;
+    border-radius: 16px;
+    background:
+      linear-gradient(transparent 95%, rgb(20 22 26 / 0.05) 95%) 0 0 / 100% 36px,
+      linear-gradient(90deg, transparent 95%, rgb(20 22 26 / 0.05) 95%) 0 0 / 36px 100%,
+      var(--sand);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .hero__visual::after {
+    content: '';
+    position: absolute;
+    right: 12%;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    background: var(--spectrum-v);
+    opacity: 0.85;
+  }
+  .hero__card {
+    position: relative;
+    z-index: 1;
+    width: min(360px, 82%);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: 0 24px 60px rgb(20 22 26 / 0.08);
+  }
+  .hero__list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .hero__list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .hero__list :global(svg) {
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .hero__rule {
+    height: 1px;
+    background: var(--line);
+    margin: 22px 0 14px;
+  }
+
+  .entry {
+    gap: 10px;
+  }
+  .entry p {
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 26px;
+  }
+
+  .block {
+    padding: 26px;
+    color: var(--ink);
+  }
+  .block:hover {
+    color: var(--ink);
+  }
+  .block :global(.block__icon) {
+    color: var(--accent);
+  }
+  .block__title {
+    margin-top: 16px;
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .block__text {
+    margin-top: 8px;
+    font-size: 15px;
+    line-height: 23px;
+    color: var(--muted);
+  }
+
+  .why {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+  .why__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+    margin-top: 36px;
+  }
+  .why__list p {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 26px;
+  }
+  .case {
+    margin: 0;
+    background: var(--ink);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 44px;
+  }
+  .case__eyebrow {
+    color: #8b8f96;
+  }
+  .case blockquote {
+    margin: 20px 0 0;
+    font-size: 24px;
+    line-height: 36px;
+    font-weight: 600;
+  }
+  .case figcaption {
+    margin-top: 32px;
+    padding-top: 22px;
+    border-top: 1px solid #2c2f35;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #b9bcc2;
+    font-size: 15px;
+  }
+  .case__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--spectrum-d);
+  }
+
+  .cats {
+    gap: 16px;
+  }
+  .cat {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 14px;
+    align-items: center;
+    padding: 20px 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--base);
+    color: var(--ink);
+    transition: border-color 0.18s ease;
+  }
+  .cat:hover {
+    border-color: #cfcbc3;
+    color: var(--ink);
+  }
+  .cat :global(svg) {
+    grid-row: span 2;
+    color: var(--accent);
+  }
+  .cat__title {
+    font-weight: 600;
+    line-height: 22px;
+  }
+
+  .faq {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 64px;
+  }
+  .faq__list {
+    border-top: 1px solid var(--line);
+  }
+  .faq__item {
+    border-bottom: 1px solid var(--line);
+  }
+  .faq__item summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 22px 40px 22px 0;
+    position: relative;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq__item summary::after {
+    content: '+';
+    position: absolute;
+    right: 4px;
+    top: 18px;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--muted);
+    transition: transform 0.2s ease;
+  }
+  .faq__item[open] summary::after {
+    transform: rotate(45deg);
+  }
+  .faq__item p {
+    padding-bottom: 22px;
+    color: #4a4e55;
+  }
+
+  @media (max-width: 1080px) {
+    .hero__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 40px;
+    }
+    .hero__visual {
+      aspect-ratio: 16 / 10;
+    }
+    .why,
+    .faq {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+  }
+  @media (max-width: 860px) {
+    .hero {
+      padding-block: 32px 48px;
+    }
+    .hero__title {
+      font-size: 34px;
+      line-height: 42px;
+      letter-spacing: -0.8px;
+    }
+    .hero__actions .btn {
+      width: 100%;
+    }
+    .hero__facts {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .hero__visual {
+      aspect-ratio: auto;
+      padding: 32px 0;
+    }
+
+    .why__list {
+      grid-template-columns: 1fr;
+      gap: 22px;
+    }
+    .case {
+      padding: 28px;
+    }
+    .case blockquote {
+      font-size: 20px;
+      line-height: 30px;
+    }
+  }
+</style>

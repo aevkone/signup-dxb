@@ -1,15 +1,16 @@
 ---
-import { link } from '@/lib/link';
 import Icon from './Icon.astro';
-import { CONTACTS } from '@/consts';
+import { getLang, link } from '@/i18n';
+import { ui } from '@/i18n/ui';
+import { CONTACTS, local } from '@/consts';
+
 interface Props {
   title?: string;
   text?: string;
 }
-const {
-  title = 'Соберём объём работ под ваш бюджет',
-  text = 'Опишите задачу — вернёмся с вариантами. Цены по запросу, минимальный заказ от 2 000 AED.',
-} = Astro.props;
+const lang = getLang(Astro.url);
+const t = ui(lang);
+const { title = t.bandTitle, text = t.bandText(local(lang).minOrder) } = Astro.props;
 ---
 
 <section class="section--tight">
@@ -20,15 +21,14 @@ const {
         <p class="band__text">{text}</p>
       </div>
       <div class="band__actions">
-        <a class="btn btn--primary" href={link('/configurator/')}>Рассчитать проект</a>
+        <a class="btn btn--primary" href={link('/configurator/', lang)}>{t.calc}</a>
         <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
-          <Icon name="whatsapp" size={20} /> WhatsApp
+          <Icon name="whatsapp" size={20} /> {t.whatsappShort}
         </a>
       </div>
     </div>
   </div>
 </section>
-
 <style>
   .band {
     background: var(--sand);

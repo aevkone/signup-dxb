@@ -30,6 +30,7 @@ const LABELS: Record<string, string> = {
   area: 'Площадь',
   dates: 'Даты',
   budget: 'Бюджет',
+  lang: 'Язык сайта',
   page: 'Страница',
 };
 

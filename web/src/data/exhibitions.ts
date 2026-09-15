@@ -15,7 +15,7 @@ export type Block = {
   note?: { title: string; text: string };
 };
 
-export const BLOCKS: Block[] = [
+const BLOCKS_RU: Block[] = [
   {
     slug: 'stand-design',
     title: 'Дизайн и концепция стенда',
@@ -220,7 +220,7 @@ export const BLOCKS: Block[] = [
     title: 'Переговоры с организаторами',
     short: 'Поиск площадки и прямая связь с павильонами',
     icon: 'talks',
-    lead: 'У нас есть прямые контакты выставочных площадок Дубая. Это экономит не деньги, а недели — самый дефицитный ресурс перед выставкой.',
+    lead: 'У нас есть прямые контакты выставочных площадок Дубая. Главное, что это даёт, — время: недели, которых перед выставкой всегда не хватает.',
     includes: [
       {
         title: 'Подбор выставки и площадки',
@@ -246,4 +246,10 @@ export const BLOCKS: Block[] = [
   },
 ];
 
-export const BLOCK_BY_SLUG = new Map(BLOCKS.map((b) => [b.slug, b]));
+import { BLOCKS_EN } from './exhibitions.en';
+import type { Lang } from '@/i18n';
+
+export const blocks = (lang: Lang): Block[] => (lang === 'en' ? BLOCKS_EN : BLOCKS_RU);
+
+/** Слаги одинаковы во всех языках — по ним строятся страницы. */
+export const BLOCK_SLUGS = BLOCKS_RU.map((b) => b.slug);

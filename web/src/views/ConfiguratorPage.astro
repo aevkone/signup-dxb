@@ -1,0 +1,31 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Configurator from '@/components/Configurator.astro';
+import { getLang } from '@/i18n';
+
+const lang = getLang(Astro.url);
+const T = {
+  ru: {
+    title: 'Быстрый расчёт',
+    description: 'Соберите заявку на выставку, стенд, вывеску или печать за минуту — вернёмся с вариантами под ваш бюджет.',
+    h1: 'Соберите заявку за минуту',
+    lead: 'Три шага: что нужно, параметры, бюджет. Вернёмся с вариантами под вашу сумму — без звонков, если вам так удобнее.',
+  },
+  en: {
+    title: 'Quick quote',
+    description: 'Put together a request for an exhibition, stand, sign or print in a minute — we’ll come back with options that fit your budget.',
+    h1: 'Put your request together in a minute',
+    lead: 'Three steps: what you need, the details, your budget. We’ll come back with options for your budget — no calls needed if you prefer.',
+  },
+}[lang];
+---
+
+<Base title={T.title} description={T.description}>
+  <PageHero title={T.h1} lead={T.lead} crumbs={[{ label: T.title }]} />
+  <section class="section--tight" style="padding-top:0">
+    <div class="shell">
+      <Configurator />
+    </div>
+  </section>
+</Base>
