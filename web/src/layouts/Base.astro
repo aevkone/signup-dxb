@@ -30,8 +30,6 @@ const abs = (l: (typeof LANGS)[number]) => new URL(link(path, l), Astro.site).hr
     <link rel="canonical" href={abs(lang)} />
     {LANGS.map((l) => <link rel="alternate" hreflang={l} href={abs(l)} />)}
     <link rel="alternate" hreflang="x-default" href={abs(DEFAULT_LANG)} />
-    {/* Тестовый домен: не индексируем, пока нет боевого. */}
-    <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" href={link('/favicon.svg')} type="image/svg+xml" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={fullTitle} />
