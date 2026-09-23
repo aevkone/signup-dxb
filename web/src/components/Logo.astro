@@ -2,8 +2,11 @@
 /**
  * Логотип SIGNUP DXB — векторная перерисовка растра заказчика
  * (brand/logo-signup-dxb.jpg), координаты сняты с оригинала 776×586.
- * Надпись набрана Manrope и сжата до ширины оригинала; оригинальный
+ * Надпись набрана Montserrat и сжата до ширины оригинала; оригинальный
  * узкий гротеск заменится, когда появится утверждённый вектор.
+ *
+ * Цвета — палитра 1b: радужный спектр заменён оливковым градиентом,
+ * значения повторяют --olive-dark / --olive / --lime из global.css.
  */
 interface Props {
   width?: number;
@@ -17,15 +20,13 @@ const gid = `lg-${Math.random().toString(36).slice(2, 8)}`;
 <svg class={cls} width={width} height={height} viewBox="0 0 776 586" fill="none" role="img" aria-label="SIGNUP DXB">
   <defs>
     <linearGradient id={gid} x1="0.85" y1="0" x2="0.15" y2="1">
-      <stop offset="0" stop-color="#E8894A"></stop>
-      <stop offset="0.22" stop-color="#D94F5C"></stop>
-      <stop offset="0.52" stop-color="#8B5FA8"></stop>
-      <stop offset="0.8" stop-color="#5566D9"></stop>
-      <stop offset="1" stop-color="#5FC2C0"></stop>
+      <stop offset="0" stop-color="#DDE5B6"></stop>
+      <stop offset="0.5" stop-color="#859247"></stop>
+      <stop offset="1" stop-color="#66712F"></stop>
     </linearGradient>
   </defs>
   <path d="M598 32 L705 78 L705 500 L598 538 Z" fill={`url(#${gid})`}></path>
-  <g stroke="#14161A" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter">
+  <g stroke="#1C1E1F" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter">
     <path d="M316 246 V136 L588 38 V462 L544 470"></path>
     <path d="M48 292 V258 L528 128 L598 158"></path>
     <path d="M538 134 V452 L598 440"></path>
@@ -36,19 +37,19 @@ const gid = `lg-${Math.random().toString(36).slice(2, 8)}`;
     y="423"
     textLength="422"
     lengthAdjust="spacingAndGlyphs"
-    font-family="'Manrope Variable', Manrope, sans-serif"
+    font-family="'Montserrat Variable', Montserrat, sans-serif"
     font-size="152"
     font-weight="600"
-    fill="#14161A">SIGNUP</text
+    fill="#1C1E1F">SIGNUP</text
   >
   <text
     x="78"
     y="523"
     textLength="172"
     lengthAdjust="spacing"
-    font-family="'Manrope Variable', Manrope, sans-serif"
+    font-family="'Montserrat Variable', Montserrat, sans-serif"
     font-size="42"
     font-weight="400"
-    fill="#14161A">DXB</text
+    fill="#1C1E1F">DXB</text
   >
 </svg>
