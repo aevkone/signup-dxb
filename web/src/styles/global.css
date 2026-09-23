@@ -1,38 +1,39 @@
-/* Дизайн-система SIGNUP DXB.
-   Значения перенесены один в один с артборда 1 (design/System.dc.html). */
+/* Дизайн-система SIGNUP DXB — вариант 1b «сжатый бриф».
+   Значения сняты с макета design/SIGNUP-DXB-1b-szhatyy-brif.html:
+   олива вместо тёмного первого экрана, слива как единственный сигнал
+   действия, типографика крупнее прежней. */
 
 :root {
-  --ink: #14161a;
-  --base: #f7f6f4;
-  --surface: #ffffff;
-  --sand: #e8dfd3;
-  --accent: #2e3a59;
-  --accent-hover: #1f2942;
-  --muted: #6b6f76;
-  --line: #e7e5e1;
-  --disabled-bg: #efede9;
-  --disabled-ink: #a5a8ad;
+  --ink: #1c1e1f;
+  --base: #dfe0da;
+  --surface: #f5f5f1;
+  --surface-alt: #ffffff;
+
+  /* Олива — первый экран и крупные плашки. */
+  --olive: #859247;
+  --olive-dark: #66712f;
+  --olive-ink: #4e571f;
+  --lime: #dde5b6;
+
+  /* Слива — единственный цвет действия. Больше ничем не красим. */
+  --accent: #623062;
+  --accent-hover: #4a244a;
+
+  --muted: #5d5f5b;
+  --line: #c9cbc2;
+  --line-soft: #e2e3dd;
+  --disabled-bg: #e8e9e3;
+  --disabled-ink: #a5a8a0;
   --ok: #3f7a5e;
   --warn: #a8544f;
 
-  /* Спектр логотипа. Только тонкие детали: подчёркивание, грань карточки,
-     индикатор шага. Крупные заливки запрещены — правило с артборда 1. */
-  --spectrum: linear-gradient(
-    90deg,
-    #e8894a 0%,
-    #d94f5c 30%,
-    #8b5fa8 56%,
-    #4a7fc1 80%,
-    #5fc2c0 100%
-  );
-  --spectrum-v: linear-gradient(180deg, #e8894a, #8b5fa8, #5fc2c0);
-  --spectrum-d: linear-gradient(150deg, #e8894a, #8b5fa8, #5fc2c0);
-
-  --radius: 12px;
-  --radius-sm: 10px;
+  --radius: 28px;
+  --radius-sm: 16px;
+  --radius-xs: 8px;
+  --pill: 999px;
   --shell: 1200px;
   --gutter: 120px;
-  --control: 52px;
+  --control: 56px;
 }
 
 @media (max-width: 1080px) {
@@ -77,7 +78,7 @@ body {
   margin: 0;
   background: var(--base);
   color: var(--ink);
-  font-family: 'Manrope Variable', Manrope, 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Montserrat Variable', Montserrat, 'Segoe UI', system-ui, sans-serif;
   font-size: 17px;
   line-height: 28px;
   -webkit-font-smoothing: antialiased;
@@ -97,7 +98,7 @@ a {
   transition: color 0.18s ease;
 }
 a:hover {
-  color: #4a7fc1;
+  color: var(--accent-hover);
 }
 
 :focus-visible {
@@ -127,26 +128,27 @@ ol {
 /* ---------- Типографика (артборд 1) ---------- */
 
 .h1 {
-  font-size: 48px;
-  line-height: 56px;
-  font-weight: 700;
-  letter-spacing: -1px;
+  font-size: 62px;
+  line-height: 68px;
+  font-weight: 600;
+  letter-spacing: -1.6px;
 }
 .h2 {
-  font-size: 34px;
-  line-height: 42px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
+  font-size: 44px;
+  line-height: 52px;
+  font-weight: 600;
+  letter-spacing: -0.8px;
 }
 .h3 {
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 26px;
+  line-height: 34px;
   font-weight: 600;
+  letter-spacing: -0.3px;
 }
 .lead {
-  font-size: 19px;
-  line-height: 31px;
-  color: #4a4e55;
+  font-size: 21px;
+  line-height: 33px;
+  color: var(--muted);
 }
 .body {
   font-size: 17px;
@@ -167,21 +169,22 @@ ol {
 
 @media (max-width: 860px) {
   .h1 {
-    font-size: 34px;
-    line-height: 42px;
-    letter-spacing: -0.8px;
+    font-size: 40px;
+    line-height: 46px;
+    letter-spacing: -1px;
   }
   .h2 {
-    font-size: 28px;
-    line-height: 36px;
+    font-size: 31px;
+    line-height: 38px;
+    letter-spacing: -0.5px;
   }
   .h3 {
-    font-size: 20px;
-    line-height: 27px;
+    font-size: 22px;
+    line-height: 29px;
   }
   .lead {
-    font-size: 17px;
-    line-height: 28px;
+    font-size: 18px;
+    line-height: 29px;
   }
 }
 
@@ -261,7 +264,7 @@ ol {
   height: var(--control);
   padding-inline: 30px;
   border: 1px solid transparent;
-  border-radius: var(--radius);
+  border-radius: var(--pill);
   font: inherit;
   font-size: 16px;
   font-weight: 600;
@@ -282,13 +285,24 @@ ol {
   color: #fff;
 }
 .btn--ghost {
-  background: var(--surface);
+  background: transparent;
   border-color: var(--line);
   color: var(--ink);
 }
 .btn--ghost:hover {
   border-color: var(--ink);
   color: var(--ink);
+}
+/* Призрачная кнопка на тёмной или оливковой подложке. */
+.btn--ghost-on-dark {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #fff;
+}
+.btn--ghost-on-dark:hover {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 .btn--order {
   width: 100%;
@@ -300,10 +314,9 @@ ol {
   color: var(--ink);
   font-size: 15px;
 }
-/* Спектр появляется только на наведении и только как грань 3px. */
+/* В 1b вместо градиента логотипа — оливковая грань. */
 .btn--order:hover {
-  border-bottom: 3px solid;
-  border-image: var(--spectrum) 1;
+  border-color: var(--olive);
   color: var(--ink);
 }
 .btn[disabled],
@@ -332,7 +345,7 @@ ol {
   min-height: var(--control);
   padding: 0 18px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--ink);
   font: inherit;
@@ -363,10 +376,8 @@ ol {
   border-radius: var(--radius);
   padding: 28px;
 }
-/* Грань спектра слева — 3px, разрешённая деталь. */
 .card--edge {
-  border-left: 3px solid var(--line);
-  border-image: var(--spectrum-v) 1;
+  border-left: 3px solid var(--olive);
 }
 .card--link {
   display: flex;
@@ -376,7 +387,7 @@ ol {
     transform 0.18s ease;
 }
 .card--link:hover {
-  border-color: #d9d5cd;
+  border-color: var(--olive);
   transform: translateY(-2px);
 }
 
@@ -400,9 +411,9 @@ ol {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--sand);
-  border: 1px solid #e0d6c8;
-  color: #9a8e78;
+  background: var(--lime);
+  border: 1px solid var(--line);
+  color: var(--olive-ink);
   font-size: 13px;
   letter-spacing: 0.6px;
   text-transform: uppercase;

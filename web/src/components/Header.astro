@@ -101,11 +101,12 @@ const isActive = (href: string) =>
   }
   .hdr__nav {
     display: flex;
-    gap: 34px;
+    gap: 26px;
   }
   .hdr__link {
     color: var(--ink);
     font-size: 16px;
+    white-space: nowrap;
     padding-block: 8px 5px;
     border-bottom: 3px solid transparent;
   }
@@ -114,7 +115,7 @@ const isActive = (href: string) =>
   }
   .hdr__link.is-active {
     font-weight: 600;
-    border-image: var(--spectrum) 1;
+    border-bottom-color: var(--olive);
   }
   .hdr__actions {
     display: flex;
@@ -171,7 +172,7 @@ const isActive = (href: string) =>
     display: none;
   }
 
-  @media (max-width: 1200px) {
+  @media (max-width: 1320px) {
     .hdr__nav,
     .hdr__actions {
       display: none;

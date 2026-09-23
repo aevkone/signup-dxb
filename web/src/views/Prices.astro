@@ -1,0 +1,277 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Icon from '@/components/Icon.astro';
+import CtaBand from '@/components/CtaBand.astro';
+import { getLang } from '@/i18n';
+import { priceGroups, priceTerms, TOTAL_PRICES } from '@/data/prices';
+import { local } from '@/consts';
+
+const lang = getLang(Astro.url);
+const L = local(lang);
+const GROUPS = priceGroups(lang);
+const TERMS = priceTerms(lang);
+
+/** Склонение слова «позиция» при числе. */
+const plural = (n: number) => {
+  const d10 = n % 10;
+  const d100 = n % 100;
+  if (d10 === 1 && d100 !== 11) return 'позиция';
+  if (d10 >= 2 && d10 <= 4 && (d100 < 12 || d100 > 14)) return 'позиции';
+  return 'позиций';
+};
+
+const T = {
+  ru: {
+    title: 'Прайс',
+    crumb: 'Прайс',
+    description:
+      'Цены на производство наружной рекламы и оформление выставок в ОАЭ: световые вывески, печать, стенды, брендирование транспорта, сувениры, монтаж. Ориентировочные цены в дирхамах без VAT.',
+    lead: (n: number) =>
+      `${n} ${plural(n)} по восьми направлениям. Цены ориентировочные: точная сумма считается по вашим размерам, материалам и месту монтажа.`,
+    currency: 'Цены в AED без VAT 5%',
+    valid: 'Действуют с 22.09.2026',
+    area: 'Производство: Дубай, Шарджа, Аджман',
+    termsH: 'Условия работы',
+    contents: 'Разделы прайса',
+    colItem: 'Позиция',
+    colPrice: 'Цена, AED',
+    colUnit: 'Единица',
+  },
+  en: {
+    title: 'Price list',
+    crumb: 'Price list',
+    description:
+      'Prices for outdoor advertising production and exhibition build in the UAE: illuminated signs, print, stands, vehicle branding, gifts and installation. Indicative prices in dirhams, excluding VAT.',
+    lead: (n: number) =>
+      `${n} items across eight categories. Prices are indicative: the exact figure depends on your sizes, materials and installation site.`,
+    currency: 'Prices in AED, excluding 5% VAT',
+    valid: 'Valid from 22.09.2026',
+    area: 'Production: Dubai, Sharjah, Ajman',
+    termsH: 'Terms of work',
+    contents: 'Sections',
+    colItem: 'Item',
+    colPrice: 'Price, AED',
+    colUnit: 'Unit',
+  },
+}[lang];
+---
+
+<Base title={T.title} description={T.description}>
+  <PageHero title={T.title} lead={T.lead(TOTAL_PRICES)} crumbs={[{ label: T.crumb }]}>
+    <ul class="terms">
+      <li><Icon name="payment" size={18} />{T.currency}</li>
+      <li><Icon name="stand" size={18} />{T.valid}</li>
+      <li><Icon name="pin" size={18} />{L.productionArea}</li>
+    </ul>
+  </PageHero>
+
+  <section class="section--tight">
+    <div class="shell price-top">
+      <nav class="toc" aria-label={T.contents}>
+        <span class="eyebrow">{T.contents}</span>
+        <ul>
+          {GROUPS.map((g) => <li><a href={`#${g.slug}`}>{g.title}</a></li>)}
+        </ul>
+      </nav>
+      <div class="rules">
+        <h2 class="h3">{T.termsH}</h2>
+        <ul class="rules__list">
+          {TERMS.map((t) => <li>{t}</li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {
+    GROUPS.map((g) => (
+      <section class="section--tight" id={g.slug}>
+        <div class="shell">
+          <h2 class="h2 grp__title">{g.title}</h2>
+          <table class="price">
+            <thead>
+              <tr>
+                <th scope="col">{T.colItem}</th>
+                <th scope="col">{T.colPrice}</th>
+                <th scope="col">{T.colUnit}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {g.rows.map((r) => (
+                <tr>
+                  <th scope="row">{r.title}</th>
+                  <td class="price__val">{r.price}</td>
+                  <td class="price__unit">{r.unit}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {g.note && <p class="note">{g.note}</p>}
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="section">
+    <div class="shell"><CtaBand /></div>
+  </section>
+</Base>
+
+<style>
+  .terms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    margin-top: 26px;
+  }
+  .terms li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .terms :global(svg) {
+    color: var(--olive);
+    flex-shrink: 0;
+  }
+
+  .price-top {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+  .toc ul {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 14px;
+  }
+  .toc a {
+    display: block;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--ink);
+    font-size: 15px;
+  }
+  .toc a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--olive);
+  }
+
+  /* Условия работы — единственная крупная заливка на странице, как в 1b. */
+  .rules {
+    background: var(--lime);
+    border-radius: var(--radius);
+    padding: 32px 36px;
+  }
+  .rules__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 32px;
+    margin-top: 18px;
+  }
+  .rules__list li {
+    position: relative;
+    padding-left: 18px;
+    font-size: 15px;
+    line-height: 24px;
+    color: var(--olive-ink);
+  }
+  .rules__list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 8px;
+    height: 1px;
+    background: currentColor;
+  }
+
+  .grp__title {
+    margin-bottom: 24px;
+  }
+  /* Таблица на линиях, без заливок — приём визуального слоя 1b. */
+  .price {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .price th,
+  .price td {
+    text-align: left;
+    padding: 16px 20px 16px 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: baseline;
+  }
+  .price thead th {
+    padding-top: 0;
+    border-bottom-color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .price tbody th {
+    font-size: 17px;
+    font-weight: 600;
+    width: 56%;
+  }
+  .price__val {
+    width: 26%;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--olive-ink);
+    white-space: nowrap;
+  }
+  .price__unit {
+    width: 18%;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .note {
+    margin-top: 18px;
+    max-width: 78ch;
+    font-size: 15px;
+    line-height: 24px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 980px) {
+    .price-top {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+    }
+    .rules__list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 720px) {
+    /* На телефоне таблица разворачивается в карточки-строки. */
+    .price thead {
+      display: none;
+    }
+    .price tbody th,
+    .price td {
+      display: block;
+      width: auto;
+      border-bottom: 0;
+      padding: 0;
+    }
+    .price tbody tr {
+      display: block;
+      padding-block: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .price__val {
+      margin-top: 6px;
+    }
+    .price__unit {
+      margin-top: 2px;
+    }
+    .rules {
+      padding: 26px 22px;
+    }
+  }
+</style>

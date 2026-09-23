@@ -28,7 +28,7 @@ const L = {
     siteTitle: 'SIGNUP DXB — выставки в Дубае под ключ',
     siteDescription:
       'Организуем участие в выставках в Дубае и Абу-Даби под ключ: стенд, печать, персонал, питание, логистика, консьерж-сервис. Собственное производство наружной рекламы.',
-    nav: ['Выставки под ключ', 'Производство', 'Консьерж-сервис', 'Контакты'],
+    nav: ['Выставки под ключ', 'Производство', 'Прайс', 'Консьерж-сервис', 'Контакты'],
   },
   en: {
     hours: 'Daily, 9 am – 8 pm',
@@ -45,7 +45,7 @@ const L = {
     siteTitle: 'SIGNUP DXB — turnkey exhibitions in Dubai',
     siteDescription:
       'Turnkey exhibition participation in Dubai and Abu Dhabi: stand, print, staff, catering, logistics and concierge. In-house production of outdoor advertising.',
-    nav: ['Turnkey exhibitions', 'Production', 'Concierge', 'Contacts'],
+    nav: ['Turnkey exhibitions', 'Production', 'Price list', 'Concierge', 'Contacts'],
   },
 } as const;
 
@@ -56,6 +56,6 @@ export const SITE_NAME = 'SIGNUP DXB';
 
 export type NavItem = { href: string; label: string };
 
-const NAV_HREFS = ['/exhibitions/', '/production/', '/exhibitions/concierge/', '/contacts/'];
+const NAV_HREFS = ['/exhibitions/', '/production/', '/prices/', '/exhibitions/concierge/', '/contacts/'];
 
 export const nav = (lang: Lang): NavItem[] => NAV_HREFS.map((href, i) => ({ href, label: L[lang].nav[i] }));
