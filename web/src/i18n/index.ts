@@ -23,6 +23,12 @@ export function splitPath(pathname: string): { lang: Lang; path: string } {
 
 export const getLang = (url: URL): Lang => splitPath(url.pathname).lang;
 
+/**
+ * Путь для языковых ссылок и hreflang. У страницы 404 нет адреса в других
+ * языках — переключатель и альтернативы ведут на главную своего языка.
+ */
+export const altPath = (path: string): string => (path === '/404' || path === '/404/' ? '/' : path);
+
 /** Внутренняя ссылка: подпапка сайта + языковой префикс + путь. */
 export function link(path: string, lang: Lang = DEFAULT_LANG): string {
   if (!path.startsWith('/')) return path;

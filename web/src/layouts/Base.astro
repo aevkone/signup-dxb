@@ -3,9 +3,9 @@ import '@fontsource-variable/montserrat';
 import '@/styles/global.css';
 import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
-import { LANGS, DEFAULT_LANG, getLang, link, splitPath } from '@/i18n';
+import { LANGS, DEFAULT_LANG, altPath, getLang, link, splitPath } from '@/i18n';
 import { ui } from '@/i18n/ui';
-import { SITE_NAME, local } from '@/consts';
+import { SITE_NAME, CONTACTS, local } from '@/consts';
 
 interface Props {
   title?: string;
@@ -17,7 +17,34 @@ const L = local(lang);
 const { title, description = L.siteDescription } = Astro.props;
 const fullTitle = title ? `${title} — ${SITE_NAME}` : L.siteTitle;
 const { path } = splitPath(Astro.url.pathname);
-const abs = (l: (typeof LANGS)[number]) => new URL(link(path, l), Astro.site).href;
+const abs = (l: (typeof LANGS)[number]) => new URL(link(altPath(path), l), Astro.site).href;
+
+/**
+ * Превью на GitHub Pages закрывается от поисковиков мета-тегом: robots.txt
+ * там не работает, он читается только из корня домена. На боевом домене
+ * тег не выводится и индексация открыта.
+ */
+const IS_PREVIEW = (Astro.site?.host ?? '').endsWith('github.io');
+
+const ogImage = new URL(link('/img/og.jpg'), Astro.site).href;
+
+/** Микроразметка. Юр. реквизиты добавятся, когда заказчик их пришлёт. */
+const orgLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE_NAME,
+  url: abs(lang),
+  description: L.siteDescription,
+  telephone: CONTACTS.phone,
+  image: ogImage,
+  areaServed: L.exhibitionsArea.split(',').map((a) => ({ '@type': 'City', name: a.trim() })),
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: CONTACTS.phone,
+    contactType: 'sales',
+    availableLanguage: ['ru', 'en'],
+  },
+};
 ---
 
 <!doctype html>
@@ -30,13 +57,22 @@ const abs = (l: (typeof LANGS)[number]) => new URL(link(path, l), Astro.site).hr
     <link rel="canonical" href={abs(lang)} />
     {LANGS.map((l) => <link rel="alternate" hreflang={l} href={abs(l)} />)}
     <link rel="alternate" hreflang="x-default" href={abs(DEFAULT_LANG)} />
+    {IS_PREVIEW && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" href={link('/favicon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={link('/img/icon-180.png')} />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={abs(lang)} />
     <meta property="og:locale" content={lang === 'en' ? 'en_AE' : 'ru_RU'} />
-    <meta name="theme-color" content="#F7F6F4" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="theme-color" content="#DFE0DA" />
+    <script type="application/ld+json" set:html={JSON.stringify(orgLd)} />
   </head>
   <body>
     <a class="skip" href="#main">{ui(lang).skip}</a>

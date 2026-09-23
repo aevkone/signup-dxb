@@ -1,11 +1,12 @@
 ---
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
-import { LANGS, LANG_LABEL, link, splitPath } from '@/i18n';
+import { LANGS, LANG_LABEL, altPath, link, splitPath } from '@/i18n';
 import { ui } from '@/i18n/ui';
 import { nav, CONTACTS } from '@/consts';
 
-const { lang, path } = splitPath(Astro.url.pathname);
+const { lang, path: rawPath } = splitPath(Astro.url.pathname);
+const path = altPath(rawPath);
 const t = ui(lang);
 const items = nav(lang);
 const isActive = (href: string) =>

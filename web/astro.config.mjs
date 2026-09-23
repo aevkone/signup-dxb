@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 
 // Адрес и подпапка сайта задаются при сборке:
 //   GitHub Pages — SITE_URL=https://<аккаунт>.github.io, BASE_PATH=/<репозиторий>
@@ -10,6 +11,12 @@ const BASE = process.env.BASE_PATH ?? '/';
 export default defineConfig({
   site: SITE,
   base: BASE,
+  integrations: [
+    sitemap({
+      i18n: { defaultLocale: 'ru', locales: { ru: 'ru-RU', en: 'en-AE' } },
+      filter: (page) => !page.includes('/404'),
+    }),
+  ],
   trailingSlash: 'always',
   build: { format: 'directory', inlineStylesheets: 'auto' },
   compressHTML: true,
