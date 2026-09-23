@@ -11,6 +11,9 @@ export type Lead = Record<string, string>;
 
 const WA_NUMBER = '971502457669';
 
+/** Предел на макет. Телеграм принимает до 50 МБ, но 10 хватает и грузится быстро. */
+export const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
 const TEXT = {
   ru: {
     head: 'Заявка с сайта SIGNUP DXB',
@@ -55,14 +58,28 @@ export function whatsappLink(lead: Lead): string {
   return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(leadToText(lead))}`;
 }
 
-export async function sendLead(lead: Lead): Promise<'sent' | 'whatsapp'> {
+/**
+ * Отправляет заявку. Если приложен файл — уходит multipart, иначе JSON.
+ * Через WhatsApp файл не передать: ссылка wa.me умеет только текст, поэтому
+ * форма отдельно просит приложить макет в переписке.
+ */
+export async function sendLead(lead: Lead, file?: File | null): Promise<'sent' | 'whatsapp'> {
   const payload = { ...lead, lang: pageLang().toUpperCase(), page: location.pathname };
+  const url = `${import.meta.env.BASE_URL.replace(/\/+$/, '')}/api/lead`;
   try {
-    const res = await fetch(`${import.meta.env.BASE_URL.replace(/\/+$/, '')}/api/lead`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    let res: Response;
+    if (file && file.size <= MAX_FILE_BYTES) {
+      const fd = new FormData();
+      for (const [k, v] of Object.entries(payload)) fd.append(k, v);
+      fd.append('file', file, file.name);
+      res = await fetch(url, { method: 'POST', body: fd });
+    } else {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    }
     if (res.ok) {
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean };
       if (data.ok) return 'sent';

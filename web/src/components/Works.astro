@@ -1,0 +1,81 @@
+---
+/**
+ * Галерея выполненных работ. Если снимков ещё нет — не рендерит ничего,
+ * чтобы на сайте не висели пустые плашки. См. data/works.ts.
+ */
+import { getLang } from '@/i18n';
+import { works, workNote, workTitle } from '@/data/works';
+
+interface Props {
+  title: string;
+  sub?: string;
+}
+const { title, sub } = Astro.props;
+const lang = getLang(Astro.url);
+const LIST = works();
+---
+
+{
+  LIST.length > 0 && (
+    <section class="section">
+      <div class="shell">
+        <div class="sec-head">
+          <div>
+            <h2 class="h2">{title}</h2>
+            {sub && <p class="measure sec-head__sub">{sub}</p>}
+          </div>
+        </div>
+        <ul class="works">
+          {LIST.map((w, i) => (
+            <li class="work">
+              <img
+                src={`/img/works/${w.src}`}
+                width={w.width}
+                height={w.height}
+                loading={i < 2 ? 'eager' : 'lazy'}
+                decoding="async"
+                alt={workTitle(w, lang)}
+              />
+              <div class="work__cap">
+                <strong>{workTitle(w, lang)}</strong>
+                {workNote(w, lang) && <span class="caption">{workNote(w, lang)}</span>}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .works {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+  .work img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    background: var(--line-soft);
+  }
+  .work__cap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 14px;
+  }
+  @media (max-width: 1080px) {
+    .works {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .works {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

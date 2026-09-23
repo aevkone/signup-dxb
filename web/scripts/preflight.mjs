@@ -19,7 +19,12 @@ for (const m of consts.matchAll(/^\s*(\w+):\s*'(\[[^']*\])'/gm)) {
   problems.push(`не заполнено в consts.ts: ${m[1]} = ${m[2]}`);
 }
 
-// 2. Обязательные файлы.
+// 2. Почта: нужна на боевом домене, в контактах и подвале.
+if (!/email:\s*'[^']+'/.test(consts)) {
+  problems.push("не заполнено в consts.ts: email (адрес почты для контактов)");
+}
+
+// 3. Обязательные файлы.
 for (const f of ['public/img/og.jpg', 'public/img/icon-180.png', 'public/favicon.svg']) {
   try {
     await access(join(ROOT, f));

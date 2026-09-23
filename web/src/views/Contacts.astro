@@ -10,6 +10,9 @@ import { CONTACTS, local } from '@/consts';
 const lang = getLang(Astro.url);
 const u = ui(lang);
 const L = local(lang);
+
+/** Почта появляется, когда её заведут: пустое значение строку не рисует. */
+const EMAIL = CONTACTS.email;
 const T = {
   ru: {
     title: 'Контакты',
@@ -21,6 +24,8 @@ const T = {
     exh: 'Выставки',
     prod: 'Производство',
     details: 'Реквизиты',
+    mail: 'Почта',
+    activity: 'Вид деятельности',
   },
   en: {
     title: 'Contacts',
@@ -32,6 +37,8 @@ const T = {
     exh: 'Exhibitions',
     prod: 'Production',
     details: 'Company details',
+    mail: 'Email',
+    activity: 'Licensed activity',
   },
 }[lang];
 ---
@@ -40,7 +47,7 @@ const T = {
   <PageHero title={T.title} lead={T.lead} crumbs={[{ label: T.title }]} />
 
   <section class="section--tight" style="padding-top:0">
-    <div class="shell grid grid--3">
+    <div class:list={['shell', 'grid', EMAIL ? 'grid--4' : 'grid--3']}>
       <a class="card card--link c" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
         <Icon name="whatsapp" size={28} />
         <span class="caption">WhatsApp</span>
@@ -53,6 +60,18 @@ const T = {
         <strong>{CONTACTS.phone}</strong>
         <span class="more">{T.call} <Icon name="arrow" size={16} /></span>
       </a>
+      {
+        EMAIL && (
+          <a class="card card--link c" href={`mailto:${EMAIL}`}>
+            <Icon name="mail" size={28} />
+            <span class="caption">{T.mail}</span>
+            <strong>{EMAIL}</strong>
+            <span class="more">
+              {T.write} <Icon name="arrow" size={16} />
+            </span>
+          </a>
+        )
+      }
       <div class="card c">
         <Icon name="clock" size={28} />
         <span class="caption">{u.hours}</span>
@@ -74,6 +93,7 @@ const T = {
         <span class="eyebrow">{T.details}</span>
         <p>{L.legalName}</p>
         <p class="caption">{u.licence} {L.licence} · {L.address}</p>
+        <p class="caption req__act">{T.activity}: {L.licenceActivity}</p>
       </div>
     </div>
   </section>

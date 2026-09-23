@@ -2,6 +2,7 @@
 import Base from '@/layouts/Base.astro';
 import Icon from '@/components/Icon.astro';
 import Configurator from '@/components/Configurator.astro';
+import Works from '@/components/Works.astro';
 import LeadForm from '@/components/LeadForm.astro';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
@@ -35,6 +36,8 @@ const T = {
       ['/production/', 'Наружная реклама и производство', 'Девять направлений: свет, печать, транспорт, витрины, полиграфия.', 'Открыть каталог'],
       ['/exhibitions/concierge/', 'Консьерж-сервис', 'Встреча, размещение, сим-карты, обмен валюты, перемещение по городу.', 'Что входит'],
     ],
+    worksH: 'Наши работы',
+    worksSub: 'Снимки с объектов и выставок: что именно делали и где.',
     entriesH: 'Три входа — выберите свой',
     entriesSub: 'Полный цикл — от контракта до демонтажа. Клиент берёт как весь пакет, так и отдельные блоки.',
     inclH: 'Что входит в работу под ключ',
@@ -80,6 +83,8 @@ const T = {
       ['/production/', 'Outdoor advertising & production', 'Nine directions: lighting, print, vehicles, shop windows, printing.', 'Open the catalogue'],
       ['/exhibitions/concierge/', 'Concierge service', 'Arrival, accommodation, SIM cards, currency exchange, getting around the city.', 'What’s included'],
     ],
+    worksH: 'Our work',
+    worksSub: 'Photos from sites and exhibitions: what exactly we did and where.',
     entriesH: 'Three ways in — pick yours',
     entriesSub: 'The full cycle — from contract to breakdown. Take the whole package or individual blocks.',
     inclH: 'What turnkey service includes',
@@ -195,6 +200,8 @@ const T = {
       </div>
     </div>
   </section>
+
+  <Works title={T.worksH} sub={T.worksSub} />
 
   <section class="section section--surface" id="calc">
     <div class="shell">

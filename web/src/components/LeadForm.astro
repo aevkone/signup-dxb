@@ -40,7 +40,16 @@ const { title = t.leadTitle, context } = Astro.props;
     </a>
   </div>
 
-  <form class="lead__form card" data-lead-form data-submit={t.submit} data-sending={t.sending} novalidate>
+  <form
+    class="lead__form card"
+    data-lead-form
+    data-submit={t.submit}
+    data-sending={t.sending}
+    data-attach-big={t.attachBig}
+    data-attach-wa={t.attachWa}
+    data-attach-hint={t.attachHint}
+    novalidate
+  >
     <label class="field">
       <span>{t.name}</span>
       <input class="input" name="name" autocomplete="name" placeholder={t.namePh} />
@@ -53,6 +62,21 @@ const { title = t.leadTitle, context } = Astro.props;
       <span>{t.task}</span>
       <textarea class="textarea" name="task" rows="3" placeholder={t.taskPh}>{context}</textarea>
     </label>
+    <div class="field">
+      <span>{t.attach}</span>
+      <label class="attach" data-attach>
+        <input
+          type="file"
+          name="file"
+          class="visually-hidden"
+          data-file
+          accept=".pdf,.png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.psd,.cdr,.zip,.rar,image/*,application/pdf"
+        />
+        <span class="attach__btn">{t.attachPick}</span>
+        <span class="attach__name caption" data-file-name>{t.attachHint}</span>
+      </label>
+      <button type="button" class="attach__drop caption" data-file-drop hidden>{t.attachDrop}</button>
+    </div>
     <p class="lead__error" data-error hidden>{t.noContact}</p>
     <button class="btn btn--primary" type="submit">{t.submit}</button>
     <p class="caption">
@@ -69,35 +93,116 @@ const { title = t.leadTitle, context } = Astro.props;
 </div>
 
 <script>
-  import { sendLead } from '@/scripts/lead';
+  import { MAX_FILE_BYTES, sendLead } from '@/scripts/lead';
 
   document.querySelectorAll<HTMLFormElement>('[data-lead-form]').forEach((form) => {
     const error = form.querySelector<HTMLElement>('[data-error]')!;
     const done = form.querySelector<HTMLElement>('[data-done]')!;
     const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const fileInput = form.querySelector<HTMLInputElement>('[data-file]');
+    const fileName = form.querySelector<HTMLElement>('[data-file-name]');
+    const fileDrop = form.querySelector<HTMLButtonElement>('[data-file-drop]');
+    /** Исходный текст ошибки про контакт — его затирают сообщения о файле. */
+    const noContactText = error.textContent ?? '';
+    const fail = (text: string) => {
+      error.textContent = text;
+      error.hidden = false;
+    };
+
+    const clearFile = () => {
+      if (!fileInput) return;
+      fileInput.value = '';
+      if (fileName) fileName.textContent = form.dataset.attachHint!;
+      if (fileDrop) fileDrop.hidden = true;
+    };
+
+    fileInput?.addEventListener('change', () => {
+      const f = fileInput.files?.[0];
+      if (!f) return clearFile();
+      if (f.size > MAX_FILE_BYTES) {
+        fail(form.dataset.attachBig!);
+        clearFile();
+        return;
+      }
+      error.hidden = true;
+      const mb = (f.size / 1024 / 1024).toFixed(1);
+      if (fileName) fileName.textContent = `${f.name} · ${mb} МБ`;
+      if (fileDrop) fileDrop.hidden = false;
+    });
+
+    fileDrop?.addEventListener('click', clearFile);
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+      const fd = new FormData(form);
+      const file = fileInput?.files?.[0] ?? null;
+      fd.delete('file');
+      const data = Object.fromEntries(fd) as Record<string, string>;
       if (!data.contact?.trim()) {
-        error.hidden = false;
+        fail(noContactText);
         form.querySelector<HTMLInputElement>('[name="contact"]')?.focus();
         return;
       }
       error.hidden = true;
       btn.disabled = true;
       btn.textContent = form.dataset.sending!;
-      const how = await sendLead(data);
+      const how = await sendLead(data, file);
       btn.disabled = false;
       btn.textContent = form.dataset.submit!;
       if (how === 'sent') {
         form.reset();
+        clearFile();
         done.hidden = false;
+      } else if (file) {
+        // WhatsApp открывается ссылкой — файл туда не уедет, просим приложить.
+        fail(form.dataset.attachWa!);
       }
     });
   });
 </script>
 <style>
+  .attach {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    cursor: pointer;
+  }
+  .attach__btn {
+    display: inline-flex;
+    align-items: center;
+    height: 44px;
+    padding-inline: 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--pill);
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: border-color 0.18s ease;
+  }
+  .attach:hover .attach__btn {
+    border-color: var(--ink);
+  }
+  .attach input:focus-visible + .attach__btn {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .attach__name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .attach__drop {
+    align-self: flex-start;
+    margin-top: 8px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font: inherit;
+    font-size: 14px;
+    text-decoration: underline;
+    cursor: pointer;
+  }
   .lead {
     display: grid;
     grid-template-columns: 1fr 1.1fr;

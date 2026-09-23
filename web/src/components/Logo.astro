@@ -5,8 +5,9 @@
  * Надпись набрана Montserrat и сжата до ширины оригинала; оригинальный
  * узкий гротеск заменится, когда появится утверждённый вектор.
  *
- * Цвета — палитра 1b: радужный спектр заменён оливковым градиентом,
- * значения повторяют --olive-dark / --olive / --lime из global.css.
+ * Цвета — сливовая ветка палитры (--accent и производные). Штриховка
+ * упрощена: убраны внутренняя грань, дублирующая контур панели, и угловая
+ * засечка под надписью — на мелких размерах они сливались в грязь.
  */
 interface Props {
   width?: number;
@@ -20,17 +21,15 @@ const gid = `lg-${Math.random().toString(36).slice(2, 8)}`;
 <svg class={cls} width={width} height={height} viewBox="0 0 776 586" fill="none" role="img" aria-label="SIGNUP DXB">
   <defs>
     <linearGradient id={gid} x1="0.85" y1="0" x2="0.15" y2="1">
-      <stop offset="0" stop-color="#DDE5B6"></stop>
-      <stop offset="0.5" stop-color="#859247"></stop>
-      <stop offset="1" stop-color="#66712F"></stop>
+      <stop offset="0" stop-color="#9A5C9A"></stop>
+      <stop offset="0.55" stop-color="#623062"></stop>
+      <stop offset="1" stop-color="#3F1C3F"></stop>
     </linearGradient>
   </defs>
   <path d="M598 32 L705 78 L705 500 L598 538 Z" fill={`url(#${gid})`}></path>
-  <g stroke="#1C1E1F" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter">
+  <g stroke="#623062" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter">
     <path d="M316 246 V136 L588 38 V462 L544 470"></path>
     <path d="M48 292 V258 L528 128 L598 158"></path>
-    <path d="M538 134 V452 L598 440"></path>
-    <path d="M500 548 H578 V522"></path>
   </g>
   <text
     x="74"
@@ -50,6 +49,6 @@ const gid = `lg-${Math.random().toString(36).slice(2, 8)}`;
     font-family="'Montserrat Variable', Montserrat, sans-serif"
     font-size="42"
     font-weight="400"
-    fill="#1C1E1F">DXB</text
+    fill="#623062">DXB</text
   >
 </svg>
