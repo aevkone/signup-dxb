@@ -9,18 +9,17 @@ export const CONTACTS = {
   phone: '+971 50 245 7669',
   phoneHref: 'tel:+971502457669',
   whatsapp: 'https://wa.me/971502457669',
-  /** Пока пусто — строка почты не выводится, preflight о ней напомнит. */
-  email: '',
+  email: 'info@signupdxb.com',
 } as const;
 
 const L = {
   ru: {
     hours: 'Ежедневно, 9:00–20:00',
     replyTime: 'в течение суток',
-    legalName: '[ЮР. НАЗВАНИЕ КОМПАНИИ]',
-    licence: '[НОМЕР ЛИЦЕНЗИИ]',
+    legalName: 'Kristina Diakina, Sole Professional',
+    licence: '№ 107257, Dubai Development Authority',
     licenceActivity: 'Организация участия в выставках под ключ и дизайн наружной рекламы',
-    address: '[АДРЕС ИЗ ЛИЦЕНЗИИ]',
+    address: 'Dubai Design District, Building 3, Floor 3, Дубай, ОАЭ',
     /** Замер платный, сумма засчитывается в заказ. */
     survey: 'от 500 AED',
     minOrder: 'от 2 000 AED',
@@ -38,10 +37,10 @@ const L = {
   en: {
     hours: 'Daily, 9 am – 8 pm',
     replyTime: 'within 24 hours',
-    legalName: '[COMPANY LEGAL NAME]',
-    licence: '[LICENCE NUMBER]',
+    legalName: 'Kristina Diakina, Sole Professional',
+    licence: 'No. 107257, Dubai Development Authority',
     licenceActivity: 'Turnkey exhibition participation and outdoor advertising design',
-    address: '[ADDRESS PER LICENCE]',
+    address: 'Dubai Design District, Building 3, Floor 3, Dubai, UAE',
     survey: 'from AED 500',
     minOrder: 'from AED 2,000',
     productionArea: 'Dubai, Sharjah, Ajman',
@@ -60,6 +59,13 @@ export type Local = (typeof L)[Lang];
 export const local = (lang: Lang) => L[lang];
 
 export const SITE_NAME = 'SIGNUP DXB';
+
+/**
+ * Лицензия Sole Professional № 107257 (DDA), выдана 29.09.2025.
+ * Срок проверяет preflight: с истёкшей лицензией сборка боевого домена
+ * останавливается. После продления — обновить дату здесь.
+ */
+export const LICENCE_EXPIRES = '2026-09-28';
 
 export type NavItem = { href: string; label: string };
 

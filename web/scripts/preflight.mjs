@@ -24,7 +24,15 @@ if (!/email:\s*'[^']+'/.test(consts)) {
   problems.push("не заполнено в consts.ts: email (адрес почты для контактов)");
 }
 
-// 3. Обязательные файлы.
+// 3. Срок лицензии: на сайте не должен стоять номер истёкшей лицензии.
+const exp = consts.match(/LICENCE_EXPIRES = '(\d{4}-\d{2}-\d{2})'/)?.[1];
+if (exp) {
+  const days = Math.floor((Date.parse(`${exp}T23:59:59+04:00`) - Date.now()) / 86400000);
+  if (days < 0) problems.push(`лицензия истекла ${exp} — продлите и обновите LICENCE_EXPIRES в consts.ts`);
+  else if (days <= 14) console.warn(`preflight: лицензия истекает ${exp}, осталось дней: ${days}`);
+}
+
+// 4. Обязательные файлы.
 for (const f of ['public/img/og.jpg', 'public/img/icon-180.png', 'public/favicon.svg']) {
   try {
     await access(join(ROOT, f));
