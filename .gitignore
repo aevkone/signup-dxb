@@ -17,3 +17,8 @@ docs/*
 .claude/
 .DS_Store
 Thumbs.db
+
+# Рабочие файлы дизайн-процесса — в приватном репозитории
+PRODUCT.md
+DESIGN.md
+.impeccable/

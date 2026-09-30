@@ -268,4 +268,23 @@ const { title = t.leadTitle, context } = Astro.props;
       padding: 22px;
     }
   }
+  /* Форма на тёмной сцене: левая колонка светлая. */
+  :global(.stage) .lead__info {
+    color: var(--on-stage);
+  }
+  :global(.stage) .lead__sub,
+  :global(.stage) .lead__info :global(.caption) {
+    color: var(--on-stage-muted);
+  }
+  :global(.stage) .lead__contacts a,
+  :global(.stage) .lead__contacts span {
+    color: var(--on-stage);
+  }
+  :global(.stage) .lead__contacts li > :global(svg) {
+    color: var(--olive-pastel);
+  }
+  :global(.stage) .lead__info :global(.btn--ghost) {
+    border-color: var(--stage-line);
+    color: var(--on-stage);
+  }
 </style>

@@ -1,5 +1,7 @@
 ---
 import '@fontsource-variable/montserrat';
+import '@fontsource/caveat/cyrillic-600.css';
+import '@fontsource/caveat/latin-600.css';
 import '@/styles/global.css';
 import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
@@ -51,6 +53,11 @@ const orgLd = {
 <html lang={lang}>
   <head>
     <meta charset="utf-8" />
+    <script is:inline>
+      // Анимации включаются, только если скрипт движения реально запустился.
+      document.documentElement.classList.add('js-motion');
+      setTimeout(function () { if (!window.__motionReady) document.documentElement.classList.remove('js-motion'); }, 2500);
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
@@ -71,7 +78,7 @@ const orgLd = {
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImage} />
-    <meta name="theme-color" content="#DFE0DA" />
+    <meta name="theme-color" content="#0F100D" />
     <script type="application/ld+json" set:html={JSON.stringify(orgLd)} />
   </head>
   <body>
@@ -81,5 +88,8 @@ const orgLd = {
       <slot />
     </main>
     <Footer />
+    <script>
+      import '@/scripts/motion';
+    </script>
   </body>
 </html>

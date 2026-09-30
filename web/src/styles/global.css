@@ -5,19 +5,19 @@
 
 :root {
   --ink: #1c1e1f;
-  --base: #dfe0da;
+  --base: #dfe0db;
   --surface: #f5f5f1;
   --surface-alt: #ffffff;
 
   /* Олива — первый экран и крупные плашки. */
-  --olive: #859247;
+  --olive: #879152;
   --olive-dark: #66712f;
   --olive-ink: #4e571f;
   --lime: #dde5b6;
 
   /* Слива — единственный цвет действия. Больше ничем не красим. */
-  --accent: #623062;
-  --accent-hover: #4a244a;
+  --accent: #59335f;
+  --accent-hover: #47284d;
 
   --muted: #5d5f5b;
   --line: #c9cbc2;
@@ -26,6 +26,19 @@
   --disabled-ink: #a5a8a0;
   --ok: #3f7a5e;
   --warn: #a8544f;
+
+  /* Тёмная «сцена» — шапка, первый экран, полосы и подвал (грамматика образца). */
+  --stage: #0f100d;
+  --stage-2: #1a1b17;
+  --stage-line: rgb(255 255 255 / 0.14);
+  --on-stage: #f2f2ec;
+  --on-stage-muted: #b3b6ab;
+  /* Слива светлее — для ссылок и кантов на чёрном (контраст ≥ 4.5). */
+  --plum-bright: #c190c8;
+  /* Пастельная олива — рукописный акцент и «скотч» на фото. */
+  --olive-pastel: #d2d8a8;
+  --script: 'Caveat', 'Segoe Script', cursive;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   --radius: 28px;
   --radius-sm: 16px;
@@ -376,9 +389,6 @@ ol {
   border-radius: var(--radius);
   padding: 28px;
 }
-.card--edge {
-  border-left: 3px solid var(--olive);
-}
 .card--link {
   display: flex;
   flex-direction: column;
@@ -482,4 +492,174 @@ ol {
     align-items: flex-start;
     margin-bottom: 28px;
   }
+}
+
+/* ---------- Мир SIGNUP DXB по мотивам exhibithappy.com ---------- */
+
+::selection {
+  background: var(--olive-pastel);
+  color: var(--stage);
+}
+html {
+  scrollbar-color: var(--accent) var(--base);
+}
+:focus-visible {
+  outline-color: var(--plum-bright);
+}
+
+/* Одно рукописное слово на заголовок — акцент образца. */
+.script {
+  font-family: var(--script);
+  font-weight: 600;
+  font-size: 1.12em;
+  letter-spacing: 0;
+  color: var(--accent);
+  line-height: 0.9;
+}
+.stage .script {
+  color: var(--olive-pastel);
+}
+
+/* Тёмная секция. */
+.stage {
+  background: var(--stage);
+  color: var(--on-stage);
+}
+.stage .lead,
+.stage .sec-head__sub,
+.stage .caption {
+  color: var(--on-stage-muted);
+}
+.stage a:not(.btn):not(.arrow-link) {
+  color: var(--plum-bright);
+}
+/* Форма заявки на тёмной сцене: левая колонка светлая. */
+.stage .lead__info {
+  color: var(--on-stage);
+}
+.stage .lead__info .lead__sub,
+.stage .lead__info .caption {
+  color: var(--on-stage-muted);
+}
+.stage .lead__info .lead__contacts a,
+.stage .lead__info .lead__contacts span:not(.caption) {
+  color: var(--on-stage);
+}
+/* Строка условий под заголовком внутренних страниц. */
+.phero.stage .terms li {
+  color: var(--on-stage-muted);
+}
+.phero.stage .terms a {
+  color: var(--on-stage);
+}
+.stage .lead__info .btn--ghost {
+  border-color: var(--stage-line);
+  color: var(--on-stage);
+}
+.stage .lead__info .btn--ghost:hover {
+  border-color: var(--olive-pastel);
+  color: var(--olive-pastel);
+}
+
+/* Кнопки образца: заливка сливой и кант. */
+.btn--outline-plum {
+  background: transparent;
+  border: 2px solid var(--plum-bright);
+  color: var(--on-stage);
+}
+.btn--outline-plum:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn--light {
+  background: var(--on-stage);
+  color: var(--stage);
+}
+.btn--light:hover {
+  background: #fff;
+  color: var(--stage);
+}
+
+/* Ссылка со стрелкой в кружке, как «Explore More →» у образца. */
+.arrow-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  color: inherit;
+}
+.arrow-link__disc {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--olive);
+  color: var(--stage);
+  transition: transform 0.3s var(--ease-out);
+}
+.arrow-link:hover .arrow-link__disc {
+  transform: translateX(4px);
+}
+.stage .arrow-link {
+  color: var(--on-stage);
+}
+.stage .arrow-link__disc {
+  background: var(--olive-pastel);
+}
+
+/* «Скотч» на фотографиях — полоска пастельной оливы. */
+.taped {
+  position: relative;
+}
+.taped::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  width: 38%;
+  height: 26px;
+  top: -12px;
+  left: 50%;
+  translate: -50% 0;
+  rotate: -3deg;
+  background: rgb(210 216 168 / 0.88);
+  mix-blend-mode: multiply;
+}
+.stage .taped::before {
+  mix-blend-mode: normal;
+  background: rgb(210 216 168 / 0.8);
+}
+
+/* Появление при прокрутке: контент виден по умолчанию, анимация — только
+   когда скрипт на месте и пользователь не просил меньше движения. */
+.js-motion [data-reveal] {
+  opacity: 0;
+  translate: 0 28px;
+  transition:
+    opacity 0.7s var(--ease-out),
+    translate 0.7s var(--ease-out);
+  transition-delay: var(--d, 0ms);
+}
+.js-motion [data-reveal].is-in {
+  opacity: 1;
+  translate: 0 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .js-motion [data-reveal] {
+    opacity: 1;
+    translate: none;
+  }
+}
+
+/* Призрачная кнопка на тёмной сцене. */
+.stage .btn--ghost {
+  background: transparent;
+  border-color: var(--stage-line);
+  color: var(--on-stage);
+}
+.stage .btn--ghost:hover {
+  border-color: var(--olive-pastel);
+  color: var(--olive-pastel);
 }

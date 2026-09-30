@@ -3,23 +3,27 @@
  * Логотип SIGNUP DXB — вариант, выбранный заказчиком 07.09.2026 в группе
  * проекта (объёмный портал с подсветкой, строчное «signup»). Исходник —
  * растр 640×640 из ChatGPT: белый фон убран, вектора пока нет.
- * Оригинал с прозрачностью: public/img/logo.png.
+ * Оригинал с прозрачностью: public/img/logo.png; для тёмного фона —
+ * logo-dark-bg.png (серые тона инвертированы, тёплая подсветка сохранена).
  */
 import { link } from '@/i18n';
 
 interface Props {
   width?: number;
   class?: string;
+  /** light — светлый логотип для тёмного фона. */
+  tone?: 'dark' | 'light';
 }
-const { width = 72, class: cls } = Astro.props;
+const { width = 72, class: cls, tone = 'dark' } = Astro.props;
+const f = tone === 'light' ? 'logo-light' : 'logo';
 const height = Math.round((width * 635) / 640);
 ---
 
 <picture class={cls}>
-  <source type="image/webp" srcset={`${link('/img/logo-160.webp')} 160w, ${link('/img/logo-320.webp')} 320w`} sizes={`${width}px`} />
+  <source type="image/webp" srcset={`${link(`/img/${f}-160.webp`)} 160w, ${link(`/img/${f}-320.webp`)} 320w`} sizes={`${width}px`} />
   <img
-    src={link('/img/logo-160.png')}
-    srcset={`${link('/img/logo-160.png')} 160w, ${link('/img/logo-320.png')} 320w`}
+    src={link(`/img/${f}-160.png`)}
+    srcset={`${link(`/img/${f}-160.png`)} 160w, ${link(`/img/${f}-320.png`)} 320w`}
     sizes={`${width}px`}
     width={width}
     height={height}

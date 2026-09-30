@@ -14,7 +14,7 @@ const year = new Date().getFullYear();
   <div class="shell">
     <div class="ftr__grid">
       <div class="ftr__about">
-        <Logo width={96} class="ftr__logo" />
+        <Logo width={92} tone="light" />
         <p>{t.footerAbout}</p>
         <p class="ftr__area">{t.footerExhibitions}: {L.exhibitionsArea}.<br />{t.footerProduction}: {L.productionArea}.</p>
       </div>
@@ -55,15 +55,8 @@ const year = new Date().getFullYear();
   </div>
 </footer>
 <style>
-  /* Логотип тёмный — в подвале он лежит на светлой плашке. */
-  .ftr__logo {
-    display: inline-block;
-    padding: 10px 12px 8px;
-    background: var(--surface);
-    border-radius: var(--radius-sm);
-  }
   .ftr {
-    background: var(--ink);
+    background: var(--stage);
     color: #b9bcc2;
     padding-block: 64px 36px;
     font-size: 15px;

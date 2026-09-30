@@ -192,4 +192,12 @@ const img = (id: string, w: number, ext = 'webp') => link(`/img/works/w${id}-${w
       grid-template-columns: minmax(0, 1fr);
     }
   }
+  :global(.phero) .toc a {
+    color: var(--on-stage);
+    border-color: var(--stage-line);
+  }
+  :global(.phero) .toc a:hover {
+    border-color: var(--olive-pastel);
+    color: var(--olive-pastel);
+  }
 </style>
