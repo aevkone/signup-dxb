@@ -8,6 +8,8 @@
   --base: #dfe0db;
   --surface: #f5f5f1;
   --surface-alt: #ffffff;
+  /* Светлая ступень того же серого — для чередования светлых секций. */
+  --base-soft: #ebece7;
 
   /* Олива — первый экран и крупные плашки. */
   --olive: #879152;
@@ -373,7 +375,7 @@ ol {
 }
 .input::placeholder,
 .textarea::placeholder {
-  color: var(--disabled-ink);
+  color: #6f726b;
 }
 .input:focus,
 .textarea:focus {
@@ -532,6 +534,16 @@ html {
 }
 .stage a:not(.btn):not(.arrow-link) {
   color: var(--plum-bright);
+}
+/* Светлая карточка на тёмной сцене (форма заявки): свой тёмный текст. */
+.stage .card {
+  color: var(--ink);
+}
+.stage .card .caption {
+  color: var(--muted);
+}
+.stage .card a:not(.btn):not(.arrow-link) {
+  color: var(--accent);
 }
 /* Форма заявки на тёмной сцене: левая колонка светлая. */
 .stage .lead__info {

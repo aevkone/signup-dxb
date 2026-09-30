@@ -142,7 +142,7 @@ const i18n = {
   </div>
 
   <aside class="cfg__summary card" aria-live="polite">
-    <div class="eyebrow">{c.summary}</div>
+    <h3 class="cfg__sum-h">{c.summary}</h3>
     <dl data-summary></dl>
     <p class="caption">{c.summaryNote(L.minOrder)}</p>
   </aside>
@@ -399,6 +399,11 @@ const i18n = {
     display: flex;
     flex-direction: column;
     gap: 18px;
+  }
+  .cfg__sum-h {
+    font-size: 20px;
+    line-height: 26px;
+    font-weight: 700;
   }
   .cfg__summary :global(dl) {
     margin: 0;

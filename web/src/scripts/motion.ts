@@ -106,10 +106,10 @@ document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((root) => {
     slides.forEach((s, k) => s.classList.toggle('is-active', k === i));
     if (counter) counter.textContent = `${i + 1} / ${slides.length}`;
   };
-  const go = (i: number) => {
+  const go = (i: number, instant = false) => {
     const n = (i + slides.length) % slides.length;
     const s = slides[n];
-    track.scrollTo({ left: s.offsetLeft - (track.clientWidth - s.clientWidth) / 2, behavior: reduce ? 'auto' : 'smooth' });
+    track.scrollTo({ left: s.offsetLeft - (track.clientWidth - s.clientWidth) / 2, behavior: reduce || instant ? 'auto' : 'smooth' });
   };
 
   // Активный кадр — тот, что ближе всего к центру дорожки.
@@ -141,8 +141,10 @@ document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((root) => {
   slides.forEach((s, k) => s.addEventListener('click', (e) => {
     if (k !== active) { e.preventDefault(); go(k); }
   }));
-  setActive(0);
-  requestAnimationFrame(() => go(0));
+  // Начинаем со второго кадра: у активного серые соседи с обеих сторон.
+  const first = Math.min(1, slides.length - 1);
+  setActive(first);
+  requestAnimationFrame(() => go(first, true));
 });
 
 /* ---------- 2. Фото карточек следует за курсором ---------- */

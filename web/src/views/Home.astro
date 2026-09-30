@@ -21,7 +21,6 @@ const CATS = categories(lang);
 
 const T = {
   ru: {
-    chip: 'Дубай · Абу-Даби · Шарджа · Аджман',
     h1pre: 'Организуем участие в выставках в Дубае',
     h1script: 'под ключ',
     scriptFirst: false,
@@ -60,9 +59,9 @@ const T = {
     worksSub: 'Примеры изготовленных конструкций: световые вывески, неон, интерьерные логотипы, навигация.',
     worksAll: 'Все работы',
     entriesH: 'Три входа — выберите свой',
-    entriesSub: 'Полный цикл — от контракта до демонтажа. Клиент берёт как весь пакет, так и отдельные блоки.',
+    entriesSub: 'Выставки, наружная реклама и консьерж-сервис — каждое направление можно заказать отдельно.',
     inclH: 'Что входит в работу под ключ',
-    inclSub: 'Полный цикл — от контракта до демонтажа. Клиент берёт как весь пакет, так и отдельные блоки.',
+    inclSub: 'У каждого блока своя страница с составом работ. Берите все восемь или только нужные.',
     allBlocks: 'Все блоки',
     more: 'Подробнее',
     howH: 'Как мы работаем',
@@ -89,7 +88,6 @@ const T = {
     faqSub: 'Не нашли свой — напишите в WhatsApp, ответим текстом.',
   },
   en: {
-    chip: 'Dubai · Abu Dhabi · Sharjah · Ajman',
     h1pre: 'exhibition participation in Dubai',
     h1script: 'Turnkey',
     scriptFirst: true,
@@ -128,9 +126,9 @@ const T = {
     worksSub: 'Examples of what we build: illuminated signs, neon, interior logos, wayfinding.',
     worksAll: 'All work',
     entriesH: 'Three ways in — pick yours',
-    entriesSub: 'The full cycle — from contract to breakdown. Take the whole package or individual blocks.',
+    entriesSub: 'Exhibitions, outdoor advertising and concierge service — each can be ordered on its own.',
     inclH: 'What turnkey service includes',
-    inclSub: 'The full cycle — from contract to breakdown. Clients take either the whole package or individual blocks.',
+    inclSub: 'Each block has its own page with the scope of work. Take all eight or only the ones you need.',
     allBlocks: 'All blocks',
     more: 'Learn more',
     howH: 'How we work',
@@ -180,7 +178,6 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     </picture>
     <div class="shell hero__grid">
       <div class="hero__copy">
-        <p class="hero__chip">{T.chip}</p>
         <h1 class="hero__title">
           {
             T.scriptFirst ? (
@@ -241,7 +238,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
         <h2 class="h2">{T.introH[0]} <span class="script">{T.introH[1]}</span></h2>
         <p class="intro__text">{T.introText}</p>
         <ul class="promises">
-          {T.why.map(([h, t], i) => (
+          {[T.why[0], T.why[3]].map(([h, t], i) => (
             <li data-reveal style={`--d:${i * 90}ms`}>
               <span class="promises__tick" aria-hidden="true"><Icon name="check" size={16} /></span>
               <div><strong>{h}</strong><span>{t}</span></div>
@@ -273,7 +270,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
         {
           T.entries.map(([href, h, p, m], i) => (
             <a class="entry" href={link(href, lang)} data-reveal style={`--d:${i * 120}ms`}>
-              <div class="entry__media taped" data-drift>
+              <div class="entry__media" data-drift>
                 <picture>
                   <source type="image/webp" srcset={link(`${ENTRY_IMG[i]}.webp`)} />
                   <img src={link(`${ENTRY_IMG[i]}.jpg`)} width="600" height="600" alt="" loading="lazy" />
@@ -375,7 +372,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
       </div>
       <div class="car__nav">
         <button class="car__btn" type="button" data-prev aria-label={T.prev}><Icon name="arrow" size={20} /></button>
-        <span class="car__count" data-counter aria-live="polite">1 / {FEATURED.length}</span>
+        <span class="car__count" data-counter aria-live="polite">2 / {FEATURED.length}</span>
         <button class="car__btn" type="button" data-next aria-label={T.next}><Icon name="arrow" size={20} /></button>
       </div>
     </div>
@@ -480,18 +477,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     gap: 56px;
     align-items: center;
   }
-  .hero__chip {
-    display: inline-block;
-    padding: 8px 16px;
-    border: 1px solid var(--stage-line);
-    border-radius: var(--pill);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.4px;
-    color: var(--on-stage-muted);
-  }
   .hero__title {
-    margin-top: 26px;
     font-size: clamp(40px, 4.9vw, 70px);
     line-height: 1.02;
     font-weight: 800;
@@ -599,13 +585,20 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
   }
   .deck__card[data-pos='1'] {
     z-index: 2;
-    transform: translate(9%, 3%) rotate(5deg) scale(0.96);
-    filter: brightness(0.7);
+    transform: translate(13%, -5%) rotate(7deg) scale(0.94);
+    filter: brightness(0.82);
   }
   .deck__card[data-pos='2'] {
     z-index: 1;
-    transform: translate(-8%, 5%) rotate(-9deg) scale(0.92);
-    filter: brightness(0.5);
+    transform: translate(-13%, 4%) rotate(-10deg) scale(0.9);
+    filter: brightness(0.68);
+  }
+  /* Подпись только у верхней карточки — нижние не выглядывают текстом. */
+  .deck__card figcaption {
+    transition: opacity 0.3s ease;
+  }
+  .deck__card:not([data-pos='0']) figcaption {
+    opacity: 0;
   }
   .deck__card.is-leaving {
     transform: translate(-30%, -6%) rotate(-16deg) scale(0.9);
@@ -625,8 +618,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
   }
   :global(.js-motion) .hero__lead,
   :global(.js-motion) .hero__actions,
-  :global(.js-motion) .hero__facts,
-  :global(.js-motion) .hero__chip {
+  :global(.js-motion) .hero__facts {
     animation: fade 0.8s var(--ease-out) both;
   }
   :global(.js-motion) .hero__lead {
@@ -674,7 +666,6 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     :global(.js-motion) .hero__lead,
     :global(.js-motion) .hero__actions,
     :global(.js-motion) .hero__facts,
-    :global(.js-motion) .hero__chip,
     :global(.js-motion) .deck__card {
       animation: none !important;
     }
@@ -778,7 +769,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
 
   /* ---------- 3. Направления ---------- */
   .entries {
-    background: #fff;
+    background: var(--base-soft);
   }
   .entries__grid {
     display: grid;
@@ -994,7 +985,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
 
   /* ---------- 6. Карусель работ ---------- */
   .works {
-    background: #fff;
+    background: var(--base-soft);
   }
   .car__track {
     display: flex;
@@ -1074,7 +1065,10 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
 
   /* ---------- 7. Цифры: сливовая полоса ---------- */
   .numbers {
-    background: var(--accent);
+    background:
+      radial-gradient(90% 120% at 50% 0%, #74457b 0%, transparent 60%),
+      radial-gradient(70% 90% at 50% 110%, #3a1f3f 0%, transparent 70%),
+      var(--accent);
     color: #fff;
   }
   .numbers__h {
@@ -1114,8 +1108,22 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
   .calc {
     background: var(--base);
   }
+  .lead-band {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .lead-band::before {
+    content: '';
+    position: absolute;
+    inset: auto -10% -45% -10%;
+    height: 80%;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgb(89 51 95 / 0.6), transparent);
+    pointer-events: none;
+  }
   .faqs {
-    background: #fff;
+    background: var(--base-soft);
   }
   .faq {
     display: grid;
