@@ -10,6 +10,8 @@ export const CONTACTS = {
   phoneHref: 'tel:+971502457669',
   whatsapp: 'https://wa.me/971502457669',
   email: 'info@signupdxb.com',
+  /** Instagram основателя: в шапке профиля — «Основатель SIGNUP DXB». */
+  instagram: 'https://www.instagram.com/kris_dkf/',
 } as const;
 
 const L = {

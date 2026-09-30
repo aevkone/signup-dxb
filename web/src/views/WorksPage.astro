@@ -1,0 +1,36 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Works from '@/components/Works.astro';
+import CtaBand from '@/components/CtaBand.astro';
+import { getLang } from '@/i18n';
+import { works } from '@/data/works';
+
+const lang = getLang(Astro.url);
+const T = {
+  ru: {
+    title: 'Наши работы',
+    description: 'Примеры изготовленных конструкций наружной и интерьерной рекламы: световые вывески и буквы, неон, крышные установки, навигация, брендирование интерьеров, витрин и транспорта.',
+    lead: 'Световые вывески и буквы, неон, крышные установки, навигация, интерьерные логотипы, витрины и транспорт. Нажмите на фото, чтобы открыть его крупно.',
+    grid: 'Все работы',
+  },
+  en: {
+    title: 'Our work',
+    description: 'Examples of outdoor and interior advertising we build: illuminated signs and letters, neon, rooftop structures, wayfinding, interior, window and vehicle branding.',
+    lead: 'Illuminated signs and letters, neon, rooftop structures, wayfinding, interior logos, windows and vehicles. Click a photo to open it full size.',
+    grid: 'All work',
+  },
+}[lang];
+---
+
+<Base title={T.title} description={T.description}>
+  <PageHero title={T.title} lead={T.lead} crumbs={[{ label: T.title }]} />
+  <section class="section--tight" style="padding-top:0">
+    <div class="shell">
+      <Works title={T.grid} list={works()} bare />
+    </div>
+  </section>
+  <section class="section">
+    <div class="shell"><CtaBand /></div>
+  </section>
+</Base>

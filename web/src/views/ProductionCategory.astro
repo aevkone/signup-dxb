@@ -3,6 +3,8 @@ import Base from '@/layouts/Base.astro';
 import PageHero from '@/components/PageHero.astro';
 import Icon from '@/components/Icon.astro';
 import LeadForm from '@/components/LeadForm.astro';
+import Works from '@/components/Works.astro';
+import { worksFor } from '@/data/works';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
 import { categories } from '@/data/production';
@@ -24,7 +26,10 @@ const T = {
     quote: 'Заказать расчёт',
     adv: 'Преимущества',
     offer: 'Мы предлагаем',
-    terms: `Цены по запросу. Минимальный заказ ${L.minOrder}. Замер ${L.survey} — засчитывается в стоимость.`,
+    terms: `Ориентировочные цены — в прайсе. Минимальный заказ ${L.minOrder}. Замер ${L.survey} — засчитывается в стоимость.`,
+    pricesLink: 'Открыть прайс',
+    works: 'Примеры работ',
+    worksAll: 'Все работы',
     order: 'Заказать',
     leadTitle: `Заказать: ${c.title.toLowerCase()}`,
     others: 'Другие направления',
@@ -35,7 +40,10 @@ const T = {
     quote: 'Request a quote',
     adv: 'Advantages',
     offer: 'What we offer',
-    terms: `Prices on request. Minimum order ${L.minOrder}. Site survey ${L.survey} — credited towards your order.`,
+    terms: `Indicative prices are in the price list. Minimum order ${L.minOrder}. Site survey ${L.survey} — credited towards your order.`,
+    pricesLink: 'Open the price list',
+    works: 'Examples of our work',
+    worksAll: 'All work',
     order: 'Order',
     leadTitle: `Order: ${c.title.toLowerCase()}`,
     others: 'Other directions',
@@ -77,7 +85,7 @@ const T = {
           <div class="sec-head">
             <div>
               <h2 class="h2">{T.offer}</h2>
-              <p class="sec-head__sub">{T.terms}</p>
+              <p class="sec-head__sub">{T.terms} <a href={link('/prices/', lang)}>{T.pricesLink}</a></p>
             </div>
           </div>
           <div class="grid grid--3 items">
@@ -101,6 +109,8 @@ const T = {
       </section>
     )
   }
+
+  <Works title={T.works} list={worksFor(c.slug).slice(0, 6)} more={{ href: '/works/', label: T.worksAll }} />
 
   {
     c.uae && (

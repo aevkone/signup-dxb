@@ -33,7 +33,7 @@ if (exp) {
 }
 
 // 4. Обязательные файлы.
-for (const f of ['public/img/og.jpg', 'public/img/icon-180.png', 'public/favicon.svg']) {
+for (const f of ['public/img/og.jpg', 'public/img/icon-180.png', 'public/favicon.png']) {
   try {
     await access(join(ROOT, f));
   } catch {

@@ -14,7 +14,7 @@ const year = new Date().getFullYear();
   <div class="shell">
     <div class="ftr__grid">
       <div class="ftr__about">
-        <Logo width={96} />
+        <Logo width={96} class="ftr__logo" />
         <p>{t.footerAbout}</p>
         <p class="ftr__area">{t.footerExhibitions}: {L.exhibitionsArea}.<br />{t.footerProduction}: {L.productionArea}.</p>
       </div>
@@ -24,6 +24,8 @@ const year = new Date().getFullYear();
           <li><a href={link('/exhibitions/', lang)}>{t.turnkey}</a></li>
           <li><a href={link('/production/', lang)}>{t.outdoor}</a></li>
           <li><a href={link('/prices/', lang)}>{t.prices}</a></li>
+          <li><a href={link('/works/', lang)}>{t.works}</a></li>
+          <li><a href={link('/technologies/', lang)}>{t.technologies}</a></li>
           <li><a href={link('/exhibitions/concierge/', lang)}>{t.concierge}</a></li>
           <li><a href={link('/configurator/', lang)}>{t.quickCalc}</a></li>
         </ul>
@@ -41,6 +43,7 @@ const year = new Date().getFullYear();
           <li><a href={CONTACTS.phoneHref}>{CONTACTS.phone}</a></li>
           <li><a href={CONTACTS.whatsapp} target="_blank" rel="noopener">WhatsApp</a></li>
           {CONTACTS.email && <li><a href={`mailto:${CONTACTS.email}`}>{CONTACTS.email}</a></li>}
+          <li><a href={CONTACTS.instagram} target="_blank" rel="noopener">Instagram</a></li>
           <li class="ftr__muted">{L.hours}</li>
         </ul>
       </div>
@@ -52,6 +55,13 @@ const year = new Date().getFullYear();
   </div>
 </footer>
 <style>
+  /* Логотип тёмный — в подвале он лежит на светлой плашке. */
+  .ftr__logo {
+    display: inline-block;
+    padding: 10px 12px 8px;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+  }
   .ftr {
     background: var(--ink);
     color: #b9bcc2;

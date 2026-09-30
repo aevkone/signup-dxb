@@ -1,0 +1,195 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import CtaBand from '@/components/CtaBand.astro';
+import { getLang, link } from '@/i18n';
+import { techSections, uaeNote } from '@/data/technologies';
+import { workById, workTitle } from '@/data/works';
+
+const lang = getLang(Astro.url);
+const SECTIONS = techSections(lang);
+const NOTE = uaeNote(lang);
+const T = {
+  ru: {
+    title: 'Материалы и технологии',
+    crumb: 'Технологии',
+    description: 'Из чего и как делаем наружную рекламу и выставочные конструкции в ОАЭ: плёнки Oracal, пластик, оргстекло, композит, световые буквы, неон, короба, пресс-волы.',
+    lead: 'Из чего и как мы делаем вывески, буквы и выставочные конструкции — чтобы вы понимали, за что платите, и могли выбрать вариант под задачу и бюджет.',
+    contents: 'Разделы',
+  },
+  en: {
+    title: 'Materials & technologies',
+    crumb: 'Technologies',
+    description: 'What we use to build outdoor advertising and exhibition structures in the UAE: Oracal films, PVC, acrylic, composite, illuminated letters, neon, lightboxes, press walls.',
+    lead: 'What we build signs, letters and exhibition structures from, and how — so you know what you are paying for and can pick the option that fits the task and the budget.',
+    contents: 'Sections',
+  },
+}[lang];
+const img = (id: string, w: number, ext = 'webp') => link(`/img/works/w${id}-${w}.${ext}`);
+---
+
+<Base title={T.title} description={T.description}>
+  <PageHero title={T.title} lead={T.lead} crumbs={[{ label: T.crumb }]}>
+    <nav class="toc" aria-label={T.contents}>
+      {SECTIONS.map((s) => <a href={`#${s.id}`}>{s.title}</a>)}
+    </nav>
+  </PageHero>
+
+  {
+    SECTIONS.map((s, i) => (
+      <>
+        <section class:list={['section--tight', 'tech', i % 2 === 1 && 'tech--alt']} id={s.id}>
+          <div class="shell">
+            <h2 class="h2">{s.title}</h2>
+            {s.lead && <p class="lead measure tech__lead">{s.lead}</p>}
+            <div class:list={['tech__body', !s.photos?.length && 'tech__body--wide']}>
+              <dl class="tech__items">
+                {s.items.map((it) => (
+                  <div class="tech__item">
+                    <dt>{it.title}</dt>
+                    <dd>{it.text}</dd>
+                  </div>
+                ))}
+              </dl>
+              {s.photos && s.photos.length > 0 && (
+                <ul class="tech__photos">
+                  {s.photos.map((id) => {
+                    const w = workById(id);
+                    return (
+                      w && (
+                        <li>
+                          <picture>
+                            <source type="image/webp" srcset={img(id, 600)} />
+                            <img src={img(id, 600, 'jpg')} width="600" height="600" loading="lazy" decoding="async" alt={workTitle(w, lang)} />
+                          </picture>
+                          <span class="caption">{workTitle(w, lang)}</span>
+                        </li>
+                      )
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        </section>
+        {s.id === 'composite' && (
+          <section class="section--tight">
+            <div class="shell">
+              <aside class="uae">
+                <span class="eyebrow">{NOTE.title}</span>
+                <p>{NOTE.text}</p>
+              </aside>
+            </div>
+          </section>
+        )}
+      </>
+    ))
+  }
+
+  <section class="section">
+    <div class="shell"><CtaBand /></div>
+  </section>
+</Base>
+
+<style>
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 26px;
+  }
+  .toc a {
+    padding: 8px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--pill);
+    color: var(--ink);
+    font-size: 15px;
+  }
+  .toc a:hover {
+    border-color: var(--ink);
+  }
+  .tech--alt {
+    background: var(--surface);
+  }
+  .tech__lead {
+    margin-top: 14px;
+  }
+  .tech__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 48px;
+    margin-top: 32px;
+    align-items: start;
+  }
+  .tech__body--wide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tech__items {
+    margin: 0;
+    display: grid;
+    gap: 0;
+  }
+  .tech__item {
+    padding: 18px 0;
+    border-top: 1px solid var(--line);
+  }
+  .tech__item:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .tech__body--wide .tech__items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 40px;
+  }
+  .tech__item dt {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .tech__item dd {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 26px;
+  }
+  .tech__photos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    position: sticky;
+    top: 110px;
+  }
+  .tech__photos img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+  .tech__photos .caption {
+    display: block;
+    margin-top: 8px;
+  }
+  .uae {
+    background: var(--lime);
+    border-radius: var(--radius);
+    padding: 32px 36px;
+  }
+  .uae p {
+    margin-top: 10px;
+    max-width: 78ch;
+    color: var(--olive-ink);
+    font-size: 17px;
+    line-height: 28px;
+  }
+  @media (max-width: 980px) {
+    .tech__body {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 28px;
+    }
+    .tech__photos {
+      position: static;
+    }
+    .tech__body--wide .tech__items {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

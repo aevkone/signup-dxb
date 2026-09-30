@@ -16,9 +16,10 @@ const T = {
     crumb: 'Производство',
     description: 'Собственное производство наружной рекламы в Дубае, Шардже и Аджмане: световые вывески, широкоформатная печать, брендирование транспорта, таблички, витрины, полиграфия и сувениры.',
     lead: (n: number) => `Девять направлений и ${n} позиций собственного производства. Заказывается отдельно от выставки — или вместе с ней.`,
-    prices: (min: string) => `Цены по запросу · минимальный заказ ${min}`,
+    prices: (min: string) => `Ориентировочные цены — в прайсе · минимальный заказ ${min}`,
     survey: (s: string) => `Замер ${s}, засчитывается в стоимость заказа`,
     more: (n: number) => `и ещё ${n}`,
+    tech: 'Материалы и технологии',
     open: 'Открыть',
   },
   en: {
@@ -26,9 +27,10 @@ const T = {
     crumb: 'Production',
     description: 'In-house production of outdoor advertising in Dubai, Sharjah and Ajman: illuminated signs, large-format print, vehicle branding, plaques, shop windows, printing and corporate gifts.',
     lead: (n: number) => `Nine directions and ${n} items made in our own production. Order separately from an exhibition — or together with it.`,
-    prices: (min: string) => `Prices on request · minimum order ${min}`,
+    prices: (min: string) => `Indicative prices in the price list · minimum order ${min}`,
     survey: (s: string) => `Site survey ${s}, credited towards your order`,
     more: (n: number) => `and ${n} more`,
+    tech: 'Materials & technologies',
     open: 'Open',
   },
 }[lang];
@@ -38,8 +40,9 @@ const T = {
   <PageHero title={T.title} lead={T.lead(TOTAL_ITEMS)} crumbs={[{ label: T.crumb }]}>
     <ul class="terms">
       <li><Icon name="pin" size={18} />{L.productionArea}</li>
-      <li><Icon name="payment" size={18} />{T.prices(L.minOrder)}</li>
+      <li><Icon name="payment" size={18} /><a href={link('/prices/', lang)}>{T.prices(L.minOrder)}</a></li>
       <li><Icon name="stand" size={18} />{T.survey(L.survey)}</li>
+      <li><Icon name="arrow" size={18} /><a href={link('/technologies/', lang)}>{T.tech}</a></li>
     </ul>
   </PageHero>
 
