@@ -8,7 +8,7 @@
  * Реализм — материалами и светом: ворс ковра, матовые панели, хромированная ферма
  * из труб, лак стойки, мягкие тени, отражения окружения, прожекторы с конусами,
  * светящиеся LED и короб. На экране и печати — реальные фото работ.
- * Люди — объёмные фигуры в пропорциях человека, без прорисованных лиц.
+ * Люди — объёмные фигуры в пропорциях человека, с нарисованными лицами.
  *
  * Мир в метрах, ось z вверх: площадка 8 × 6, задняя стена вдоль y = 0,
  * боковая — вдоль x = 0, проход посетителей — со стороны +y.
@@ -474,7 +474,8 @@ function makePerson(look: Look): Person {
 }
 
 /* ---------- Сцена ---------- */
-export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
+/** `fonts` — загрузка шрифтов текстур (без ограничения по времени): когда придёт, текст перерисуем. */
+export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, fonts: Promise<unknown> = Promise.resolve()) {
   let renderer: THREE.WebGLRenderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
@@ -500,7 +501,9 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
 
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
   camera.up.set(0, 0, 1);
-  const TARGET = new THREE.Vector3(4, 3, 1.1);
+  // Точка взгляда чуть выше пола: стенд опускается в кадре, и над фермой
+  // остаётся место для подвесного баннера даже при низкой камере.
+  const TARGET = new THREE.Vector3(4, 3, 1.5);
 
   /* Свет */
   scene.add(new THREE.HemisphereLight(0xc9c3d8, 0x16120f, 0.55));
@@ -601,8 +604,11 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
   for (const [x, y, w, d] of [
     [0, 6, 8, 0.03],
     [8, 0, 0.03, 6.03],
-  ])
-    floorG.add(mesh(boxGeo(w, d, F + 0.005), alu, false));
+  ]) {
+    const edge = mesh(boxGeo(w, d, F + 0.005), alu, false);
+    edge.position.set(x, y, 0);
+    floorG.add(edge);
+  }
   scene.add(floorG);
 
   /* Стены из модульных панелей */
@@ -792,8 +798,10 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
     return { g, light, cone, pool, body };
   });
 
-  /* Баннер-кольцо на тросах */
+  /* Баннер-кольцо на тросах. Висит низко над фермой — иначе на крупных
+     планах уходит за верхний край сцены. */
   const banner = new THREE.Group();
+  const HANG = 4.2;
   const BX = 2.6;
   const BY = 1.6;
   const BS = 2.8;
@@ -1040,8 +1048,10 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
   };
 
   /* ---------- Сценарий (те же доли, что у 2D-версии) ---------- */
-  const camDist = tr(42, [[3.0, 16.5], [16, 14], [20, 12.2], [27, 14.5], [32, 17], [36.6, 42]], SOFT);
-  const camEl = tr(62, [[3.0, 31], [16, 27], [20, 15], [26.5, 21], [32, 32], [36.6, 62]], SOFT);
+  // Ближе всего и ниже всего камера, пока висит баннер (доли 14–27): дистанцию и
+  // угол подобрали так, чтобы баннер сверху и угол подиума снизу оставались в кадре.
+  const camDist = tr(42, [[3.0, 16.5], [16, 15.5], [20, 13.7], [27, 16.2], [32, 17], [36.6, 42]], SOFT);
+  const camEl = tr(62, [[3.0, 31], [16, 27], [20, 17], [26.5, 21], [32, 32], [36.6, 62]], SOFT);
   const camDev = tr(0, [[7, -13], [16, -44], [22, -48], [26, -44], [29, -6], [34, 14], [38.5, 0]], SOFT);
   const plotOn = tr(1, [[7.2, 0], [36.0, 1]], FAST);
   const crateSlide = CRATES.map((_, i) => tr(10, [[2.4 + i * 0.3, 0], [33.4 + i * 0.25, 10]], DROP));
@@ -1083,7 +1093,8 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
   const capVis = [tr(1, [[2.0, 0], [36.2, 1]], FAST), wn(2.2, 6.8), wn(7.0, 27.2), wn(27.4, 36.0)];
   const checksVis = tr(1, [[19.6, 0], [32.6, 1]], SOFT);
 
-  /* Шрифты и фото: дорисовать текстуры, когда загрузятся */
+  /* Шрифты и фото: дорисовать текстуры, когда загрузятся.
+     Загрузчик ждёт шрифты до 2,5 с; если они пришли позже — перерисуем здесь. */
   const redrawText = () => {
     printTex.redraw();
     bannerTex.redraw();
@@ -1092,7 +1103,8 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
     labels.forEach((l) => l.t.redraw());
     ledShown = -1;
   };
-  document.fonts?.ready.then(redrawText);
+  fonts.then(redrawText);
+  document.fonts?.addEventListener('loadingdone', redrawText);
   Promise.all(photos.map(loadImg)).then((list) => {
     list.forEach((im, i) => (imgs[i] = im));
     printImg = list[list.length - 1] ?? null;
@@ -1236,7 +1248,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
     /* Баннер */
     const rv = clamp(bannerV(t));
     banner.visible = rv > 0.01;
-    banner.position.set(0, 0, 4.7 + bannerDrop(t));
+    banner.position.set(0, 0, HANG + bannerDrop(t));
 
     /* Мебель вырастает из пола */
     const grow = (o: THREE.Object3D, v: number) => {

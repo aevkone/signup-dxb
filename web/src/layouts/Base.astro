@@ -8,18 +8,30 @@ import Footer from '@/components/Footer.astro';
 import { LANGS, DEFAULT_LANG, altPath, getLang, link, splitPath } from '@/i18n';
 import { ui } from '@/i18n/ui';
 import { SITE_NAME, CONTACTS, local } from '@/consts';
+import { faq } from '@/data/process';
+
+type Crumb = { href?: string; label: string };
 
 interface Props {
   title?: string;
   description?: string;
+  /**
+   * Хлебные крошки для микроразметки — те же, что у PageHero (без «Главной»).
+   * Если не переданы, строятся из заголовка страницы.
+   */
+  crumbs?: Crumb[];
 }
 
 const lang = getLang(Astro.url);
 const L = local(lang);
-const { title, description = L.siteDescription } = Astro.props;
+const { title, description = L.siteDescription, crumbs } = Astro.props;
 const fullTitle = title ? `${title} — ${SITE_NAME}` : L.siteTitle;
 const { path } = splitPath(Astro.url.pathname);
 const abs = (l: (typeof LANGS)[number]) => new URL(link(altPath(path), l), Astro.site).href;
+const absPath = (p: string) => new URL(link(p, lang), Astro.site).href;
+
+const isHome = path === '/';
+const is404 = path.replace(/\/+$/, '') === '/404';
 
 /**
  * Превью на GitHub Pages закрывается от поисковиков мета-тегом: robots.txt
@@ -30,22 +42,83 @@ const IS_PREVIEW = (Astro.site?.host ?? '').endsWith('github.io');
 
 const ogImage = new URL(link('/img/og.jpg'), Astro.site).href;
 
-/** Микроразметка. Юр. реквизиты добавятся, когда заказчик их пришлёт. */
+/**
+ * Микроразметка. Организация описывается одинаково на всех страницах:
+ * url — главная сайта, а не текущая страница. Юр. реквизиты добавятся,
+ * когда заказчик их пришлёт.
+ */
+const homeUrl = new URL(link('/'), Astro.site).href;
+const orgId = `${homeUrl}#organization`;
+
+/** «Dubai Design District, Building 3, Floor 3, Dubai, UAE» → улица без города и страны. */
+const streetAddress = local('en').address.split(',').slice(0, -2).join(',').trim();
+
+/** «Ежедневно, 9:00–20:00» → «Mo-Su 09:00-20:00». Непонятный формат — не выводим. */
+const openingHours = (() => {
+  const m = local('ru').hours.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);
+  if (!m || !/ежедневно/i.test(local('ru').hours)) return undefined;
+  const hh = (h: string) => h.padStart(2, '0');
+  return `Mo-Su ${hh(m[1]!)}:${m[2]}-${hh(m[3]!)}:${m[4]}`;
+})();
+
 const orgLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
+  '@type': ['LocalBusiness', 'ProfessionalService'],
+  '@id': orgId,
   name: SITE_NAME,
-  url: abs(lang),
+  url: homeUrl,
+  logo: new URL(link('/img/logo.png'), Astro.site).href,
+  image: ogImage,
   description: L.siteDescription,
   telephone: CONTACTS.phone,
-  image: ogImage,
+  email: CONTACTS.email,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress,
+    addressLocality: 'Dubai',
+    addressCountry: 'AE',
+  },
+  ...(openingHours ? { openingHours } : {}),
   areaServed: L.exhibitionsArea.split(',').map((a) => ({ '@type': 'City', name: a.trim() })),
+  sameAs: [CONTACTS.instagram],
   contactPoint: {
     '@type': 'ContactPoint',
     telephone: CONTACTS.phone,
+    email: CONTACTS.email,
     contactType: 'sales',
     availableLanguage: ['ru', 'en'],
   },
+};
+
+/** Хлебные крошки — на всех страницах, кроме главной и 404. */
+const crumbList: Crumb[] = crumbs ?? (title ? [{ label: title }] : []);
+const breadcrumbLd =
+  !isHome && !is404 && crumbList.length > 0
+    ? {
+        '@type': 'BreadcrumbList',
+        itemListElement: [{ href: '/', label: ui(lang).home }, ...crumbList].map((c, i, all) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: c.label,
+          item: i === all.length - 1 ? abs(lang) : absPath(c.href ?? '/'),
+        })),
+      }
+    : null;
+
+/** Вопросы с главной — те же, что выводятся в блоке «Частые вопросы». */
+const faqLd = isHome
+  ? {
+      '@type': 'FAQPage',
+      mainEntity: faq(lang).map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    }
+  : null;
+
+const ld = {
+  '@context': 'https://schema.org',
+  '@graph': [orgLd, breadcrumbLd, faqLd].filter(Boolean),
 };
 ---
 
@@ -79,7 +152,7 @@ const orgLd = {
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImage} />
     <meta name="theme-color" content="#0F100D" />
-    <script type="application/ld+json" set:html={JSON.stringify(orgLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(ld).replace(/</g, '\\u003c')} />
   </head>
   <body>
     <a class="skip" href="#main">{ui(lang).skip}</a>

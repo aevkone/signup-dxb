@@ -38,9 +38,54 @@ const T = {
     all: 'Full scope',
   },
 }[lang];
+
+/** Заголовки для поисковиков — с городом. Нет в списке — название блока + город. */
+const META_TITLE: Record<typeof lang, Record<string, string>> = {
+  ru: {
+    'stand-design': 'Дизайн и застройка выставочных стендов в Дубае',
+    print: 'Печать и сувениры для выставки в Дубае',
+    staff: 'Персонал на выставочный стенд в Дубае',
+    catering: 'Кейтеринг на выставочный стенд в Дубае',
+    logistics: 'Выставочная логистика в Дубае',
+    concierge: 'Консьерж-сервис для участников выставок в Дубае',
+    payment: 'Помощь в оплате участия в выставке в Дубае',
+    negotiations: 'Переговоры с организаторами выставок в Дубае',
+  },
+  en: {
+    'stand-design': 'Exhibition stand design & build in Dubai',
+    print: 'Exhibition print & merchandise in Dubai',
+    staff: 'Exhibition stand staff in Dubai',
+    catering: 'Exhibition stand catering in Dubai',
+    logistics: 'Exhibition logistics in Dubai',
+    concierge: 'Concierge for exhibitors in Dubai',
+    payment: 'Help paying for exhibition participation in Dubai',
+    negotiations: 'Negotiations with exhibition organisers in Dubai',
+  },
+};
+const metaTitle = META_TITLE[lang][block.slug] ?? `${block.title} ${lang === 'en' ? 'in Dubai' : 'в Дубае'}`;
+
+/**
+ * Описание для поисковиков — до ~160 знаков: «Название. Лид», если влезает;
+ * иначе только лид, а длинный лид — по целым предложениям.
+ */
+const metaDescription = (() => {
+  const full = `${block.title}. ${block.lead}`;
+  if (full.length <= 160 || block.lead.length <= 160) return full.length <= 160 ? full : block.lead;
+  const sentences = block.lead.split(/(?<=[.!?])\s+/);
+  let out = sentences[0]!;
+  for (const x of sentences.slice(1)) {
+    if (`${out} ${x}`.length > 160) break;
+    out = `${out} ${x}`;
+  }
+  return out;
+})();
 ---
 
-<Base title={block.title} description={`${block.title}. ${block.lead}`}>
+<Base
+  title={metaTitle}
+  description={metaDescription}
+  crumbs={[{ href: '/exhibitions/', label: T.parent }, { label: block.title }]}
+>
   <PageHero title={block.title} lead={block.lead} crumbs={[{ href: '/exhibitions/', label: T.parent }, { label: block.title }]}>
     <div class="hero-actions">
       <a class="btn btn--primary" href="#lead">{T.discuss}</a>

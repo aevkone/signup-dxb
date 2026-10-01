@@ -1,19 +1,32 @@
 ---
 import Icon from './Icon.astro';
 import type { IconName } from './Icon.astro';
-import { getLang } from '@/i18n';
+import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
 import { CONTACTS, local } from '@/consts';
 
 const lang = getLang(Astro.url);
-const c = ui(lang).cfg;
+const t = ui(lang);
+const c = t.cfg;
 const L = local(lang);
 const ICONS: IconName[] = ['talks', 'stand', 'light', 'print', 'staff', 'concierge'];
 
-/** Строки для клиентского скрипта. */
+/**
+ * Ветка второго шага по услуге (порядок как в c.services):
+ * выставка и стенд — площадь и даты, вывеска и печать — размер, количество
+ * и макет, персонал и консьерж — даты и число людей.
+ */
+type Branch = 'expo' | 'prod' | 'staff' | 'concierge';
+const BRANCHES: Branch[] = ['expo', 'expo', 'prod', 'prod', 'staff', 'concierge'];
+
+/** Пробелы внутри сумм и единиц — неразрывные, чтобы «2 000 AED» не рвалось. */
+const nb = (s: string) =>
+  s.replace(/(\d) (?=\d)/g, '$1 ').replace(/ (AED|м²|m²|м|m)(?!\p{L})/gu, ' $1').replace(/AED /g, 'AED ');
+
 /** Первая услуга в списке — выставка под ключ, у неё свой порог бюджета. */
 const EXPO_SERVICE = c.services[0];
 
+/** Строки для клиентского скрипта. */
 const i18n = {
   expoService: EXPO_SERVICE,
   labels: c.labels,
@@ -24,6 +37,10 @@ const i18n = {
   sending: c.sending,
   needService: c.needService,
   needContact: c.needContact,
+  attachHint: t.attachHint,
+  attachBig: t.attachBig,
+  attachWa: t.attachWa,
+  mb: lang === 'en' ? 'MB' : 'МБ',
 };
 ---
 
@@ -34,17 +51,16 @@ const i18n = {
       <span class="cfg__bar"><span data-bar></span></span>
     </div>
 
-    <fieldset class="cfg__step" data-step="1">
-      <legend class="visually-hidden">{c.s1}</legend>
-      <div class="cfg__head" aria-hidden="true">
-        <p class="h3">{c.s1}</p>
+    <fieldset class="cfg__step" data-step="1" aria-labelledby="cfg-t1">
+      <div class="cfg__head">
+        <h2 class="h3 cfg__title" id="cfg-t1" tabindex="-1">{c.s1}</h2>
         <p class="caption">{c.s1sub}</p>
       </div>
-      <div class="cfg__tiles">
+      <div class="cfg__tiles" data-tiles>
         {
           c.services.map((label, i) => (
             <label class="tile">
-              <input type="radio" name="service" value={label} />
+              <input type="radio" name="service" value={label} data-branch={BRANCHES[i]} />
               <Icon name={ICONS[i]} size={26} />
               <span>{label}</span>
             </label>
@@ -53,50 +69,87 @@ const i18n = {
       </div>
     </fieldset>
 
-    <fieldset class="cfg__step" data-step="2" hidden>
-      <legend class="visually-hidden">{c.s2}</legend>
-      <div class="cfg__head" aria-hidden="true">
-        <p class="h3">{c.s2}</p>
+    <fieldset class="cfg__step" data-step="2" aria-labelledby="cfg-t2" hidden>
+      <div class="cfg__head">
+        <h2 class="h3 cfg__title" id="cfg-t2" tabindex="-1">{c.s2}</h2>
         <p class="caption">{c.s2sub}</p>
       </div>
-      <label class="field">
+      {/* Поля показываются по ветке услуги; скрытые отключаются и не попадают в заявку. */}
+      <label class="field" data-for="expo staff">
         <span>{c.expo}</span>
         <input class="input" name="expo" placeholder={c.expoPh} />
       </label>
-      <div class="field">
-        <span>{c.area}</span>
+      <div class="field" data-for="expo" role="radiogroup" aria-labelledby="cfg-area">
+        <span id="cfg-area">{c.area}</span>
         <div class="pills">
           {
             L.areas.map((a) => (
               <label class="pill">
                 <input type="radio" name="area" value={a} />
-                <span>{a}</span>
+                <span>{nb(a)}</span>
               </label>
             ))
           }
         </div>
       </div>
-      <label class="field">
+      <div class="cfg__pair" data-for="prod">
+        <label class="field">
+          <span>{c.size}</span>
+          <input class="input" name="size" placeholder={c.sizePh} />
+        </label>
+        <label class="field">
+          <span>{c.qty}</span>
+          <input class="input" name="qty" inputmode="numeric" placeholder={c.qtyPh} />
+        </label>
+      </div>
+      <label class="field" data-for="staff">
+        <span>{c.people}</span>
+        <input class="input" name="people" inputmode="numeric" placeholder={c.countPh} />
+      </label>
+      <label class="field" data-for="concierge">
+        <span>{c.guests}</span>
+        <input class="input" name="guests" inputmode="numeric" placeholder={c.countPh} />
+      </label>
+      <label class="field" data-for="expo staff concierge">
         <span>{c.dates}</span>
         <input class="input" name="dates" placeholder={c.datesPh} />
       </label>
+      <label class="field" data-for="prod">
+        <span>{c.deadline}</span>
+        <input class="input" name="deadline" placeholder={c.deadlinePh} />
+      </label>
+      {/* Макет — те же правила, что в форме заявки: до 10 МБ, тот же список форматов. */}
+      <div class="field" data-for="prod">
+        <span>{t.attach}</span>
+        <label class="attach">
+          <input
+            type="file"
+            name="file"
+            class="visually-hidden"
+            data-file
+            accept=".pdf,.png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.psd,.cdr,.zip,.rar,image/*,application/pdf"
+          />
+          <span class="attach__btn">{t.attachPick}</span>
+          <span class="attach__name caption" data-file-name>{t.attachHint}</span>
+        </label>
+        <button type="button" class="attach__drop caption" data-file-drop hidden>{t.attachDrop}</button>
+      </div>
     </fieldset>
 
-    <fieldset class="cfg__step" data-step="3" hidden>
-      <legend class="visually-hidden">{c.s3}</legend>
-      <div class="cfg__head" aria-hidden="true">
-        <p class="h3">{c.s3}</p>
+    <fieldset class="cfg__step" data-step="3" aria-labelledby="cfg-t3" hidden>
+      <div class="cfg__head">
+        <h2 class="h3 cfg__title" id="cfg-t3" tabindex="-1">{c.s3}</h2>
         <p class="caption">{c.s3sub}</p>
       </div>
-      <div class="field">
-        <span>{c.budget}</span>
+      <div class="field" role="radiogroup" aria-labelledby="cfg-budget">
+        <span id="cfg-budget">{c.budget}</span>
         {/* Пороги разные: выставка начинается от 10 000, производство — от 2 000. */}
         <div class="pills" data-budgets="expo">
           {
             L.budgets.map((b) => (
               <label class="pill">
                 <input type="radio" name="budget" value={b} />
-                <span>{b}</span>
+                <span>{nb(b)}</span>
               </label>
             ))
           }
@@ -106,7 +159,7 @@ const i18n = {
             L.budgetsProduction.map((b) => (
               <label class="pill">
                 <input type="radio" name="budget" value={b} />
-                <span>{b}</span>
+                <span>{nb(b)}</span>
               </label>
             ))
           }
@@ -114,11 +167,11 @@ const i18n = {
       </div>
       <div class="grid grid--2">
         <label class="field">
-          <span>{ui(lang).name}</span>
-          <input class="input" name="name" autocomplete="name" placeholder={ui(lang).namePh} />
+          <span>{t.name}</span>
+          <input class="input" name="name" autocomplete="name" placeholder={t.namePh} />
         </label>
         <label class="field">
-          <span>{ui(lang).contact}</span>
+          <span>{t.contact}</span>
           <input class="input" name="contact" type="tel" autocomplete="tel" placeholder="+971" />
         </label>
       </div>
@@ -126,30 +179,44 @@ const i18n = {
 
     <div class="cfg__step cfg__done" data-step="4" hidden>
       <span class="cfg__done-icon"><Icon name="check" size={30} /></span>
-      <h3 class="h3">{c.doneTitle}</h3>
+      <h2 class="h3 cfg__title" id="cfg-t4" tabindex="-1">{c.doneTitle}</h2>
       <p class="caption">{c.doneText(L.replyTime)}</p>
     </div>
 
-    <p class="cfg__hint" data-hint hidden></p>
-
     <div class="cfg__nav" data-nav>
-      <button type="button" class="btn btn--ghost" data-back hidden>{c.back}</button>
+      {/* Подсказка живёт в панели: на телефоне панель липкая, и ошибка всегда видна над кнопками. */}
+      <p class="cfg__hint" data-hint role="alert" hidden></p>
+      <button type="button" class="btn btn--ghost cfg__back" data-back hidden>
+        <Icon name="arrow" size={20} />
+        <span class="cfg__back-text">{c.back}</span>
+      </button>
       <button type="button" class="btn btn--primary" data-next>{c.next}</button>
       <a class="cfg__wa" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
-        <Icon name="whatsapp" size={18} /> {c.preferWa}
+        <Icon name="whatsapp" size={18} /> <span class="cfg__wa-text">{c.preferWa}</span>
       </a>
     </div>
   </div>
 
-  <aside class="cfg__summary card" aria-live="polite">
-    <h3 class="cfg__sum-h">{c.summary}</h3>
-    <dl data-summary></dl>
-    <p class="caption">{c.summaryNote(L.minOrder)}</p>
+  <aside class="cfg__summary card" aria-labelledby="cfg-sum-h">
+    {/* На телефоне сводка сворачивается в одну строку «Выбрано: …», по нажатию раскрывается. */}
+    <button type="button" class="cfg__brief" data-brief-toggle aria-expanded="false" aria-controls="cfg-sum-body">
+      <span class="cfg__brief-k">{c.chosen}:</span>
+      <span class="cfg__brief-v" data-brief>—</span>
+      <Icon name="arrow" size={18} />
+    </button>
+    <h2 class="cfg__sum-h" id="cfg-sum-h">{c.summary}</h2>
+    <div class="cfg__sum-body" id="cfg-sum-body">
+      <dl data-summary></dl>
+      <p class="caption">
+        {c.notePrices[0]}<a href={link('/prices/', lang)}>{c.notePrices[1]}</a>{c.notePrices[2]}
+        {' '}{c.summaryNote(nb(L.minOrder), L.replyTime)}
+      </p>
+    </div>
   </aside>
 </div>
 
 <script>
-  import { sendLead } from '@/scripts/lead';
+  import { MAX_FILE_BYTES, sendLead } from '@/scripts/lead';
 
   type Strings = {
     expoService: string;
@@ -161,15 +228,40 @@ const i18n = {
     sending: string;
     needService: string;
     needContact: string;
+    attachHint: string;
+    attachBig: string;
+    attachWa: string;
+    mb: string;
   };
+  type Branch = 'expo' | 'prod' | 'staff' | 'concierge';
 
-  const ORDER = ['service', 'expo', 'area', 'dates', 'budget', 'name', 'contact'];
+  /** Порядок строк сводки для каждой ветки. */
+  const ORDER: Record<Branch, string[]> = {
+    expo: ['service', 'expo', 'area', 'dates', 'budget', 'name', 'contact'],
+    prod: ['service', 'size', 'qty', 'deadline', 'file', 'budget', 'name', 'contact'],
+    staff: ['service', 'expo', 'people', 'dates', 'budget', 'name', 'contact'],
+    concierge: ['service', 'guests', 'dates', 'budget', 'name', 'contact'],
+  };
+  /** Поля, которых нет в приёмнике заявок: уходят строкой в «Задачу». */
+  const EXTRA = ['size', 'qty', 'people', 'guests'];
+  /** Пауза перед переходом после выбора плитки — чтобы было видно выбор. */
+  const ADVANCE_MS = 250;
+
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  /** Пробелы внутри сумм и единиц — неразрывные. */
+  const nb = (s: string) =>
+    s
+      .replace(/(\d) (?=\d)/g, '$1 ')
+      .replace(/ (AED|м²|m²|м|m)(?!\p{L})/gu, ' $1')
+      .replace(/AED /g, 'AED ')
+      .replace(/ × /g, ' × ');
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   document.querySelectorAll<HTMLElement>('[data-cfg]').forEach((root) => {
     const S = JSON.parse(root.dataset.i18n!) as Strings;
     const stepText = (n: number) => S.step.replace('0', String(n));
     let step = 1;
+    const main = root.querySelector<HTMLElement>('.cfg__main')!;
     const steps = root.querySelectorAll<HTMLElement>('[data-step]');
     const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
     const back = root.querySelector<HTMLButtonElement>('[data-back]')!;
@@ -178,17 +270,35 @@ const i18n = {
     const bar = root.querySelector<HTMLElement>('[data-bar]')!;
     const label = root.querySelector<HTMLElement>('[data-step-label]')!;
     const summary = root.querySelector<HTMLElement>('[data-summary]')!;
+    const brief = root.querySelector<HTMLElement>('[data-brief]')!;
+    const briefToggle = root.querySelector<HTMLButtonElement>('[data-brief-toggle]')!;
+    const tiles = root.querySelector<HTMLElement>('[data-tiles]')!;
+    const groups = root.querySelectorAll<HTMLElement>('[data-for]');
+    const fileInput = root.querySelector<HTMLInputElement>('[data-file]')!;
+    const fileName = root.querySelector<HTMLElement>('[data-file-name]')!;
+    const fileDrop = root.querySelector<HTMLButtonElement>('[data-file-drop]')!;
 
+    const branch = (): Branch =>
+      (root.querySelector<HTMLInputElement>('input[name="service"]:checked')?.dataset.branch as Branch) ?? 'expo';
+
+    /** Значения видимых полей; отключённые (чужая ветка) и файл не считаются. */
     const values = () => {
       const out: Record<string, string> = {};
       root.querySelectorAll<HTMLInputElement>('input').forEach((el) => {
+        if (el.disabled || el.type === 'file') return;
         if ((el.type === 'radio' && el.checked) || (el.type !== 'radio' && el.value.trim())) out[el.name] = el.value.trim();
       });
       return out;
     };
+    const file = () => (fileInput.disabled ? null : (fileInput.files?.[0] ?? null));
 
     const problem = (v: Record<string, string>) =>
       step === 1 && !v.service ? S.needService : step === 3 && !v.contact ? S.needContact : '';
+
+    const say = (text: string) => {
+      hint.hidden = false;
+      hint.textContent = text;
+    };
 
     /** Показывает набор бюджетов под выбранную услугу и чистит скрытый. */
     const syncBudgets = (service?: string) => {
@@ -200,9 +310,22 @@ const i18n = {
       });
     };
 
+    /** Поля второго шага под ветку: чужие скрываются и отключаются. */
+    const syncFields = (b: Branch) => {
+      groups.forEach((g) => {
+        const on = g.dataset.for!.split(' ').includes(b);
+        g.hidden = !on;
+        g.querySelectorAll<HTMLInputElement>('input').forEach((el) => (el.disabled = !on));
+      });
+    };
+
     const render = () => {
+      const b = branch();
+      syncFields(b);
       const v = values();
       syncBudgets(v.service);
+      const f = file();
+      if (f) v.file = f.name;
       steps.forEach((el) => (el.hidden = Number(el.dataset.step) !== step));
       back.hidden = step === 1 || step === 4;
       nav.hidden = step === 4;
@@ -210,38 +333,133 @@ const i18n = {
       next.setAttribute('aria-disabled', String(Boolean(problem(v))));
       label.textContent = step === 4 ? S.done : stepText(step);
       bar.style.width = `${(Math.min(step, 3) / 3) * 100}%`;
-      summary.innerHTML = ORDER.map((k) => `<div><dt>${S.labels[k]}</dt><dd>${esc(v[k] ?? '—')}</dd></div>`).join('');
-      if (!problem(v)) hint.hidden = true;
+      const rows = ORDER[b];
+      summary.innerHTML = rows
+        .map((k) => {
+          const money = k === 'budget' ? ' class="is-money"' : '';
+          return `<div><dt>${S.labels[k]}</dt><dd${money}>${esc(nb(v[k] ?? '—'))}</dd></div>`;
+        })
+        .join('');
+      const picked = rows
+        .filter((k) => k !== 'name' && k !== 'contact' && k !== 'file' && v[k])
+        .map((k) => nb(EXTRA.includes(k) && k !== 'size' ? `${S.labels[k]}: ${v[k]}` : v[k]));
+      brief.textContent = picked.length ? picked.join(' · ') : '—';
+      if (!problem(v) && hint.dataset.kind !== 'file') hint.hidden = true;
+    };
+
+    /** Переход на шаг: фокус на заголовок нового шага, карточка — в поле зрения. */
+    const goTo = (n: number) => {
+      step = n;
+      hint.hidden = true;
+      hint.textContent = '';
+      delete hint.dataset.kind;
+      render();
+      const title = root.querySelector<HTMLElement>(`[data-step="${n}"] .cfg__title`);
+      title?.focus({ preventScroll: true });
+      const top = main.getBoundingClientRect().top;
+      if (top < 0 || top > innerHeight * 0.6) {
+        main.scrollIntoView({ block: 'start', behavior: reduced() ? 'auto' : 'smooth' });
+      }
     };
 
     root.addEventListener('input', render);
     root.addEventListener('change', render);
 
-    back.addEventListener('click', () => {
-      step = Math.max(1, step - 1);
-      render();
+    // Выбор плитки мышью или пальцем сразу ведёт на шаг 2. Стрелками по
+    // радиогруппе клавиатура тоже даёт click — такой выбор не переключает шаг.
+    let pointer = false;
+    let timer = 0;
+    tiles.addEventListener('pointerdown', () => (pointer = true));
+    tiles.addEventListener('keydown', () => (pointer = false));
+    tiles.addEventListener('click', (e) => {
+      if (!(e.target instanceof HTMLInputElement)) return;
+      const viaPointer = pointer;
+      pointer = false;
+      if (!viaPointer || step !== 1) return;
+      clearTimeout(timer);
+      timer = window.setTimeout(() => step === 1 && goTo(2), ADVANCE_MS);
     });
 
+    // Enter в текстовом поле — как «Далее».
+    root.addEventListener('keydown', (e) => {
+      const el = e.target as HTMLInputElement;
+      if (e.key === 'Enter' && el.tagName === 'INPUT' && el.type !== 'radio' && el.type !== 'file') {
+        e.preventDefault();
+        next.click();
+      }
+    });
+
+    const clearFile = () => {
+      fileInput.value = '';
+      fileName.textContent = S.attachHint;
+      fileDrop.hidden = true;
+      render();
+    };
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files?.[0];
+      if (!f) return clearFile();
+      if (f.size > MAX_FILE_BYTES) {
+        clearFile();
+        hint.dataset.kind = 'file';
+        say(S.attachBig);
+        return;
+      }
+      if (hint.dataset.kind === 'file') {
+        hint.hidden = true;
+        delete hint.dataset.kind;
+      }
+      fileName.textContent = `${f.name} · ${(f.size / 1024 / 1024).toFixed(1)} ${S.mb}`;
+      fileDrop.hidden = false;
+    });
+    fileDrop.addEventListener('click', clearFile);
+
+    briefToggle.addEventListener('click', () => {
+      const open = briefToggle.getAttribute('aria-expanded') !== 'true';
+      briefToggle.setAttribute('aria-expanded', String(open));
+      root.querySelector('.cfg__summary')!.classList.toggle('is-open', open);
+    });
+
+    back.addEventListener('click', () => goTo(Math.max(1, step - 1)));
+
     next.addEventListener('click', async () => {
+      if (next.disabled) return;
       const v = values();
       const p = problem(v);
       if (p) {
-        hint.textContent = p;
-        hint.hidden = false;
+        delete hint.dataset.kind;
+        say(p);
+        const contact = step === 3 ? root.querySelector<HTMLInputElement>('input[name="contact"]') : null;
+        if (contact) {
+          contact.focus({ preventScroll: true });
+          contact.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+        }
         return;
       }
-      if (step < 3) {
-        step += 1;
-        render();
-        root.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        return;
-      }
+      if (step < 3) return goTo(step + 1);
+
+      // Приёмник заявок знает только общие поля — размер, количество и число
+      // людей уходят одной строкой в «Задачу», срок производства — в «Даты».
+      const lead: Record<string, string> = {};
+      for (const k of ['service', 'expo', 'area', 'dates', 'budget', 'name', 'contact']) if (v[k]) lead[k] = v[k];
+      if (!lead.dates && v.deadline) lead.dates = v.deadline;
+      const extra = EXTRA.filter((k) => v[k]).map((k) => `${S.labels[k]}: ${v[k]}`);
+      if (extra.length) lead.task = extra.join(' · ');
+
+      const f = file();
       next.disabled = true;
       next.textContent = S.sending;
-      const how = await sendLead(v);
+      const how = await sendLead(lead, f);
       next.disabled = false;
-      if (how === 'sent') step = 4;
+      if (how === 'sent') {
+        goTo(4);
+        return;
+      }
       render();
+      // WhatsApp открывается ссылкой — файл туда не уедет, просим приложить.
+      if (f) {
+        hint.dataset.kind = 'file';
+        say(S.attachWa);
+      }
     });
 
     render();
@@ -250,15 +468,18 @@ const i18n = {
 <style>
   .cfg {
     display: grid;
-    grid-template-columns: 1.7fr 1fr;
+    /* minmax(0, …): длинная строка «Выбрано: …» не должна раздвигать колонку. */
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
     gap: 24px;
     align-items: start;
   }
   .cfg__main {
-    padding: 36px;
+    --pad: 36px;
+    padding: var(--pad);
     min-height: 520px;
     display: flex;
     flex-direction: column;
+    scroll-margin-top: 100px;
   }
   .cfg__progress {
     display: flex;
@@ -283,10 +504,19 @@ const i18n = {
     border: 0;
     margin: 0;
     padding: 0;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 18px;
     flex: 1;
+  }
+  .cfg__step[hidden],
+  .cfg__step [hidden] {
+    display: none;
+  }
+  /* Фокус на заголовок ставит скрипт при смене шага — рамка тут не нужна. */
+  .cfg__title:focus {
+    outline: none;
   }
   .cfg__head .caption {
     margin-top: 6px;
@@ -348,11 +578,60 @@ const i18n = {
     align-items: center;
     font-size: 15px;
     font-weight: 600;
+    white-space: nowrap;
     cursor: pointer;
   }
   .pill:has(input:checked) {
     border-color: var(--accent);
     background: #f4f5f8;
+  }
+  /* Макет — как в форме заявки. */
+  .attach {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    cursor: pointer;
+  }
+  .attach__btn {
+    display: inline-flex;
+    align-items: center;
+    height: 44px;
+    padding-inline: 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--pill);
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: border-color 0.18s ease;
+  }
+  .attach:hover .attach__btn {
+    border-color: var(--ink);
+  }
+  .attach input:focus-visible + .attach__btn {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .attach__name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .attach__drop {
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font: inherit;
+    font-size: 14px;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .cfg__pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 16px;
   }
   .cfg__done {
     align-items: flex-start;
@@ -368,9 +647,10 @@ const i18n = {
     color: var(--ok);
   }
   .cfg__hint {
-    margin-top: 16px;
-    color: #8a6a55;
+    flex-basis: 100%;
+    color: var(--warn);
     font-size: 14px;
+    line-height: 20px;
   }
   .cfg__nav {
     display: flex;
@@ -381,8 +661,17 @@ const i18n = {
     padding-top: 24px;
     border-top: 1px solid var(--line);
   }
+  .cfg__nav[hidden] {
+    display: none;
+  }
+  /* Стрелка из общего набора иконок смотрит вправо — разворачиваем. */
+  .cfg__back :global(svg) {
+    display: none;
+    transform: rotate(180deg);
+  }
   .cfg__nav .btn[aria-disabled='true'] {
     background: #b9bcc2;
+    color: #fff;
   }
   .cfg__wa {
     display: inline-flex;
@@ -400,10 +689,18 @@ const i18n = {
     flex-direction: column;
     gap: 18px;
   }
+  .cfg__brief {
+    display: none;
+  }
   .cfg__sum-h {
     font-size: 20px;
     line-height: 26px;
     font-weight: 700;
+  }
+  .cfg__sum-body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
   }
   .cfg__summary :global(dl) {
     margin: 0;
@@ -423,32 +720,148 @@ const i18n = {
   }
   .cfg__summary :global(dd) {
     margin: 0;
+    min-width: 0;
     font-weight: 600;
     text-align: right;
+    overflow-wrap: anywhere;
+  }
+  .cfg__summary :global(dd.is-money) {
+    white-space: nowrap;
+    overflow-wrap: normal;
   }
   @media (max-width: 960px) {
     .cfg {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .cfg__summary {
       position: static;
     }
   }
-  @media (max-width: 640px) {
+  @media (max-width: 760px) {
     .cfg__main {
-      padding: 22px;
+      --pad: 22px;
       min-height: 0;
     }
     .cfg__tiles {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+    /* Навигация прилипает к низу экрана, пока конфигуратор в поле зрения.
+       72px снизу — место под нижнюю панель с кнопками на телефоне. */
+    .cfg__nav {
+      position: sticky;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+      z-index: 5;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 24px calc(var(--pad) * -1) calc(var(--pad) * -1);
+      padding: 12px var(--pad);
+      background: var(--surface);
+      border-radius: 0 0 var(--radius) var(--radius);
+      box-shadow: 0 -12px 24px -18px rgb(28 30 31 / 0.35);
+    }
     .cfg__nav .btn {
       flex: 1;
+      min-width: 0;
+      padding-inline: 14px;
+      white-space: nowrap;
     }
+    .cfg__nav .cfg__hint {
+      margin-bottom: 2px;
+    }
+    /* «Назад» на телефоне — круглая кнопка со стрелкой, чтобы «Отправить заявку» влезла в строку. */
+    .cfg__nav .cfg__back {
+      flex: none;
+      width: var(--control);
+      padding: 0;
+    }
+    .cfg__back :global(svg) {
+      display: block;
+    }
+    .cfg__back-text {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    /* Поле в фокусе не должно уезжать под липкую панель и нижнюю полосу. */
+    .cfg__main :global(input) {
+      scroll-margin-bottom: 180px;
+    }
+    /* WhatsApp в липкой панели — круглая кнопка со значком, подпись для скринридера. */
     .cfg__wa {
-      margin-left: 0;
-      width: 100%;
+      flex: none;
       justify-content: center;
+      width: var(--control);
+      height: var(--control);
+      margin-left: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--pill);
+    }
+    .cfg__wa-text {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    /* Сводка — одной строкой, полный список по нажатию. */
+    .cfg__summary {
+      padding: 0;
+      gap: 0;
+    }
+    .cfg__brief {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 56px;
+      padding: 14px 20px;
+      border: 0;
+      background: none;
+      color: var(--ink);
+      font: inherit;
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .cfg__brief-k {
+      flex: none;
+      color: var(--muted);
+    }
+    .cfg__brief-v {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      font-weight: 600;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .cfg__brief :global(svg) {
+      flex: none;
+      color: var(--accent);
+      transform: rotate(90deg);
+      transition: transform 0.2s ease;
+    }
+    .cfg__summary.is-open .cfg__brief :global(svg) {
+      transform: rotate(-90deg);
+    }
+    .cfg__sum-h {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .cfg__sum-body {
+      display: none;
+      padding: 0 20px 20px;
+    }
+    .cfg__summary.is-open .cfg__sum-body {
+      display: flex;
     }
   }
 </style>

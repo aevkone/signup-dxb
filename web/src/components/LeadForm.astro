@@ -24,7 +24,7 @@ const { title = t.leadTitle, context } = Astro.props;
         <Icon name="phone" size={20} />
         <div>
           <span class="caption">{t.phoneWa}</span>
-          <a href={CONTACTS.phoneHref}>{CONTACTS.phone}</a>
+          <a class="lead__phone" href={CONTACTS.phoneHref}>{CONTACTS.phone}</a>
         </div>
       </li>
       <li>
@@ -48,6 +48,7 @@ const { title = t.leadTitle, context } = Astro.props;
     data-attach-big={t.attachBig}
     data-attach-wa={t.attachWa}
     data-attach-hint={t.attachHint}
+    data-mb={lang === 'en' ? 'MB' : 'МБ'}
     novalidate
   >
     <label class="field">
@@ -56,7 +57,7 @@ const { title = t.leadTitle, context } = Astro.props;
     </label>
     <label class="field">
       <span>{t.contact}</span>
-      <input class="input" name="contact" type="tel" autocomplete="tel" placeholder="+971" required />
+      <input class="input" name="contact" type="tel" autocomplete="tel" placeholder="+971" required aria-required="true" />
     </label>
     <label class="field">
       <span>{t.task}</span>
@@ -73,16 +74,16 @@ const { title = t.leadTitle, context } = Astro.props;
           accept=".pdf,.png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.psd,.cdr,.zip,.rar,image/*,application/pdf"
         />
         <span class="attach__btn">{t.attachPick}</span>
-        <span class="attach__name caption" data-file-name>{t.attachHint}</span>
+        <span class="attach__name caption" data-file-name aria-live="polite">{t.attachHint}</span>
       </label>
       <button type="button" class="attach__drop caption" data-file-drop hidden>{t.attachDrop}</button>
     </div>
-    <p class="lead__error" data-error hidden>{t.noContact}</p>
+    <p class="lead__error" data-error role="alert" hidden>{t.noContact}</p>
     <button class="btn btn--primary" type="submit">{t.submit}</button>
     <p class="caption">
       {t.consent} <a href={link('/privacy/', lang)}>{t.consentLink}</a>.
     </p>
-    <div class="lead__done" data-done hidden>
+    <div class="lead__done" data-done role="status" hidden>
       <Icon name="check" size={28} />
       <div>
         <strong>{t.sent}</strong>
@@ -95,8 +96,12 @@ const { title = t.leadTitle, context } = Astro.props;
 <script>
   import { MAX_FILE_BYTES, sendLead } from '@/scripts/lead';
 
-  document.querySelectorAll<HTMLFormElement>('[data-lead-form]').forEach((form) => {
+  document.querySelectorAll<HTMLFormElement>('[data-lead-form]').forEach((form, i) => {
     const error = form.querySelector<HTMLElement>('[data-error]')!;
+    const contact = form.querySelector<HTMLInputElement>('[name="contact"]');
+    // Ошибка связана с полем контакта — читалка озвучит её при фокусе.
+    error.id ||= `lead-error-${i + 1}`;
+    contact?.setAttribute('aria-describedby', error.id);
     const done = form.querySelector<HTMLElement>('[data-done]')!;
     const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
     const fileInput = form.querySelector<HTMLInputElement>('[data-file]');
@@ -104,10 +109,18 @@ const { title = t.leadTitle, context } = Astro.props;
     const fileDrop = form.querySelector<HTMLButtonElement>('[data-file-drop]');
     /** Исходный текст ошибки про контакт — его затирают сообщения о файле. */
     const noContactText = error.textContent ?? '';
-    const fail = (text: string) => {
+    const fail = (text: string, field?: HTMLInputElement | null) => {
       error.textContent = text;
       error.hidden = false;
+      field?.setAttribute('aria-invalid', 'true');
     };
+    const ok = () => {
+      error.hidden = true;
+      contact?.removeAttribute('aria-invalid');
+    };
+    contact?.addEventListener('input', () => {
+      if (contact.value.trim() && contact.hasAttribute('aria-invalid')) ok();
+    });
 
     const clearFile = () => {
       if (!fileInput) return;
@@ -124,9 +137,10 @@ const { title = t.leadTitle, context } = Astro.props;
         clearFile();
         return;
       }
-      error.hidden = true;
+      ok();
       const mb = (f.size / 1024 / 1024).toFixed(1);
-      if (fileName) fileName.textContent = `${f.name} · ${mb} МБ`;
+      // Неразрывный пробел: «2.4 МБ» не разъезжается по строкам.
+      if (fileName) fileName.textContent = `${f.name} · ${mb}\u00a0${form.dataset.mb}`;
       if (fileDrop) fileDrop.hidden = false;
     });
 
@@ -139,11 +153,11 @@ const { title = t.leadTitle, context } = Astro.props;
       fd.delete('file');
       const data = Object.fromEntries(fd) as Record<string, string>;
       if (!data.contact?.trim()) {
-        fail(noContactText);
-        form.querySelector<HTMLInputElement>('[name="contact"]')?.focus();
+        fail(noContactText, contact);
+        contact?.focus();
         return;
       }
-      error.hidden = true;
+      ok();
       btn.disabled = true;
       btn.textContent = form.dataset.sending!;
       const how = await sendLead(data, file);
@@ -235,6 +249,14 @@ const { title = t.leadTitle, context } = Astro.props;
   }
   .lead__contacts a {
     color: var(--ink);
+  }
+  /* Номер целиком на одной строке и зона касания 44px. */
+  .lead__phone {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-block: -8px;
+    white-space: nowrap;
   }
   .lead__form {
     display: flex;

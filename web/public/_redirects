@@ -1,0 +1,10 @@
+# Переадресации Cloudflare Pages (боевой домен). На GitHub Pages не действуют.
+#
+# www.signupdxb.com → signupdxb.com здесь задать нельзя: _redirects в Cloudflare
+# Pages понимает только пути, переадресации по домену не поддерживаются.
+# Делается в панели Cloudflare: Rules → Redirect Rules (или Bulk Redirects),
+#   https://www.signupdxb.com/* → https://signupdxb.com/${1}, 301,
+#   с сохранением строки запроса. Для www нужна DNS-запись с прокси (оранжевое облако).
+#
+# Сюда добавлять переадресации старых адресов страниц, например:
+#   /old-page/  /new-page/  301

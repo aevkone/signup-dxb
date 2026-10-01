@@ -2,7 +2,7 @@
 import Base from '@/layouts/Base.astro';
 import PageHero from '@/components/PageHero.astro';
 import { getLang } from '@/i18n';
-import { CONTACTS, local } from '@/consts';
+import { CONTACTS, SITE_NAME, local } from '@/consts';
 
 const lang = getLang(Astro.url);
 const L = local(lang);
@@ -10,6 +10,7 @@ const T = {
   ru: {
     title: 'Политика обработки данных',
     crumb: 'Политика данных',
+    description: `Какие данные ${SITE_NAME} получает из формы заявки, зачем они нужны, где хранятся и как их удалить. Оператор данных — ${L.legalName}.`,
     blocks: [
       ['', `Оператор данных — ${L.legalName}, лицензия ${L.licence}, ${L.address}.`],
       ['Какие данные мы получаем', 'Только то, что вы сами указываете в форме заявки: имя, телефон или WhatsApp, описание задачи и параметры проекта.'],
@@ -21,6 +22,7 @@ const T = {
   en: {
     title: 'Privacy policy',
     crumb: 'Privacy policy',
+    description: `What data ${SITE_NAME} receives from the request form, why, where it is stored and how to delete it. Data controller — ${L.legalName}.`,
     blocks: [
       ['', `Data controller — ${L.legalName}, licence ${L.licence}, ${L.address}.`],
       ['What data we receive', 'Only what you enter in the request form yourself: your name, phone or WhatsApp number, a description of your request and project details.'],
@@ -32,7 +34,7 @@ const T = {
 }[lang];
 ---
 
-<Base title={T.title}>
+<Base title={T.title} description={T.description} crumbs={[{ label: T.crumb }]}>
   <PageHero title={T.title} crumbs={[{ label: T.crumb }]} />
   <section class="section--tight" style="padding-top:0">
     <div class="shell prose measure">

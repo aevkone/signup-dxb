@@ -33,7 +33,7 @@ const L = {
     areas: ['до 12 м²', '12–36 м²', '36–100 м²', 'больше 100 м²', 'пока не знаю'],
     siteTitle: 'SIGNUP DXB — выставки в Дубае под ключ',
     siteDescription:
-      'Организуем участие в выставках в Дубае и Абу-Даби под ключ: стенд, печать, персонал, питание, логистика, консьерж-сервис. Собственное производство наружной рекламы.',
+      'Организуем участие в выставках в Дубае и Абу-Даби под ключ: стенд, печать, персонал, питание, логистика, консьерж-сервис. Производство наружной рекламы напрямую, без посредников.',
     nav: ['Выставки под ключ', 'Наружная реклама', 'Прайс', 'Консьерж-сервис', 'Контакты'],
   },
   en: {
@@ -52,8 +52,8 @@ const L = {
     areas: ['up to 12 m²', '12–36 m²', '36–100 m²', 'over 100 m²', 'not sure yet'],
     siteTitle: 'SIGNUP DXB — turnkey exhibitions in Dubai',
     siteDescription:
-      'Turnkey exhibition participation in Dubai and Abu Dhabi: stand, print, staff, catering, logistics and concierge. In-house production of outdoor advertising.',
-    nav: ['Turnkey exhibitions', 'Outdoor advertising', 'Price list', 'Concierge', 'Contacts'],
+      'Turnkey exhibition participation in Dubai and Abu Dhabi: stand, print, staff, catering, logistics and concierge. Outdoor advertising made directly with UAE production, no middlemen.',
+    nav: ['Turnkey exhibitions', 'Outdoor advertising', 'Price list', 'Concierge', 'Contact'],
   },
 } as const;
 

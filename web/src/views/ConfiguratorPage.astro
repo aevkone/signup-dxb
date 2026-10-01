@@ -7,21 +7,23 @@ import { getLang } from '@/i18n';
 const lang = getLang(Astro.url);
 const T = {
   ru: {
-    title: 'Быстрый расчёт',
-    description: 'Соберите заявку на выставку, стенд, вывеску или печать за минуту — вернёмся с вариантами под ваш бюджет.',
+    title: 'Собрать заявку',
+    metaTitle: 'Смета на стенд или вывеску в Дубае',
+    description: 'Соберите заявку на выставку, стенд, вывеску или печать в Дубае за минуту — вернёмся с вариантами под ваш бюджет. Без звонков, если вам так удобнее.',
     h1: 'Соберите заявку за минуту',
     lead: 'Три шага: что нужно, параметры, бюджет. Вернёмся с вариантами под вашу сумму — без звонков, если вам так удобнее.',
   },
   en: {
-    title: 'Quick quote',
-    description: 'Put together a request for an exhibition, stand, sign or print in a minute — we’ll come back with options that fit your budget.',
-    h1: 'Put your request together in a minute',
+    title: 'Request a quote',
+    metaTitle: 'Quick quote for a stand or sign in Dubai',
+    description: 'Put together a request for an exhibition, stand, sign or print in Dubai in a minute — we’ll come back with options that fit your budget.',
+    h1: 'Build your request in a minute',
     lead: 'Three steps: what you need, the details, your budget. We’ll come back with options for your budget — no calls needed if you prefer.',
   },
 }[lang];
 ---
 
-<Base title={T.title} description={T.description}>
+<Base title={T.metaTitle} description={T.description} crumbs={[{ label: T.title }]}>
   <PageHero title={T.h1} lead={T.lead} crumbs={[{ label: T.title }]} />
   <section class="section--tight" style="padding-top:0">
     <div class="shell">

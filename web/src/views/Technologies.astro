@@ -12,6 +12,7 @@ const NOTE = uaeNote(lang);
 const T = {
   ru: {
     title: 'Материалы и технологии',
+    metaTitle: 'Материалы и технологии наружной рекламы в Дубае',
     crumb: 'Технологии',
     description: 'Из чего и как делаем наружную рекламу и выставочные конструкции в ОАЭ: плёнки Oracal, пластик, оргстекло, композит, световые буквы, неон, короба, пресс-волы.',
     lead: 'Из чего и как мы делаем вывески, буквы и выставочные конструкции — чтобы вы понимали, за что платите, и могли выбрать вариант под задачу и бюджет.',
@@ -19,8 +20,9 @@ const T = {
   },
   en: {
     title: 'Materials & technologies',
+    metaTitle: 'Signage materials & technologies in Dubai',
     crumb: 'Technologies',
-    description: 'What we use to build outdoor advertising and exhibition structures in the UAE: Oracal films, PVC, acrylic, composite, illuminated letters, neon, lightboxes, press walls.',
+    description: 'What we use to build outdoor advertising and exhibition structures in the UAE: Oracal films, PVC, acrylic, composite, illuminated letters, neon, lightboxes.',
     lead: 'What we build signs, letters and exhibition structures from, and how — so you know what you are paying for and can pick the option that fits the task and the budget.',
     contents: 'Sections',
   },
@@ -28,7 +30,7 @@ const T = {
 const img = (id: string, w: number, ext = 'webp') => link(`/img/works/w${id}-${w}.${ext}`);
 ---
 
-<Base title={T.title} description={T.description}>
+<Base title={T.metaTitle} description={T.description} crumbs={[{ label: T.crumb }]}>
   <PageHero title={T.title} lead={T.lead} crumbs={[{ label: T.crumb }]}>
     <nav class="toc" aria-label={T.contents}>
       {SECTIONS.map((s) => <a href={`#${s.id}`}>{s.title}</a>)}

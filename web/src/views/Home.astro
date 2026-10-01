@@ -10,9 +10,7 @@ import LeadForm from '@/components/LeadForm.astro';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
 import { blocks } from '@/data/exhibitions';
-import { categories } from '@/data/production';
 import { faq, process } from '@/data/process';
-import { TOTAL_PRICES } from '@/data/prices';
 import { workById, workTitle } from '@/data/works';
 import { CONTACTS } from '@/consts';
 
@@ -22,143 +20,113 @@ const { hero = 'stand' } = Astro.props;
 const lang = getLang(Astro.url);
 const u = ui(lang);
 const BLOCKS = blocks(lang);
-const CATS = categories(lang);
-
 
 const T = {
   ru: {
-    h1pre: 'Организуем участие в выставках в Дубае',
+    h1pre: 'Организуем участие в выставках в Дубае',
     h1script: 'под ключ',
     scriptFirst: false,
-    introH: ['Мы — организатор,', 'а не типография'],
-    introText: 'Ведём проект целиком: от контракта с организатором до демонтажа после выставки. Вам не нужно собирать подрядчиков по одному — стенд, печать, персонал, питание и логистика идут через один договор.',
-    howLink: 'Как мы работаем',
-    entriesHa: 'Три входа —',
-    entriesHb: 'выберите свой',
-    howHa: 'Как мы',
-    howHb: 'работаем',
-    worksHa: 'Наши',
-    worksHb: 'работы',
-    prev: 'Предыдущая работа',
-    next: 'Следующая работа',
-    numbersHa: 'SIGNUP DXB',
-    numbersHb: 'в цифрах',
-    numbers: ['блоков работы под ключ', 'направлений производства', 'позиций в открытом прайсе', 'эмирата: Дубай, Абу-Даби, Шарджа, Аджман'],
-    calcHa: 'Соберите заявку',
-    calcHb: 'за минуту',
-    photoAlt: 'Работа производства',
-    h1: 'Организуем участие в выставках в Дубае под ключ',
-    lead: 'Полный цикл — от контракта до демонтажа после выставки. Берите весь пакет или отдельные блоки: подберём объём услуг под ваш бюджет.',
+    lead: 'От контракта с организатором до демонтажа после выставки. Берите весь пакет или отдельные блоки — подберём объём под ваш бюджет.',
     facts: [
-      ['Мы организатор', 'Ведём проект целиком, а не отдельную поставку'],
+      ['Один договор', 'Стенд, печать, персонал и логистика — у одного исполнителя'],
       ['Прямая связь с площадками', 'Выходим на организаторов напрямую'],
-      ['Своё производство', 'Печать и конструкции делаем сами'],
+      ['Производство в ОАЭ', 'Печать и конструкции — работаем с производством напрямую'],
     ],
-    oneContract: 'Один договор',
-    noContractors: 'Вам не нужно собирать подрядчиков по одному.',
+    introH: 'Одна команда на всю выставку',
+    introText: 'Ведём проект целиком: бронь места, стенд, печать, персонал, питание и логистику. На каждом этапе у вас один ответственный контакт — не нужно искать подрядчиков и сводить их сроки.',
+    promises: [
+      ['Помощь с оплатой участия', 'По агентскому договору оплачиваем участие организатору и передаём закрывающие документы.'],
+      ['Проверка по регламенту', 'Сверяем проект стенда с правилами площадки до того, как он уйдёт в производство.'],
+    ],
+    callH: 'Организатор не отвечает?',
+    callText: 'Выходим на павильон напрямую — звонком и в WhatsApp.',
+    callLink: 'Переговоры с организаторами',
+    howLink: 'Как мы работаем',
+    entriesH: 'Три направления работы',
+    entriesSub: 'Выставки под ключ, наружная реклама и консьерж-сервис — каждое направление можно заказать отдельно.',
     entries: [
-      ['/exhibitions/', 'Выставки под ключ', 'Восемь блоков от концепции стенда до демонтажа. Берите все или один.', 'Смотреть состав'],
-      ['/production/', 'Наружная реклама и производство', 'Девять направлений: свет, печать, транспорт, витрины, полиграфия.', 'Открыть каталог'],
+      ['/exhibitions/', 'Выставки под ключ', 'Восемь блоков работы — от концепции стенда до демонтажа.', 'Смотреть состав'],
+      ['/production/', 'Наружная реклама и производство', 'Световые вывески, печать, оклейка транспорта, витрины, полиграфия.', 'Открыть каталог'],
       ['/exhibitions/concierge/', 'Консьерж-сервис', 'Встреча, размещение, сим-карты, обмен валюты, перемещение по городу.', 'Что входит'],
     ],
-    worksH: 'Наши работы',
-    worksSub: 'Примеры изготовленных конструкций: световые вывески, неон, интерьерные логотипы, навигация.',
-    worksAll: 'Все работы',
-    entriesH: 'Три входа — выберите свой',
-    entriesSub: 'Выставки, наружная реклама и консьерж-сервис — каждое направление можно заказать отдельно.',
+    conciergeAlt: 'Панорама Дубая днём: небоскрёбы и побережье',
     inclH: 'Что входит в работу под ключ',
     inclSub: 'У каждого блока своя страница с составом работ. Берите все восемь или только нужные.',
     allBlocks: 'Все блоки',
-    more: 'Подробнее',
-    howH: 'Как мы работаем',
-    howSub: 'Шесть этапов. На каждом у вас один ответственный контакт, а не пять подрядчиков.',
-    calcEyebrow: 'Быстрый расчёт',
-    calcH: 'Соберите заявку за минуту',
-    calcSub: 'Выберите, что нужно, укажите параметры — вернёмся с вариантами под ваш бюджет. Без звонков, если вам так удобнее.',
-    whyH: 'Почему с нами проще',
-    why: [
-      ['Один договор вместо пяти', 'Стенд, печать, персонал, питание и логистика идут через одного исполнителя.'],
-      ['Прямая связь с площадками', 'Выходим на организаторов павильонов напрямую, а не через цепочку посредников.'],
-      ['Собственное производство', 'Конструкции и печать делаем сами — сроки не зависят от чужой загрузки.'],
-      ['Объём под ваш бюджет', 'Показываем, что входит в каждый уровень, и собираем пакет под вашу сумму.'],
+    howHa: 'Как мы',
+    howHb: 'работаем',
+    howSub: 'Шесть этапов — от первой заявки до демонтажа и итогов выставки.',
+    worksH: 'Примеры работ',
+    worksSub: 'Изготовленные конструкции: световые вывески, неон, интерьерные логотипы, навигация.',
+    worksAll: 'Все работы',
+    prev: 'Предыдущая работа',
+    next: 'Следующая работа',
+    /** Условия — из прайса (TERMS_RU в data/prices.ts) и consts.ts: «24 часа» — это replyTime «в течение суток». Менять вместе с ними. */
+    termsH: 'Условия работы',
+    terms: [
+      ['24', 'часа', 'Срок ответа на заявку'],
+      ['50/50', '', 'Оплата: 50% предоплата, 50% перед отгрузкой или монтажом'],
+      ['500', 'AED', 'Выезд на замер — сумма засчитывается в заказ'],
+      ['12', 'месяцев', 'Гарантия на конструкции и электрику'],
     ],
-    caseEyebrow: 'Случай из практики',
-    caseText: 'Клиенты неделями не могли выйти на организаторов выставки. Вопрос решился за короткое время — прямым звонком и сообщением в WhatsApp.',
-    caseCap: 'Переговоры с организаторами',
-    prodEyebrow: 'Собственное производство',
-    prodH: 'Наружная реклама и печать',
-    prodSub: (n: number, area: string) => `Девять направлений и ${n} позиций — от световых букв до брендирования транспорта. Заказать можно отдельно от выставки. Работаем в эмиратах: ${area}.`,
-    openCatalog: 'Открыть каталог',
-    byProject: 'по проекту',
+    termsLink: 'Все условия — в прайсе',
+    calcH: 'Соберите заявку за минуту',
+    calcSub: 'Отметьте, что нужно, и укажите параметры — вернёмся с вариантами. Без звонков, если вам так удобнее.',
     faqH: 'Частые вопросы',
     faqSub: 'Не нашли свой — напишите в WhatsApp, ответим текстом.',
   },
   en: {
-    h1pre: 'exhibition participation in Dubai',
+    h1pre: 'exhibitions in Dubai',
     h1script: 'Turnkey',
     scriptFirst: true,
-    introH: ['We’re the organiser,', 'not a print shop'],
-    introText: 'We run the whole project: from the contract with the organiser to breakdown after the show. No need to hire contractors one by one — stand, print, staff, catering and logistics all go through one contract.',
+    lead: 'From the organiser’s contract to breakdown after the show. Take the full package or just the services you need — we’ll fit the scope to your budget.',
+    facts: [
+      ['One contract', 'Stand, print, staff and logistics from a single team'],
+      ['Direct line to venues', 'We deal with organisers directly'],
+      ['Production in the UAE', 'Print and structures — we work with production directly'],
+    ],
+    introH: 'One team for your whole exhibition',
+    introText: 'We handle the whole project: space booking, stand, print, staff, catering and logistics. You have one point of contact at every stage — no hunting for contractors or juggling their schedules.',
+    promises: [
+      ['Help with participation fees', 'Under an agency agreement, we pay the organiser for you and hand over the supporting documents.'],
+      ['Checked against venue rules', 'We check the stand design against the venue’s regulations before it goes into production.'],
+    ],
+    callH: 'Organiser not responding?',
+    callText: 'We reach the venue directly — by phone and on WhatsApp.',
+    callLink: 'Negotiations with organisers',
     howLink: 'How we work',
-    entriesHa: 'Three ways in —',
-    entriesHb: 'pick yours',
+    entriesH: 'Three ways we can help',
+    entriesSub: 'Turnkey exhibitions, outdoor advertising and concierge — each is available on its own.',
+    entries: [
+      ['/exhibitions/', 'Turnkey exhibitions', 'Eight services, from stand concept to breakdown.', 'See what’s included'],
+      ['/production/', 'Signage & outdoor advertising', 'Illuminated signs, print, vehicle wraps, shop windows and printed materials.', 'Browse the catalogue'],
+      ['/exhibitions/concierge/', 'Concierge', 'Airport pickup, accommodation, SIM cards, currency exchange and getting around.', 'What’s included'],
+    ],
+    conciergeAlt: 'Dubai skyline by day: high-rises and the coast',
+    inclH: 'What’s included in turnkey service',
+    inclSub: 'Each service has its own page with the full scope. Take all eight or only what you need.',
+    allBlocks: 'All services',
     howHa: 'How we',
     howHb: 'work',
-    worksHa: 'Our',
-    worksHb: 'work',
+    howSub: 'Six stages, from your first request to breakdown and wrap-up.',
+    worksH: 'Examples of work',
+    worksSub: 'Finished pieces: illuminated signs, neon, interior logos and wayfinding.',
+    worksAll: 'See all work',
     prev: 'Previous project',
     next: 'Next project',
-    numbersHa: 'SIGNUP DXB',
-    numbersHb: 'in numbers',
-    numbers: ['turnkey service blocks', 'production directions', 'items in the open price list', 'emirates: Dubai, Abu Dhabi, Sharjah, Ajman'],
-    calcHa: 'Put your request together',
-    calcHb: 'in a minute',
-    photoAlt: 'Production work',
-    h1: 'Turnkey exhibition participation in Dubai',
-    lead: 'The full cycle — from contract to breakdown after the show. Take the whole package or individual blocks: we’ll shape the scope around your budget.',
-    facts: [
-      ['We are the organiser', 'We run the whole project, not a single delivery'],
-      ['Direct access to venues', 'We reach organisers directly'],
-      ['In-house production', 'We make the print and structures ourselves'],
+    /** Условия — из прайса (TERMS_EN в data/prices.en.ts) и consts.ts (replyTime «within 24 hours»). */
+    termsH: 'Key terms',
+    terms: [
+      ['24', 'hours', 'Response time to your request'],
+      ['50/50', '', 'Payment: 50% upfront, 50% before dispatch or installation'],
+      ['500', 'AED', 'Site survey visit, credited against the order', 'before'],
+      ['12', 'months', 'Warranty on structures and electrics'],
     ],
-    oneContract: 'One contract',
-    noContractors: 'No need to hire contractors one by one.',
-    entries: [
-      ['/exhibitions/', 'Turnkey exhibitions', 'Eight blocks from stand concept to breakdown. Take all of them or just one.', 'See what’s included'],
-      ['/production/', 'Outdoor advertising & production', 'Nine directions: lighting, print, vehicles, shop windows, printing.', 'Open the catalogue'],
-      ['/exhibitions/concierge/', 'Concierge service', 'Arrival, accommodation, SIM cards, currency exchange, getting around the city.', 'What’s included'],
-    ],
-    worksH: 'Our work',
-    worksSub: 'Examples of what we build: illuminated signs, neon, interior logos, wayfinding.',
-    worksAll: 'All work',
-    entriesH: 'Three ways in — pick yours',
-    entriesSub: 'Exhibitions, outdoor advertising and concierge service — each can be ordered on its own.',
-    inclH: 'What turnkey service includes',
-    inclSub: 'Each block has its own page with the scope of work. Take all eight or only the ones you need.',
-    allBlocks: 'All blocks',
-    more: 'Learn more',
-    howH: 'How we work',
-    howSub: 'Six stages. At each one you have a single point of contact, not five contractors.',
-    calcEyebrow: 'Quick quote',
-    calcH: 'Put your request together in a minute',
-    calcSub: 'Choose what you need and add the details — we’ll come back with options that fit your budget. No calls needed if you prefer.',
-    whyH: 'Why it’s easier with us',
-    why: [
-      ['One contract instead of five', 'Stand, print, staff, catering and logistics all go through one provider.'],
-      ['Direct access to venues', 'We contact hall organisers directly, not through a chain of intermediaries.'],
-      ['In-house production', 'We build structures and print ourselves — timelines don’t depend on someone else’s workload.'],
-      ['Scope that fits your budget', 'We show what each level includes and put together a package for your budget.'],
-    ],
-    caseEyebrow: 'A real case',
-    caseText: 'Clients had spent weeks unable to reach the exhibition organisers. The issue was resolved quickly — with a direct phone call and a WhatsApp message.',
-    caseCap: 'Negotiations with organisers',
-    prodEyebrow: 'In-house production',
-    prodH: 'Outdoor advertising & print',
-    prodSub: (n: number, area: string) => `Nine directions and ${n} items — from illuminated letters to vehicle branding. Can be ordered separately from an exhibition. We work in ${area}.`,
-    openCatalog: 'Open the catalogue',
-    byProject: 'per project',
+    termsLink: 'Full terms in the price list',
+    calcH: 'Build your request in a minute',
+    calcSub: 'Tick what you need and add the details — we’ll come back with options. No phone call needed if you’d rather not.',
     faqH: 'Frequently asked questions',
-    faqSub: 'Didn’t find yours? Message us on WhatsApp and we’ll reply in writing.',
+    faqSub: 'Don’t see your question? Ask on WhatsApp — we’ll reply in writing.',
   },
 }[lang];
 const STEPS = process(lang);
@@ -168,10 +136,11 @@ const COLLAGE = ['36', '20'].map((id) => workById(id)!);
 /** Фото карточек направлений. У выставок и консьержа своих снимков нет —
  *  берём табличку «для выставок» и панораму Дубая. */
 const ENTRY_IMG = ['/img/works/w50-600', '/img/works/w27-600', '/img/concierge'];
+/** Подписи к фото карточек: у работ — название из data/works.ts, у консьержа — описание панорамы. */
+const ENTRY_ALT = [workTitle(workById('50')!, lang), workTitle(workById('27')!, lang), T.conciergeAlt];
 /** У консьержа своё чёткое фото Дубая в двух размерах; у работ — по одному. */
 const entrySet = (i: number, ext: string) =>
   i === 2 ? `${link(`${ENTRY_IMG[i]}-800.${ext}`)} 800w, ${link(`${ENTRY_IMG[i]}-1200.${ext}`)} 1200w` : link(`${ENTRY_IMG[i]}.${ext}`);
-const NUMS = [BLOCKS.length, CATS.length, TOTAL_PRICES, 4];
 const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${size}.${ext}`);
 ---
 
@@ -220,31 +189,32 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
   <!-- 2. Позиционирование -->
   <section class="section intro">
     <div class="shell intro__grid">
-      <div class="collage" aria-hidden="true">
+      <div class="collage">
         {
           COLLAGE.map((wk, i) => (
             <picture class:list={['collage__ph', 'taped', `collage__ph--${i + 1}`]} data-reveal style={`--d:${i * 140}ms`}>
               <source type="image/webp" srcset={w(wk.id, 600)} />
-              <img src={w(wk.id, 600, 'jpg')} width="600" height="600" alt="" loading="lazy" />
+              <img src={w(wk.id, 600, 'jpg')} width="600" height="600" alt={workTitle(wk, lang)} loading="lazy" />
             </picture>
           ))
         }
       </div>
       <div class="intro__copy">
-        <h2 class="h2">{T.introH[0]} <span class="script">{T.introH[1]}</span></h2>
+        <h2 class="h2">{T.introH}</h2>
         <p class="intro__text">{T.introText}</p>
         <ul class="promises">
-          {[T.why[0], T.why[3]].map(([h, t], i) => (
+          {T.promises.map(([h, t], i) => (
             <li data-reveal style={`--d:${i * 90}ms`}>
               <span class="promises__tick" aria-hidden="true"><Icon name="check" size={16} /></span>
               <div><strong>{h}</strong><span>{t}</span></div>
             </li>
           ))}
         </ul>
-        <figure class="case">
-          <blockquote>{T.caseText}</blockquote>
-          <figcaption>{T.caseCap}</figcaption>
-        </figure>
+        <div class="callout">
+          <Icon name="talks" size={26} class="callout__icon" />
+          <p class="callout__text"><strong>{T.callH}</strong> {T.callText}</p>
+          <a class="callout__link" href={link('/exhibitions/negotiations/', lang)}>{T.callLink}</a>
+        </div>
         <a class="arrow-link" href="#process">
           {T.howLink}
           <span class="arrow-link__disc" aria-hidden="true"><Icon name="arrow" size={16} /></span>
@@ -258,7 +228,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     <div class="shell">
       <div class="sec-head">
         <div>
-          <h2 class="h2">{T.entriesHa} <span class="script">{T.entriesHb}</span></h2>
+          <h2 class="h2">{T.entriesH}</h2>
           <p class="measure sec-head__sub">{T.entriesSub}</p>
         </div>
       </div>
@@ -269,7 +239,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
               <div class="entry__media" data-drift>
                 <picture>
                   <source type="image/webp" srcset={entrySet(i, 'webp')} sizes="(max-width: 760px) 92vw, (max-width: 1080px) 46vw, 400px" />
-                  <img src={i === 2 ? link(`${ENTRY_IMG[i]}-800.jpg`) : link(`${ENTRY_IMG[i]}.jpg`)} srcset={i === 2 ? entrySet(i, 'jpg') : undefined} sizes="(max-width: 760px) 92vw, (max-width: 1080px) 46vw, 400px" width="600" height="600" alt="" loading="lazy" />
+                  <img src={i === 2 ? link(`${ENTRY_IMG[i]}-800.jpg`) : link(`${ENTRY_IMG[i]}.jpg`)} srcset={i === 2 ? entrySet(i, 'jpg') : undefined} sizes="(max-width: 760px) 92vw, (max-width: 1080px) 46vw, 400px" width="600" height="600" alt={ENTRY_ALT[i]} loading="lazy" />
                 </picture>
               </div>
               <h3 class="entry__title">{h}</h3>
@@ -341,7 +311,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     <div class="shell">
       <div class="sec-head">
         <div>
-          <h2 class="h2">{T.worksHa} <span class="script">{T.worksHb}</span></h2>
+          <h2 class="h2">{T.worksH}</h2>
           <p class="measure sec-head__sub">{T.worksSub}</p>
         </div>
         <a class="arrow-link" href={link('/works/', lang)}>
@@ -351,7 +321,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
       </div>
     </div>
     <div class="car">
-      <div class="car__track" data-track tabindex="0" role="region" aria-roledescription="carousel" aria-label={T.worksHa + ' ' + T.worksHb}>
+      <div class="car__track" data-track tabindex="0" role="region" aria-roledescription="carousel" aria-label={T.worksH}>
         {
           FEATURED.map((wk) => (
             <figure class="car__slide" data-slide>
@@ -374,20 +344,27 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     </div>
   </section>
 
-  <!-- 7. Цифры -->
-  <section class="section numbers">
+  <!-- 7. Условия работы: факты из прайса и consts.ts, без счётчиков -->
+  <section class="section terms">
     <div class="shell">
-      <h2 class="h2 numbers__h">{T.numbersHa} <span class="script">{T.numbersHb}</span></h2>
-      <ul class="numbers__row">
+      <h2 class="h2">{T.termsH}</h2>
+      <ul class="terms__row">
         {
-          NUMS.map((n, i) => (
+          T.terms.map(([n, unit, label, order], i) => (
             <li data-reveal style={`--d:${i * 100}ms`}>
-              <span class="numbers__n" data-count={n}>{n}</span>
-              <span class="numbers__l">{T.numbers[i]}</span>
+              <span class:list={['terms__v', order === 'before' && 'terms__v--rev']}>
+                <span class="terms__n">{n}</span>
+                {unit && <span class="terms__u">{unit}</span>}
+              </span>
+              <span class="terms__l">{label}</span>
             </li>
           ))
         }
       </ul>
+      <a class="arrow-link terms__link" href={link('/prices/', lang)}>
+        {T.termsLink}
+        <span class="arrow-link__disc" aria-hidden="true"><Icon name="arrow" size={16} /></span>
+      </a>
     </div>
   </section>
 
@@ -396,7 +373,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     <div class="shell">
       <div class="sec-head">
         <div>
-          <h2 class="h2">{T.calcHa} <span class="script">{T.calcHb}</span></h2>
+          <h2 class="h2">{T.calcH}</h2>
           <p class="measure sec-head__sub">{T.calcSub}</p>
         </div>
       </div>
@@ -681,23 +658,40 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     line-height: 21px;
     color: var(--muted);
   }
-  .case {
+  /* Врезка про переговоры: описание услуги, а не цитата. */
+  .callout {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 6px 16px;
     margin: 32px 0 28px;
-    padding: 22px 26px;
-    background: var(--stage);
-    color: var(--on-stage);
+    padding: 22px 24px;
+    background: var(--surface);
+    border: 1px solid var(--line);
     border-radius: var(--radius-sm);
   }
-  .case blockquote {
-    margin: 0;
+  .callout :global(.callout__icon) {
+    grid-row: span 2;
+    color: var(--accent);
+  }
+  .callout__text {
     font-size: 16px;
     line-height: 26px;
+    color: var(--muted);
   }
-  .case figcaption {
-    margin-top: 10px;
-    font-family: var(--script);
-    font-size: 22px;
-    color: var(--olive-pastel);
+  .callout__text strong {
+    color: var(--ink);
+  }
+  .callout__link {
+    justify-self: start;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+  }
+  .callout__link:hover {
+    text-decoration-thickness: 2px;
   }
 
   /* ---------- 3. Направления ---------- */
@@ -996,45 +990,60 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     color: var(--muted);
   }
 
-  /* ---------- 7. Цифры: сливовая полоса ---------- */
-  .numbers {
+  /* ---------- 7. Условия работы: сливовая полоса ---------- */
+  .terms {
     background:
       radial-gradient(90% 120% at 50% 0%, #74457b 0%, transparent 60%),
       radial-gradient(70% 90% at 50% 110%, #3a1f3f 0%, transparent 70%),
       var(--accent);
     color: #fff;
-  }
-  .numbers__h {
     text-align: center;
   }
-  .numbers .script {
-    color: var(--olive-pastel);
-  }
-  .numbers__row {
+  .terms__row {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 32px;
     margin-top: 48px;
   }
-  .numbers__row li {
+  .terms__row li {
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-align: center;
-    gap: 10px;
+    gap: 12px;
   }
-  .numbers__n {
-    font-size: clamp(56px, 7vw, 96px);
+  .terms__v {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.22em;
+    white-space: nowrap;
+    font-size: clamp(44px, 5.6vw, 80px);
     line-height: 1;
     font-weight: 800;
     letter-spacing: -0.04em;
     font-variant-numeric: tabular-nums;
   }
-  .numbers__l {
-    max-width: 22ch;
+  .terms__v--rev {
+    flex-direction: row-reverse;
+  }
+  .terms__u {
+    font-size: 0.34em;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--olive-pastel);
+  }
+  .terms__l {
+    max-width: 24ch;
+    text-wrap: balance;
     font-size: 15px;
     line-height: 22px;
     color: rgb(255 255 255 / 0.82);
+  }
+  .terms__link {
+    margin-top: 40px;
+    color: #fff;
+  }
+  .terms__link .arrow-link__disc {
+    background: var(--olive-pastel);
   }
 
   /* ---------- 8–10 ---------- */
@@ -1126,8 +1135,9 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     .entries__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .numbers__row {
+    .terms__row {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 40px 24px;
     }
     .collage {
       max-width: 520px;

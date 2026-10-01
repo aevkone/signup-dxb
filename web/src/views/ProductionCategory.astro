@@ -19,10 +19,13 @@ const L = local(lang);
 const CATS = categories(lang);
 const c = CATS.find((x) => x.slug === Astro.props.slug)!;
 const others = CATS.filter((x) => x.slug !== c.slug);
+/** Первая буква строчная — для вставки в середину фразы («3D» не трогаем). */
+const lower = (s: string) => (/^[A-ZА-ЯЁ][a-zа-яё]/.test(s) ? s[0]!.toLowerCase() + s.slice(1) : s);
 const T = {
   ru: {
     crumb: 'Производство',
-    description: `${c.title} в Дубае, Шардже и Аджмане. ${c.short}.`,
+    metaTitle: `${c.title} в Дубае`,
+    description: `${c.title} в Дубае, Шардже и Аджмане: ${lower(c.short)}. Работаем напрямую с производством, минимальный заказ ${L.minOrder}.`,
     quote: 'Заказать расчёт',
     adv: 'Преимущества',
     offer: 'Мы предлагаем',
@@ -36,7 +39,8 @@ const T = {
   },
   en: {
     crumb: 'Production',
-    description: `${c.title} in Dubai, Sharjah and Ajman. ${c.short}.`,
+    metaTitle: `${c.title} in Dubai`,
+    description: `${c.title} in Dubai, Sharjah and Ajman: ${lower(c.short)}. We work directly with production, minimum order ${L.minOrder}.`,
     quote: 'Request a quote',
     adv: 'Advantages',
     offer: 'What we offer',
@@ -51,7 +55,7 @@ const T = {
 }[lang];
 ---
 
-<Base title={c.title} description={T.description}>
+<Base title={T.metaTitle} description={T.description} crumbs={[{ href: '/production/', label: T.crumb }, { label: c.title }]}>
   <PageHero title={c.title} lead={c.lead} crumbs={[{ href: '/production/', label: T.crumb }, { label: c.title }]}>
     <div class="hero-actions">
       <a class="btn btn--primary" href="#lead">{T.quote}</a>

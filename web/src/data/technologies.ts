@@ -143,7 +143,7 @@ const EN: TechSection[] = [
       { title: 'Mounting illuminated letters', text: 'The wiring hides behind a gap from the wall. Three options: a composite backing box 3–4 cm deep; a metal frame in the facade colour, for outdoors; or straight onto the wall with the connections run through it — common in malls and photo zones.' },
       { title: 'Halo lighting', text: 'The face stays dark and the light falls on the wall behind, creating a halo. It needs a light background: on a dark wall we apply white film slightly larger than the outline. Works best indoors.' },
       { title: 'Backlit plaques', text: 'On acrylic for a clear background, on PVC for a coloured one. Affordable, striking and easy to install — well suited to exhibitions.' },
-      { title: 'Projecting sign', text: 'A small sign perpendicular to an entrance, stand or mall unit: lit or unlit, flat or 3D, single- or double-sided. It catches passing footfall because it sits in a different plane, and helps when the main letters are left unlit to save budget.' },
+      { title: 'Projecting sign', text: 'A small sign perpendicular to an entrance, stand or mall unit: lit or unlit, flat or 3D, single- or double-sided. It catches passing footfall because it sits in a different plane, and helps when the main letters are left unlit to stay within budget.' },
       { title: 'Lightbox', text: 'Bulkier than letters but often cheaper. A profile box with an acrylic face glows across the whole surface. A composite box with inlaid lettering lights only the cut-out letters and reads as separate letters at night; small lettering too tight for an LED can only be done this way.' },
     ],
     photos: ['24', '28', '20', '17', '50', '03'],

@@ -13,7 +13,8 @@ export default defineConfig({
   base: BASE,
   integrations: [
     sitemap({
-      i18n: { defaultLocale: 'ru', locales: { ru: 'ru-RU', en: 'en-AE' } },
+      // Коды языков — те же, что в hreflang в <head> (Base.astro): ru и en.
+      i18n: { defaultLocale: 'ru', locales: { ru: 'ru', en: 'en' } },
       filter: (page) => !page.includes('/404'),
     }),
   ],

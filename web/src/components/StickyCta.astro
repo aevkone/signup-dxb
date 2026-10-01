@@ -1,0 +1,164 @@
+---
+/**
+ * Нижняя панель действий на телефоне: WhatsApp и заявка.
+ * Видна только до 760px. Прячется, пока на экране форма заявки или подвал,
+ * и пока открыто мобильное меню. На странице расчёта не выводится —
+ * там кнопка вела бы на ту же страницу и закрывала бы её итог.
+ */
+import Icon from './Icon.astro';
+import { getLang, link, splitPath } from '@/i18n';
+import { ui } from '@/i18n/ui';
+import { CONTACTS } from '@/consts';
+
+const lang = getLang(Astro.url);
+const t = ui(lang);
+const { path } = splitPath(Astro.url.pathname);
+const onConfigurator = path.startsWith('/configurator');
+---
+
+{
+  !onConfigurator && (
+    <div class="scta" data-sticky-cta inert>
+      <div class="scta__row">
+        <a class="scta__wa" href={CONTACTS.whatsapp} target="_blank" rel="noopener" aria-label={t.whatsapp}>
+          <Icon name="whatsapp" size={20} />
+          <span>WhatsApp</span>
+        </a>
+        <a class="btn btn--primary scta__cta" href={link('/configurator/', lang)}>
+          {t.calc}
+        </a>
+      </div>
+    </div>
+  )
+}
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-sticky-cta]');
+  if (bar) {
+    const mq = window.matchMedia('(max-width: 760px)');
+    /** Что сейчас на экране из того, что панель не должна закрывать. */
+    const covering = new Set<Element>();
+    let scrolled = false;
+
+    const update = () => {
+      const menuOpen = document.documentElement.classList.contains('mnav-open');
+      const show = mq.matches && scrolled && covering.size === 0 && !menuOpen;
+      bar.classList.toggle('is-on', show);
+      // Спрятанная панель не должна ловить фокус и касания.
+      bar.inert = !show;
+    };
+
+    // Появляется, когда первый экран прокручен на треть — там свои кнопки.
+    const onScroll = () => {
+      const next = window.scrollY > window.innerHeight * 0.33;
+      if (next !== scrolled) {
+        scrolled = next;
+        update();
+      }
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) covering.add(e.target);
+          else covering.delete(e.target);
+        }
+        update();
+      },
+      // Уходит, как только форма или подвал показались на экране.
+      { threshold: 0 },
+    );
+    document.querySelectorAll('#lead, [data-lead-form], .ftr').forEach((el) => io.observe(el));
+
+    // Меню в шапке ставит на <html> класс mnav-open.
+    new MutationObserver(update).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    mq.addEventListener('change', update);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    update();
+  }
+</script>
+
+<style>
+  .scta {
+    display: none;
+  }
+  @media (max-width: 760px) {
+    .scta {
+      display: block;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 40;
+      padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom));
+      background: rgb(15 16 13 / 0.96);
+      backdrop-filter: saturate(1.2) blur(10px);
+      border-top: 1px solid var(--stage-line);
+      transform: translateY(105%);
+      visibility: hidden;
+      transition:
+        transform 0.35s var(--ease-out),
+        visibility 0s linear 0.35s;
+    }
+    .scta.is-on {
+      transform: none;
+      visibility: visible;
+      transition:
+        transform 0.35s var(--ease-out),
+        visibility 0s;
+    }
+  }
+  @media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+    /* Без выезда: панель просто появляется и исчезает. */
+    .scta,
+    .scta.is-on {
+      transform: none;
+      transition: none;
+    }
+  }
+  .scta__row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+  }
+  .scta__wa,
+  .scta__cta {
+    height: 56px;
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .scta__wa {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding-inline: 18px;
+    border: 1px solid var(--olive-pastel);
+    border-radius: var(--pill);
+    color: var(--olive-pastel);
+    font-weight: 600;
+    transition:
+      background-color 0.18s ease,
+      color 0.18s ease;
+  }
+  .scta__wa:hover,
+  .scta__wa:active {
+    background: var(--olive-pastel);
+    color: var(--stage);
+  }
+  .scta__cta {
+    padding-inline: 16px;
+    min-width: 0;
+  }
+  /* На совсем узких экранах у WhatsApp остаётся только значок. */
+  @media (max-width: 350px) {
+    .scta__wa {
+      width: 56px;
+      padding: 0;
+    }
+    .scta__wa span {
+      display: none;
+    }
+  }
+</style>

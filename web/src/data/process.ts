@@ -8,17 +8,17 @@ const PROCESS: Record<Lang, Step[]> = {
     { title: 'Заявка и бриф', text: 'Уточняем выставку, даты, площадь стенда и задачи участия.' },
     { title: 'Концепция и смета', text: 'Подбираем объём услуг так, чтобы он укладывался в ваш бюджет.' },
     { title: 'Договор и площадка', text: 'Бронируем место, ведём переговоры с организаторами павильона.' },
-    { title: 'Производство и логистика', text: 'Изготавливаем конструкции и печать, везём всё на площадку.' },
+    { title: 'Производство и логистика', text: 'Запускаем конструкции и печать в производство, везём всё на площадку.' },
     { title: 'Монтаж и работа стенда', text: 'Собираем стенд, выводим персонал, кейтеринг и шоу-программу.' },
     { title: 'Демонтаж и итоги', text: 'Разбираем и вывозим конструкции, передаём фото, видео и контакты.' },
   ],
   en: [
-    { title: 'Request & brief', text: 'We clarify the exhibition, dates, stand size and your goals.' },
-    { title: 'Concept & estimate', text: 'We shape the scope of services so it fits your budget.' },
-    { title: 'Contract & space', text: 'We book the space and negotiate with the hall organisers.' },
-    { title: 'Production & logistics', text: 'We build the structures and print, then deliver everything to the venue.' },
-    { title: 'Build-up & show days', text: 'We assemble the stand and bring in staff, catering and the show programme.' },
-    { title: 'Breakdown & wrap-up', text: 'We dismantle and remove the structures, then hand over photos, video and leads.' },
+    { title: 'Request & brief', text: 'We confirm the exhibition, dates, stand size and what you want from the show.' },
+    { title: 'Concept & quote', text: 'We put together a scope of services that fits your budget.' },
+    { title: 'Contract & space', text: 'We book your space and deal with the hall organisers.' },
+    { title: 'Production & logistics', text: 'We send the structures and print into production, then deliver everything to the venue.' },
+    { title: 'Build-up & show days', text: 'We build the stand and bring in staff, catering and entertainment.' },
+    { title: 'Breakdown & wrap-up', text: 'We dismantle and remove the stand, then hand over photos, video and the contacts collected.' },
   ],
 };
 
@@ -30,11 +30,11 @@ const FAQ: Record<Lang, Qa[]> = {
     },
     {
       q: 'Сколько стоит?',
-      a: 'Стоимость считаем под задачу: она зависит от площади стенда, состава блоков и сроков. Оставьте заявку — вернёмся с вариантами под ваш бюджет. Минимальный заказ — от 2 000 AED.',
+      a: 'Стоимость считаем под задачу: она зависит от площади стенда, состава блоков и сроков. Оставьте заявку — вернёмся с вариантами и сметой. Минимальный заказ — от 2 000 AED.',
     },
     {
       q: 'Выезд на замер платный?',
-      a: 'Да, от 500 AED. Если после замера вы оформляете заказ, эта сумма входит в его стоимость.',
+      a: 'Да, от 500 AED. Если после замера вы оформляете заказ, эта сумма входит в его стоимость.',
     },
     {
       q: 'В каких эмиратах вы работаете?',
@@ -51,28 +51,28 @@ const FAQ: Record<Lang, Qa[]> = {
   ],
   en: [
     {
-      q: 'Can I order just one block?',
-      a: 'Yes. The full cycle is an option, not an obligation. Clients often take the stand and print, and handle staff and catering themselves.',
+      q: 'Can I order just one service?',
+      a: 'Yes. The full package is an option, not an obligation. Clients often order the stand and print, and arrange staff and catering themselves.',
     },
     {
       q: 'How much does it cost?',
-      a: 'We price each project individually: it depends on stand size, the blocks you choose and the timeline. Send a request and we’ll come back with options that fit your budget. Minimum order from AED 2,000.',
+      a: 'Every project is priced individually, depending on stand size, the services you choose and the timeline. Send a request and we’ll come back with options and a quote. Minimum order from AED 2,000.',
     },
     {
-      q: 'Is the site survey paid?',
-      a: 'Yes, from AED 500. If you place an order after the survey, this amount is credited towards it.',
+      q: 'Is there a fee for the site survey?',
+      a: 'Yes, from AED 500. If you go ahead with an order, the fee is credited towards it.',
     },
     {
       q: 'Which emirates do you cover?',
-      a: 'Exhibitions — Dubai, Abu Dhabi, Sharjah and Ajman. Outdoor advertising production and installation — Dubai, Sharjah and Ajman.',
+      a: 'Exhibitions: Dubai, Abu Dhabi, Sharjah and Ajman. Signage production and installation: Dubai, Sharjah and Ajman.',
     },
     {
-      q: 'Do you help with paying for exhibition participation?',
-      a: 'Yes, under an agency agreement: we pay the organiser for your participation and give you the supporting documents.',
+      q: 'Can you help pay the exhibition participation fee?',
+      a: 'Yes, under an agency agreement: we pay the organiser on your behalf and hand over the supporting documents.',
     },
     {
       q: 'Do you obtain signage permits?',
-      a: 'Permits are not included in the price and are discussed separately for each site.',
+      a: 'Permits are not included in the price and are quoted separately for each site.',
     },
   ],
 };

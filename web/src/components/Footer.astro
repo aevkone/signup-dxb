@@ -1,5 +1,6 @@
 ---
 import Logo from './Logo.astro';
+import StickyCta from './StickyCta.astro';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
 import { CONTACTS, local } from '@/consts';
@@ -8,6 +9,10 @@ const lang = getLang(Astro.url);
 const t = ui(lang);
 const L = local(lang);
 const year = new Date().getFullYear();
+/** Часы работы не рвутся посреди интервала: «9:00–20:00», «9 am». */
+const hours = L.hours.replace(/–/g, '–\u2060').replace(/(\d) (am|pm)/g, '$1\u00a0$2').replace(/ – /g, '\u00a0– ');
+/** Знак номера не отрывается от цифр лицензии. */
+const licence = L.licence.replace(/^(№|No\.) /, '$1\u00a0');
 ---
 
 <footer class="ftr">
@@ -40,20 +45,21 @@ const year = new Date().getFullYear();
       <div>
         <div class="ftr__h">{t.footerContact}</div>
         <ul>
-          <li><a href={CONTACTS.phoneHref}>{CONTACTS.phone}</a></li>
+          <li><a class="ftr__nowrap" href={CONTACTS.phoneHref}>{CONTACTS.phone}</a></li>
           <li><a href={CONTACTS.whatsapp} target="_blank" rel="noopener">WhatsApp</a></li>
           {CONTACTS.email && <li><a href={`mailto:${CONTACTS.email}`}>{CONTACTS.email}</a></li>}
           <li><a href={CONTACTS.instagram} target="_blank" rel="noopener">Instagram</a></li>
-          <li class="ftr__muted">{L.hours}</li>
+          <li class="ftr__muted">{hours}</li>
         </ul>
       </div>
     </div>
     <div class="ftr__legal">
-      <span>{L.legalName} · {t.licence} {L.licence} · {L.address}</span>
+      <span>{L.legalName} · {t.licence} {licence} · {L.address}</span>
       <span>© {year} SIGNUP DXB</span>
     </div>
   </div>
 </footer>
+<StickyCta />
 <style>
   .ftr {
     background: var(--stage);
@@ -100,6 +106,10 @@ const year = new Date().getFullYear();
   .ftr__muted {
     color: #8b8f96;
   }
+  /* Телефон не переносится посреди номера. */
+  .ftr__nowrap {
+    white-space: nowrap;
+  }
   .ftr__legal {
     margin-top: 48px;
     padding-top: 24px;
@@ -117,6 +127,27 @@ const year = new Date().getFullYear();
     }
     .ftr__about {
       grid-column: 1 / -1;
+    }
+    /* Ссылки — полноценная зона касания 44px; промежутки забирает высота. */
+    .ftr ul {
+      gap: 0;
+    }
+    .ftr li a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+    }
+    .ftr__muted {
+      padding-block: 10px;
+    }
+    .ftr__h {
+      margin-bottom: 4px;
+    }
+  }
+  /* Нижняя панель действий на телефоне: запас, чтобы она не легла на текст. */
+  @media (max-width: 760px) {
+    .ftr {
+      padding-bottom: calc(36px + 76px + env(safe-area-inset-bottom));
     }
   }
 </style>

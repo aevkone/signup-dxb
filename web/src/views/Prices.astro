@@ -24,9 +24,10 @@ const plural = (n: number) => {
 const T = {
   ru: {
     title: 'Прайс',
+    metaTitle: 'Цены на наружную рекламу и стенды в Дубае',
     crumb: 'Прайс',
     description:
-      'Цены на производство наружной рекламы и оформление выставок в ОАЭ: световые вывески, печать, стенды, брендирование транспорта, сувениры, монтаж. Ориентировочные цены в дирхамах без VAT.',
+      'Цены на наружную рекламу и оформление выставок в ОАЭ: световые вывески, печать, стенды, брендирование транспорта, монтаж. Ориентировочно, в AED без VAT.',
     lead: (n: number) =>
       `${n} ${plural(n)} по восьми направлениям. Цены ориентировочные: точная сумма считается по вашим размерам, материалам и месту монтажа.`,
     currency: 'Цены в AED без VAT 5%',
@@ -40,9 +41,10 @@ const T = {
   },
   en: {
     title: 'Price list',
+    metaTitle: 'Outdoor advertising & stand prices in Dubai',
     crumb: 'Price list',
     description:
-      'Prices for outdoor advertising production and exhibition build in the UAE: illuminated signs, print, stands, vehicle branding, gifts and installation. Indicative prices in dirhams, excluding VAT.',
+      'Prices for outdoor advertising and exhibition build in the UAE: illuminated signs, print, stands, vehicle branding, installation. Indicative, in AED excl. VAT.',
     lead: (n: number) =>
       `${n} items across eight categories. Prices are indicative: the exact figure depends on your sizes, materials and installation site.`,
     currency: 'Prices in AED, excluding 5% VAT',
@@ -57,7 +59,7 @@ const T = {
 }[lang];
 ---
 
-<Base title={T.title} description={T.description}>
+<Base title={T.metaTitle} description={T.description} crumbs={[{ label: T.crumb }]}>
   <PageHero title={T.title} lead={T.lead(TOTAL_PRICES)} crumbs={[{ label: T.crumb }]}>
     <ul class="terms">
       <li><Icon name="payment" size={18} />{T.currency}</li>

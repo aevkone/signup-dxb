@@ -13,9 +13,10 @@ const CATS = categories(lang);
 const T = {
   ru: {
     title: 'Наружная реклама и производство',
+    metaTitle: 'Производство наружной рекламы в Дубае',
     crumb: 'Производство',
-    description: 'Собственное производство наружной рекламы в Дубае, Шардже и Аджмане: световые вывески, широкоформатная печать, брендирование транспорта, таблички, витрины, полиграфия и сувениры.',
-    lead: (n: number) => `Девять направлений и ${n} позиций собственного производства. Заказывается отдельно от выставки — или вместе с ней.`,
+    description: 'Производство наружной рекламы в Дубае, Шардже и Аджмане: световые вывески, печать, брендирование транспорта, таблички, витрины и сувениры.',
+    lead: (n: number) => `Девять направлений и ${n} видов работ — делаем напрямую с производством в ОАЭ. Заказывается отдельно от выставки — или вместе с ней.`,
     prices: (min: string) => `Ориентировочные цены — в прайсе · минимальный заказ ${min}`,
     survey: (s: string) => `Замер ${s}, засчитывается в стоимость заказа`,
     more: (n: number) => `и ещё ${n}`,
@@ -24,9 +25,10 @@ const T = {
   },
   en: {
     title: 'Outdoor advertising & production',
+    metaTitle: 'Outdoor advertising production in Dubai',
     crumb: 'Production',
-    description: 'In-house production of outdoor advertising in Dubai, Sharjah and Ajman: illuminated signs, large-format print, vehicle branding, plaques, shop windows, printing and corporate gifts.',
-    lead: (n: number) => `Nine directions and ${n} items made in our own production. Order separately from an exhibition — or together with it.`,
+    description: 'Outdoor advertising production in Dubai, Sharjah and Ajman: illuminated signs, large-format print, vehicle branding, plaques, shop windows and gifts.',
+    lead: (n: number) => `Nine service lines and ${n} types of work, made directly with production in the UAE. Order separately from an exhibition — or together with it.`,
     prices: (min: string) => `Indicative prices in the price list · minimum order ${min}`,
     survey: (s: string) => `Site survey ${s}, credited towards your order`,
     more: (n: number) => `and ${n} more`,
@@ -36,7 +38,7 @@ const T = {
 }[lang];
 ---
 
-<Base title={T.title} description={T.description}>
+<Base title={T.metaTitle} description={T.description} crumbs={[{ label: T.crumb }]}>
   <PageHero title={T.title} lead={T.lead(TOTAL_ITEMS)} crumbs={[{ label: T.crumb }]}>
     <ul class="terms">
       <li><Icon name="pin" size={18} />{L.productionArea}</li>

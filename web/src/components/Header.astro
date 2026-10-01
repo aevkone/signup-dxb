@@ -80,6 +80,31 @@ const isActive = (href: string) =>
     </details>
   </div>
 </header>
+<script>
+  /**
+   * Мобильное меню на <details>: закрывается по Escape, по нажатию на ссылку
+   * внутри и при переходе к широкой шапке. Пока оно открыто, на <html>
+   * висит класс mnav-open — по нему прячется нижняя панель действий.
+   */
+  document.querySelectorAll<HTMLDetailsElement>('details.mnav').forEach((menu) => {
+    const toggle = menu.querySelector('summary');
+    const sync = () => document.documentElement.classList.toggle('mnav-open', menu.open);
+    menu.addEventListener('toggle', sync);
+    menu.querySelector('.mnav__panel')?.addEventListener('click', (e) => {
+      if ((e.target as Element).closest('a')) menu.open = false;
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && menu.open) {
+        menu.open = false;
+        toggle?.focus();
+      }
+    });
+    window.matchMedia('(min-width: 1101px)').addEventListener('change', (e) => {
+      if (e.matches) menu.open = false;
+    });
+    sync();
+  });
+</script>
 <style>
   /* Шапка в грамматике образца: чёрная полоса, светлые ссылки, CTA с кантом. */
   .hdr {
@@ -105,6 +130,44 @@ const isActive = (href: string) =>
   .hdr__nav {
     display: flex;
     gap: 26px;
+  }
+  /* 1101–1400px: меню целиком, но плотнее (в обычном размере оно влезает
+     только с 1380px) — бургер только ниже 1100px. */
+  @media (max-width: 1400px) {
+    .hdr__row {
+      gap: 20px;
+      /* Поле сжимается ровно настолько, чтобы меню влезло: на 1280px шапка
+         почти совпадает с сеткой страницы, к 1100px поле — 24px. */
+      padding-inline: clamp(24px, calc((100vw - 1110px) / 2), var(--gutter));
+    }
+    .hdr__nav {
+      gap: 18px;
+    }
+    .hdr__link {
+      font-size: 14px;
+    }
+    .hdr__actions {
+      gap: 10px;
+    }
+    .hdr__cta {
+      padding-inline: 18px;
+    }
+  }
+  @media (max-width: 1180px) {
+    .hdr__row {
+      gap: 16px;
+    }
+    .hdr__nav {
+      gap: 15px;
+    }
+  }
+  @media (max-width: 1140px) {
+    .hdr__row {
+      gap: 12px;
+    }
+    .hdr__nav {
+      gap: 12px;
+    }
   }
   .hdr__link {
     position: relative;
@@ -146,6 +209,7 @@ const isActive = (href: string) =>
     border-radius: var(--pill);
   }
   .langs__a {
+    position: relative;
     min-width: 38px;
     height: 34px;
     display: grid;
@@ -155,6 +219,12 @@ const isActive = (href: string) =>
     font-size: 13px;
     font-weight: 700;
     color: var(--on-stage-muted);
+  }
+  /* Зона касания 44px по высоте при визуальной высоте 34px. */
+  .langs__a::before {
+    content: '';
+    position: absolute;
+    inset: -5px 0;
   }
   .langs__a:hover {
     color: #fff;
@@ -188,13 +258,20 @@ const isActive = (href: string) =>
     display: none;
   }
 
-  @media (max-width: 1320px) {
+  @media (max-width: 1100px) {
+    /* Из действий остаётся круглая кнопка WhatsApp рядом с бургером. */
     .hdr__nav,
-    .hdr__actions {
+    .hdr__actions .langs,
+    .hdr__cta {
       display: none;
     }
     .hdr__row {
       height: 68px;
+      gap: 10px;
+      padding-inline: var(--gutter);
+    }
+    .hdr__actions {
+      margin-left: auto;
     }
     .mnav {
       display: block;
@@ -250,18 +327,33 @@ const isActive = (href: string) =>
       color: var(--olive-pastel);
     }
     .mnav__phone {
-      margin-top: 8px;
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      margin-top: 4px;
       color: var(--on-stage);
       font-weight: 700;
       font-size: 18px;
+      white-space: nowrap;
     }
     .mnav :global(.btn--ghost) {
       color: var(--on-stage);
       border-color: var(--stage-line);
     }
-    .langs--m {
+    /* Переключатель языка в меню — в строку, а не столбиком, как остальные nav. */
+    .mnav__panel .langs--m {
+      flex-direction: row;
       align-self: flex-start;
-      margin-top: 8px;
+      margin: 8px 0 0;
+    }
+    .langs--m .langs__a {
+      height: 44px;
+      min-width: 56px;
+      font-size: 14px;
+    }
+    .langs--m .langs__a::before {
+      content: none;
     }
   }
 </style>

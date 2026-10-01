@@ -38,7 +38,7 @@ export const BLOCKS_EN: Block[] = [
     title: 'Print & branded merchandise',
     short: 'Banners, roll-ups, catalogues, brand book',
     icon: 'print',
-    lead: 'Everything that hangs on your stand or goes into visitors’ hands is made in our own production — no middlemen and no slipping deadlines.',
+    lead: 'Everything that hangs on your stand or goes into visitors’ hands is produced with our production partner in the UAE — we work with them directly, with no chain of middlemen.',
     includes: [
       {
         title: 'Large format',
@@ -58,7 +58,7 @@ export const BLOCKS_EN: Block[] = [
       },
     ],
     points: [
-      'In-house production — we control timing and quality',
+      'We work directly with production in the UAE',
       'Ready artwork adapted to the print areas',
       'Matte, gloss or satin finish to suit lighting and filming',
     ],
@@ -214,8 +214,8 @@ export const BLOCKS_EN: Block[] = [
       'Venue restrictions checked before you approve the design',
     ],
     note: {
-      title: 'A real case',
-      text: 'Clients had spent weeks unable to reach the exhibition organisers. The issue was resolved quickly — with a direct phone call and a WhatsApp message.',
+      title: 'Organiser not answering?',
+      text: 'We reach the hall directly — by phone and WhatsApp.',
     },
   },
 ];
