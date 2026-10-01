@@ -2,6 +2,7 @@
 import Base from '@/layouts/Base.astro';
 import Icon from '@/components/Icon.astro';
 import Configurator from '@/components/Configurator.astro';
+import HeroMotion from '@/components/HeroMotion.astro';
 import { featuredWorks } from '@/data/works';
 import LeadForm from '@/components/LeadForm.astro';
 import { getLang, link } from '@/i18n';
@@ -157,8 +158,7 @@ const T = {
 }[lang];
 const STEPS = process(lang);
 const FEATURED = featuredWorks();
-/** Колода на первом экране и коллаж — реальные работы из data/works.ts. */
-const DECK = ['27', '17', '24'].map((id) => workById(id)!);
+/** Коллаж — реальные работы из data/works.ts. */
 const COLLAGE = ['36', '20'].map((id) => workById(id)!);
 /** Фото карточек направлений. У выставок и консьержа своих снимков нет —
  *  берём табличку «для выставок» и панораму Дубая. */
@@ -205,19 +205,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
           {T.facts.map(([h, t]) => <li><strong>{h}</strong><span>{t}</span></li>)}
         </ul>
       </div>
-      <div class="deck" data-deck>
-        {
-          DECK.map((wk, i) => (
-            <figure class="deck__card taped" data-card data-pos={i} style={`--i:${i}`}>
-              <picture>
-                <source type="image/webp" srcset={`${w(wk.id, 600)} 600w, ${w(wk.id, 1200)} 1200w`} sizes="(max-width: 980px) 70vw, 420px" />
-                <img src={w(wk.id, 600, 'jpg')} width="600" height="600" alt={workTitle(wk, lang)} fetchpriority={i === 0 ? 'high' : 'auto'} />
-              </picture>
-              <figcaption>{workTitle(wk, lang)}</figcaption>
-            </figure>
-          ))
-        }
-      </div>
+      <HeroMotion />
     </div>
   </section>
 
@@ -473,12 +461,12 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
   }
   .hero__grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
-    gap: 56px;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 48px;
     align-items: center;
   }
   .hero__title {
-    font-size: clamp(40px, 4.9vw, 70px);
+    font-size: clamp(38px, 4vw, 58px);
     line-height: 1.02;
     font-weight: 800;
     letter-spacing: -0.035em;
@@ -537,74 +525,6 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     font-size: 15px;
   }
 
-  /* Колода фото: три карточки веером, верхняя уходит под низ. */
-  .deck {
-    position: relative;
-    aspect-ratio: 1 / 1.08;
-    max-width: 440px;
-    width: 100%;
-    justify-self: end;
-  }
-  .deck__card {
-    position: absolute;
-    inset: 0 0 8% 0;
-    margin: 0;
-    padding: 12px 12px 44px;
-    background: #f5f5f1;
-    box-shadow: 0 30px 60px rgb(0 0 0 / 0.45);
-    transition:
-      transform 0.7s var(--ease-out),
-      opacity 0.5s ease,
-      filter 0.7s var(--ease-out);
-    transform-origin: 50% 90%;
-  }
-  .deck__card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .deck__card picture {
-    display: block;
-    height: 100%;
-  }
-  .deck__card figcaption {
-    position: absolute;
-    left: 14px;
-    right: 14px;
-    bottom: 12px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .deck__card[data-pos='0'] {
-    z-index: 3;
-    transform: rotate(-3deg);
-  }
-  .deck__card[data-pos='1'] {
-    z-index: 2;
-    transform: translate(13%, -5%) rotate(7deg) scale(0.94);
-    filter: brightness(0.82);
-  }
-  .deck__card[data-pos='2'] {
-    z-index: 1;
-    transform: translate(-13%, 4%) rotate(-10deg) scale(0.9);
-    filter: brightness(0.68);
-  }
-  /* Подпись только у верхней карточки — нижние не выглядывают текстом. */
-  .deck__card figcaption {
-    transition: opacity 0.3s ease;
-  }
-  .deck__card:not([data-pos='0']) figcaption {
-    opacity: 0;
-  }
-  .deck__card.is-leaving {
-    transform: translate(-30%, -6%) rotate(-16deg) scale(0.9);
-    opacity: 0;
-  }
-
   /* Выход на сцену: строки заголовка поднимаются из-под маски,
      рукописное слово «пишется» слева направо, колода раздаётся. */
   :global(.js-motion) .hero__line > span {
@@ -630,10 +550,6 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
   :global(.js-motion) .hero__facts {
     animation-delay: 0.65s;
   }
-  :global(.js-motion) .deck__card {
-    animation: deal 0.9s var(--ease-out) both;
-    animation-delay: calc(0.3s + var(--i) * 0.14s);
-  }
   @keyframes rise {
     from {
       transform: translateY(105%);
@@ -653,20 +569,12 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
       transform: translateY(16px);
     }
   }
-  @keyframes deal {
-    from {
-      opacity: 0;
-      translate: 40% 12%;
-      rotate: 14deg;
-    }
-  }
   @media (prefers-reduced-motion: reduce) {
     :global(.js-motion) .hero__line > span,
     :global(.js-motion) .hero__script,
     :global(.js-motion) .hero__lead,
     :global(.js-motion) .hero__actions,
-    :global(.js-motion) .hero__facts,
-    :global(.js-motion) .deck__card {
+    :global(.js-motion) .hero__facts {
       animation: none !important;
     }
   }
@@ -1174,9 +1082,19 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
       grid-template-columns: minmax(0, 1fr);
       gap: 48px;
     }
-    .deck {
-      justify-self: center;
-      max-width: 380px;
+    /* Сцена встаёт сразу под кнопками, преимущества — после неё. */
+    .hero__grid {
+      gap: 0;
+    }
+    .hero__copy {
+      display: contents;
+    }
+    .hero__grid > :global(.hm) {
+      order: 1;
+      margin-top: 40px;
+    }
+    .hero__facts {
+      order: 2;
     }
     .entries__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));

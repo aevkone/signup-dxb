@@ -2,7 +2,7 @@
  * Движение на сайте. Пять мест, одна грамматика — «выход на сцену»:
  * мягкое замедление cubic-bezier(0.16, 1, 0.3, 1), ничего не прыгает.
  *
- * 1. Первый экран: колода фото работ медленно перетасовывается.
+ * 1. Первый экран: отдельный модуль scripts/hero-motion.ts.
  * 2. Карточки услуг: появляются по очереди, фото следует за курсором.
  * 3. Схема работы: линия прорисовывается по прокрутке, этапы загораются.
  * 4. Карусель работ: стрелки, свайп, соседние кадры приглушены.
@@ -162,36 +162,5 @@ if (!reduce && window.matchMedia('(hover: hover)').matches) {
   });
 }
 
-/* ---------- 1. Колода фото на первом экране ---------- */
-document.querySelectorAll<HTMLElement>('[data-deck]').forEach((deck) => {
-  if (reduce) return;
-  const cards = [...deck.querySelectorAll<HTMLElement>('[data-card]')];
-  if (cards.length < 2) return;
-  let order = cards.map((_, i) => i);
-  let timer = 0;
-  const place = () => order.forEach((c, pos) => (cards[c].dataset.pos = String(pos)));
-  const step = () => {
-    const top = order[0];
-    cards[top].classList.add('is-leaving');
-    window.setTimeout(() => {
-      cards[top].classList.remove('is-leaving');
-      order = [...order.slice(1), top];
-      place();
-    }, 520);
-  };
-  const run = () => {
-    if (!timer) timer = window.setInterval(step, 4200);
-  };
-  const stop = () => {
-    window.clearInterval(timer);
-    timer = 0;
-  };
-  place();
-  // Колода крутится, только пока видна и вкладка активна.
-  new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? run() : stop()))).observe(deck);
-  document.addEventListener('visibilitychange', () => (document.hidden ? stop() : run()));
-  deck.addEventListener('pointerenter', stop);
-  deck.addEventListener('pointerleave', run);
-});
 
 export {};

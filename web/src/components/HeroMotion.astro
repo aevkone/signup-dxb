@@ -1,0 +1,627 @@
+---
+/**
+ * Моушн первого экрана: один элемент проходит весь путь клиента.
+ * Кнопка → загрузка → готово → один контакт → бюджет → блоки → этапы →
+ * схема → поиск по прайсу → работа → снова кнопка. Петля 14 с, 120 ударов
+ * в минуту. Всё движение считает scripts/hero-motion.ts как функцию времени.
+ *
+ * Без скрипта и при «уменьшить движение» виден один кадр — карточка блоков.
+ * Тексты и цены — из данных сайта, ничего не придумано.
+ */
+import Icon from '@/components/Icon.astro';
+import { getLang, link } from '@/i18n';
+import { local } from '@/consts';
+import { process } from '@/data/process';
+import { priceGroups } from '@/data/prices';
+import { workById, workTitle } from '@/data/works';
+
+const lang = getLang(Astro.url);
+const L = local(lang);
+const STEPS = process(lang);
+const NEON = priceGroups(lang)
+  .flatMap((g) => g.rows)
+  .filter((r) => /неон|neon/i.test(r.title))
+  .slice(0, 3);
+const neonFrom = NEON[0]?.price.split('–')[0].trim();
+const WORK = workById('24')!;
+
+const T = {
+  ru: {
+    cta: 'Рассчитать проект',
+    island: 'Один контакт на весь проект',
+    budget: 'Бюджет участия',
+    blocks: 'Что берём в работу',
+    toggles: ['Стенд', 'Печать', 'Персонал', 'Питание'],
+    tabs: ['До выставки', 'На выставке', 'После'],
+    chartH: 'Как мы работаем',
+    chartSub: `${STEPS.length} этапов`,
+    ph: 'Поиск по прайсу',
+    query: 'неон',
+    from: `Неон в прайсе — от ${neonFrom} AED`,
+    pause: 'Остановить анимацию',
+    play: 'Запустить анимацию',
+  },
+  en: {
+    cta: 'Get a quote',
+    island: 'One contact for the whole project',
+    budget: 'Participation budget',
+    blocks: 'What we take on',
+    toggles: ['Stand', 'Print', 'Staff', 'Catering'],
+    tabs: ['Before', 'At the show', 'After'],
+    chartH: 'How we work',
+    chartSub: `${STEPS.length} stages`,
+    ph: 'Search the price list',
+    query: 'neon',
+    from: `Neon in the price list — from AED ${neonFrom}`,
+    pause: 'Pause animation',
+    play: 'Play animation',
+  },
+}[lang];
+
+const ICONS = ['stand', 'print', 'staff', 'catering'] as const;
+/** Точки схемы: шесть этапов, линия поднимается слева направо. */
+const PTS = STEPS.map((_, i) => [40 + i * 56, 190 - i * 24]);
+const w = (size: number, ext = 'webp') => link(`/img/works/w${WORK.id}-${size}.${ext}`);
+---
+
+<div class="hm" data-hero-motion data-budgets={JSON.stringify(L.budgets.slice(0, 4))} data-query={T.query}>
+  <div class="hm__canvas" aria-hidden="true">
+    <div class="hm__cam" data-cam>
+      <div class="hm__grid"></div>
+      <div class="hm__shape" data-shape>
+        <!-- Кнопка -->
+        <div class="hm__l hm__btn" data-l="btn" style="--w:280px;--h:64px">{T.cta}</div>
+
+        <!-- Загрузка -->
+        <div class="hm__l hm__load" data-l="load" style="--w:64px;--h:64px">
+          <svg viewBox="0 0 64 64" width="64" height="64">
+            <circle cx="32" cy="32" r="14" fill="none" stroke="rgb(255 255 255 / 0.22)" stroke-width="3.5"></circle>
+            <circle data-spin cx="32" cy="32" r="14" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="24 64"></circle>
+          </svg>
+        </div>
+
+        <!-- Готово -->
+        <div class="hm__l hm__check" data-l="check" style="--w:64px;--h:64px">
+          <svg viewBox="0 0 64 64" width="64" height="64">
+            <path data-tick d="M21 33.5l7.5 7.5L44 25" fill="none" stroke="#0f100d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"></path>
+          </svg>
+        </div>
+
+        <!-- Один контакт -->
+        <div class="hm__l hm__island" data-l="island" style="--w:340px;--h:60px">
+          <span class="hm__pulse"><span data-pulse></span></span>
+          <span>{T.island}</span>
+          <Icon name="whatsapp" size={20} class="hm__wa" />
+        </div>
+
+        <!-- Бюджет -->
+        <div class="hm__l hm__card" data-l="budget" style="--w:340px;--h:184px">
+          <span class="hm__label">{T.budget}</span>
+          <strong class="hm__value" data-budget-val>{L.budgets[0]}</strong>
+          <span class="hm__track" data-track>
+            <span class="hm__fill" data-fill></span>
+            <span class="hm__knob" data-knob></span>
+          </span>
+        </div>
+
+        <!-- Блоки -->
+        <div class="hm__l hm__card hm__tog" data-l="toggles" style="--w:340px;--h:240px">
+          <span class="hm__card-h">{T.blocks}</span>
+          {
+            T.toggles.map((t, i) => (
+              <span class="hm__row" style={`top:${70 + i * 44 - 22}px`}>
+                <Icon name={ICONS[i]} size={22} class="hm__row-ic" />
+                <span>{t}</span>
+                <span class="hm__sw" data-sw>
+                  <span class="hm__sw-knob" data-sw-knob></span>
+                </span>
+              </span>
+            ))
+          }
+        </div>
+
+        <!-- Вкладки -->
+        <div class="hm__l hm__tabs" data-l="tabs" style="--w:340px;--h:56px">
+          <span class="hm__ind" data-ind></span>
+          {T.tabs.map((t) => <span class="hm__tab" data-tab>{t}</span>)}
+        </div>
+
+        <!-- Схема этапов -->
+        <div class="hm__l hm__card" data-l="chart" style="--w:360px;--h:240px">
+          <span class="hm__card-h">{T.chartH}</span>
+          <span class="hm__card-sub">{T.chartSub}</span>
+          <svg class="hm__chart" viewBox="0 0 360 240" width="360" height="240">
+            <path d="M40 202H320" stroke="#c9cbc2" stroke-width="1"></path>
+            <polyline data-line points={PTS.map((p) => p.join(',')).join(' ')} fill="none" stroke="#59335f" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" pathLength="1" stroke-dasharray="1"></polyline>
+            {PTS.map(([x, y]) => <circle data-dot cx={x} cy={y} r="6" fill="#f2f2ec" stroke="#59335f" stroke-width="3" style={`transform-origin:${x}px ${y}px`}></circle>)}
+            {PTS.map(([x], i) => <text x={x} y="222" text-anchor="middle">{i + 1}</text>)}
+          </svg>
+          <span class="hm__tip" data-tip style={`left:${PTS[3][0]}px;top:${PTS[3][1] - 16}px`}>{STEPS[3].title}</span>
+        </div>
+
+        <!-- Поиск -->
+        <div class="hm__l hm__cmd" data-l="cmd" style="--w:360px;--h:60px">
+          <svg class="hm__cmd-ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+          <span class="hm__q"><span data-typed></span><span class="hm__caret" data-caret></span><span class="hm__ph" data-ph>{T.ph}</span></span>
+          <kbd class="hm__kbd">⌘K</kbd>
+        </div>
+
+        <!-- Результаты -->
+        <div class="hm__l hm__cmd hm__res" data-l="res" style="--w:360px;--h:228px">
+          <span class="hm__res-q">
+            <svg class="hm__cmd-ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+            <span>{T.query}</span>
+          </span>
+          {
+            NEON.map((r, i) => (
+              <span class:list={['hm__res-row', i === 0 && 'is-hi']} data-res-row style={`top:${72 + i * 46}px`}>
+                <span class="hm__res-t">{r.title}</span>
+                <span class="hm__res-p">{r.price}</span>
+              </span>
+            ))
+          }
+          <kbd class="hm__kbd hm__enter" data-enter>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5v7a3 3 0 0 1-3 3H6"></path><path d="M10 11l-4 4 4 4"></path></svg>
+          </kbd>
+        </div>
+
+        <!-- Работа -->
+        <div class="hm__l hm__photo" data-l="photo" style="--w:280px;--h:336px">
+          <picture class="taped">
+            <source type="image/webp" srcset={`${w(600)} 600w`} />
+            <img src={w(600, 'jpg')} width="256" height="256" alt="" loading="lazy" decoding="async" />
+          </picture>
+          <strong>{workTitle(WORK, lang)}</strong>
+          <span>{T.from}</span>
+        </div>
+      </div>
+    </div>
+    <svg class="hm__cursor" data-cursor viewBox="0 0 28 28" width="28" height="28">
+      <path d="M5 3.5l17 9.2-7.6 1.9-3.5 7.4z" fill="#fff" stroke="#0f100d" stroke-width="1.6" stroke-linejoin="round"></path>
+    </svg>
+  </div>
+  <button class="hm__pp" type="button" data-hm-toggle data-label-pause={T.pause} data-label-play={T.play} aria-label={T.pause} hidden>
+    <svg class="hm__pp-pause" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
+    <svg class="hm__pp-play" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l12.5-7.5z"></path></svg>
+  </button>
+</div>
+
+<style>
+  .hm {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1 / 1;
+    justify-self: end;
+    --fit: 1;
+  }
+  .hm__canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 560px;
+    height: 560px;
+    transform: scale(var(--fit));
+    transform-origin: 0 0;
+    pointer-events: none;
+    user-select: none;
+  }
+  .hm__cam {
+    position: absolute;
+    left: 280px;
+    top: 280px;
+    width: 0;
+    height: 0;
+    transform: scale(1.02);
+  }
+  /* Холст сцены: точечная сетка, уходит в темноту к краям, масштабируется вместе с камерой. */
+  .hm__grid {
+    position: absolute;
+    left: -700px;
+    top: -700px;
+    width: 1400px;
+    height: 1400px;
+    background-image: radial-gradient(circle, rgb(255 255 255 / 0.13) 1px, transparent 1.4px);
+    background-size: 28px 28px;
+    background-position: 14px 14px;
+    -webkit-mask-image: radial-gradient(closest-side, #000 20%, transparent 62%);
+    mask-image: radial-gradient(closest-side, #000 20%, transparent 62%);
+  }
+  .hm__shape {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 340px;
+    height: 240px;
+    border-radius: 28px;
+    background: #f2f2ec;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0);
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+    contain: layout paint;
+  }
+  .hm__l {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--w);
+    height: var(--h);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+  }
+  .hm__l[data-l='toggles'] {
+    opacity: 1;
+  }
+
+  .hm__btn {
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .hm__load svg,
+  .hm__check svg {
+    display: block;
+  }
+  .hm__load [data-spin] {
+    transform-origin: 32px 32px;
+  }
+  .hm__island {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-inline: 22px;
+    color: #f2f2ec;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .hm__island :global(.hm__wa) {
+    margin-left: auto;
+    color: #d2d8a8;
+  }
+  .hm__pulse {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #d2d8a8;
+    flex-shrink: 0;
+  }
+  .hm__pulse span {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1.5px solid #d2d8a8;
+  }
+
+  .hm__card {
+    color: #1c1e1f;
+  }
+  .hm__label {
+    position: absolute;
+    left: 28px;
+    top: 26px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #5d5f5b;
+  }
+  .hm__value {
+    position: absolute;
+    left: 28px;
+    top: 52px;
+    font-size: 26px;
+    line-height: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .hm__track {
+    position: absolute;
+    left: 28px;
+    top: 133px;
+    width: 284px;
+    height: 6px;
+    border-radius: 3px;
+    background: #c9cbc2;
+    transform-origin: 0 50%;
+  }
+  .hm__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 12%;
+    border-radius: 3px;
+    background: #59335f;
+  }
+  .hm__knob {
+    position: absolute;
+    top: 50%;
+    left: 12%;
+    width: 26px;
+    height: 26px;
+    margin: -13px 0 0 -13px;
+    border-radius: 50%;
+    background: #59335f;
+    box-shadow:
+      0 0 0 4px #f2f2ec,
+      0 4px 10px rgb(28 30 31 / 0.25);
+  }
+
+  .hm__card-h {
+    position: absolute;
+    left: 24px;
+    top: 18px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .hm__card-sub {
+    position: absolute;
+    right: 24px;
+    top: 19px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #5d5f5b;
+  }
+  .hm__row {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    border-top: 1px solid #dfe0db;
+  }
+  .hm__row :global(.hm__row-ic) {
+    color: #59335f;
+  }
+  .hm__sw {
+    position: relative;
+    margin-left: auto;
+    width: 44px;
+    height: 26px;
+    border-radius: 13px;
+    background: #59335f;
+  }
+  .hm__sw-knob {
+    position: absolute;
+    top: 3px;
+    left: 21px;
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+  }
+
+  .hm__tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 4px;
+  }
+  .hm__ind {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: 110.67px;
+    border-radius: 24px;
+    background: #59335f;
+  }
+  .hm__tab {
+    position: relative;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #f2f2ec;
+    white-space: nowrap;
+  }
+
+  .hm__chart {
+    position: absolute;
+    inset: 0;
+  }
+  .hm__chart text {
+    font-size: 12px;
+    font-weight: 600;
+    fill: #5d5f5b;
+    font-family: inherit;
+  }
+  .hm__tip {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: #0f100d;
+    color: #f2f2ec;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+  }
+
+  .hm__cmd {
+    color: #f2f2ec;
+  }
+  .hm__cmd > .hm__cmd-ic {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    color: #b3b6ab;
+  }
+  .hm__q {
+    position: absolute;
+    left: 52px;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .hm__caret {
+    width: 2px;
+    height: 20px;
+    margin-left: 1px;
+    background: #d2d8a8;
+  }
+  .hm__ph {
+    margin-left: 4px;
+    color: #b3b6ab;
+    font-weight: 500;
+  }
+  .hm__kbd {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    min-width: 40px;
+    height: 28px;
+    padding-inline: 8px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgb(255 255 255 / 0.18);
+    border-radius: 7px;
+    font: 700 12px/1 inherit;
+    font-family: inherit;
+    color: #b3b6ab;
+  }
+  .hm__res-q {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    top: 0;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 1px solid rgb(255 255 255 / 0.12);
+  }
+  .hm__res-q .hm__cmd-ic {
+    color: #b3b6ab;
+  }
+  .hm__res-row {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-inline: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .hm__res-row.is-hi {
+    background: rgb(255 255 255 / 0.08);
+  }
+  .hm__res-t {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-weight: 600;
+  }
+  .hm__res-p {
+    color: #b3b6ab;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .hm__enter {
+    min-width: 34px;
+  }
+
+  .hm__photo {
+    padding: 12px;
+    color: #1c1e1f;
+  }
+  .hm__photo picture {
+    display: block;
+    width: 256px;
+    height: 256px;
+  }
+  .hm__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hm__photo strong {
+    display: block;
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hm__photo span {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: #5d5f5b;
+  }
+
+  .hm__cursor {
+    position: absolute;
+    left: 280px;
+    top: 280px;
+    margin: -4px 0 0 -5px;
+    filter: drop-shadow(0 3px 6px rgb(0 0 0 / 0.45));
+    opacity: 0;
+    transform-origin: 5px 4px;
+  }
+
+  .hm__pp {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--stage-line);
+    background: rgb(15 16 13 / 0.6);
+    color: var(--on-stage-muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .hm__pp:hover {
+    color: var(--olive-pastel);
+    border-color: var(--olive-pastel);
+  }
+  .hm__pp:focus-visible {
+    outline: 2px solid var(--olive-pastel);
+    outline-offset: 3px;
+  }
+  .hm__pp-play,
+  .hm[data-paused] .hm__pp-pause {
+    display: none;
+  }
+  .hm[data-paused] .hm__pp-play {
+    display: block;
+  }
+
+  @media (max-width: 1080px) {
+    .hm {
+      justify-self: center;
+      max-width: 520px;
+    }
+  }
+</style>
+
+<script>
+  import '@/scripts/hero-motion';
+</script>
