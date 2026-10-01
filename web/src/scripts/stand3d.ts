@@ -1,0 +1,1144 @@
+/**
+ * Фотореалистичный стенд 48 м² на WebGL (three.js).
+ *
+ * Тот же сценарий, что у запасной 2D-версии: подлёт камеры сверху → логистика →
+ * пол, стены, подсобка, ферма → печать, LED-экран, баннер → мебель → персонал
+ * и посетители → облёт → демонтаж → отлёт. Петля 20 с, кадр — функция времени.
+ *
+ * Реализм — материалами и светом: ворс ковра, матовые панели, хромированная ферма
+ * из труб, лак стойки, мягкие тени, отражения окружения, прожекторы с конусами,
+ * светящиеся LED и короб. На экране и печати — реальные фото работ.
+ * Люди — объёмные фигуры в пропорциях человека, без прорисованных лиц.
+ *
+ * Мир в метрах, ось z вверх: площадка 8 × 6, задняя стена вдоль y = 0,
+ * боковая — вдоль x = 0, проход посетителей — со стороны +y.
+ */
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { BEAT, DROP, FAST, SNAP, SOFT, clamp, ease, lerp, track, win, wrap } from './spring';
+import type { Spring, Key } from './spring';
+
+const LB = 40;
+const LOOPT = LB * BEAT;
+const tr = (v0: number, keys: Key[], s: Spring) => track(v0, keys, s, LOOPT);
+const wn = (on: number, off: number, s: Spring = FAST) => win(on, off, s, LOOPT);
+export const STILL3D = 22 * BEAT;
+
+const FONT = '"Montserrat Variable", Montserrat, system-ui, sans-serif';
+const SCRIPT = 'Caveat, cursive';
+const F = 0.15; // высота подиума
+
+/* ---------- Текстуры, нарисованные кодом ---------- */
+function canvasTex(w: number, h: number, draw: (c: CanvasRenderingContext2D) => void, srgb = true) {
+  const cv = document.createElement('canvas');
+  cv.width = w;
+  cv.height = h;
+  const c = cv.getContext('2d')!;
+  draw(c);
+  const t = new THREE.CanvasTexture(cv);
+  if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return { tex: t, ctx: c, redraw: () => { draw(c); t.needsUpdate = true; } };
+}
+/** Шум для ворса ковра и шероховатости. */
+function noiseTex(size: number, base: [number, number, number], amp: number, repeat: number) {
+  const { tex } = canvasTex(size, size, (c) => {
+    const img = c.createImageData(size, size);
+    let seed = 7;
+    for (let i = 0; i < size * size; i++) {
+      seed = (seed * 16807) % 2147483647;
+      const n = (seed / 2147483647 - 0.5) * amp;
+      img.data[i * 4] = clamp(base[0] + n, 0, 255);
+      img.data[i * 4 + 1] = clamp(base[1] + n, 0, 255);
+      img.data[i * 4 + 2] = clamp(base[2] + n, 0, 255);
+      img.data[i * 4 + 3] = 255;
+    }
+    c.putImageData(img, 0, 0);
+  });
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(repeat, repeat);
+  return tex;
+}
+function woodTex() {
+  const { tex } = canvasTex(256, 256, (c) => {
+    c.fillStyle = '#8a7a52';
+    c.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 6; i++) {
+      c.fillStyle = i % 2 ? '#9a8a5f' : '#7d6d47';
+      c.fillRect(0, i * 43, 256, 41);
+      c.fillStyle = 'rgba(40,30,15,0.5)';
+      c.fillRect(0, i * 43 + 41, 256, 2);
+      for (let k = 0; k < 12; k++) {
+        c.strokeStyle = 'rgba(60,45,20,0.18)';
+        c.beginPath();
+        const y = i * 43 + 4 + k * 3.2;
+        c.moveTo(0, y);
+        c.bezierCurveTo(80, y + 2, 170, y - 2, 256, y + 1);
+        c.stroke();
+      }
+    }
+    c.fillStyle = 'rgba(30,22,10,0.55)';
+    for (const [x, y] of [[16, 20], [240, 20], [16, 236], [240, 236]]) {
+      c.beginPath();
+      c.arc(x, y, 3, 0, Math.PI * 2);
+      c.fill();
+    }
+  });
+  return tex;
+}
+/** Мягкий градиент для конусов света и свечения. */
+function glowTex(radial: boolean) {
+  const { tex } = canvasTex(128, 128, (c) => {
+    const g = radial ? c.createRadialGradient(64, 64, 0, 64, 64, 64) : c.createLinearGradient(0, 0, 0, 128);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(radial ? 0.35 : 0.5, 'rgba(255,255,255,0.35)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g;
+    c.fillRect(0, 0, 128, 128);
+  }, false);
+  return tex;
+}
+function loadImg(src: string) {
+  return new Promise<HTMLImageElement | null>((res) => {
+    const im = new Image();
+    im.decoding = 'async';
+    im.onload = () => res(im);
+    im.onerror = () => res(null);
+    im.src = src;
+  });
+}
+function cover(c: CanvasRenderingContext2D, im: HTMLImageElement, x: number, y: number, w: number, h: number) {
+  const s = Math.max(w / im.width, h / im.height);
+  const iw = w / s;
+  const ih = h / s;
+  c.drawImage(im, (im.width - iw) / 2, (im.height - ih) / 2, iw, ih, x, y, w, h);
+}
+
+/* ---------- Геометрия ---------- */
+/** Коробка с основанием в начале координат: растёт вверх через scale.z. */
+function boxGeo(w: number, d: number, h: number) {
+  const g = new THREE.BoxGeometry(w, d, h);
+  g.translate(w / 2, d / 2, h / 2);
+  return g;
+}
+type FaceDir = '+x' | '-x' | '+y' | '-y' | '+z';
+/** Плоскость-наклейка на грань: начало — нижний левый угол, если смотреть на грань снаружи. */
+function decalGeo(w: number, h: number, dir: FaceDir) {
+  const g = new THREE.PlaneGeometry(w, h);
+  g.translate(w / 2, h / 2, 0);
+  if (dir === '+z') return g;
+  g.rotateX(Math.PI / 2); // смотрит в −y, верх — +z
+  if (dir === '+y') g.rotateZ(Math.PI);
+  if (dir === '+x') g.rotateZ(Math.PI / 2);
+  if (dir === '-x') g.rotateZ(-Math.PI / 2);
+  return g;
+}
+const mesh = (g: THREE.BufferGeometry, m: THREE.Material, shadow = true) => {
+  const o = new THREE.Mesh(g, m);
+  o.castShadow = shadow;
+  o.receiveShadow = true;
+  return o;
+};
+
+/** Ферма из труб: 4 пояса и диагональная решётка, вдоль оси x, длина len. */
+function trussGeo(len: number, size = 0.29) {
+  const r = 0.022;
+  const parts: THREE.BufferGeometry[] = [];
+  const tube = (a: THREE.Vector3, b: THREE.Vector3, rad: number) => {
+    const d = new THREE.Vector3().subVectors(b, a);
+    const g = new THREE.CylinderGeometry(rad, rad, d.length(), 8, 1, true);
+    g.translate(0, d.length() / 2, 0);
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.clone().normalize());
+    g.applyQuaternion(q);
+    g.translate(a.x, a.y, a.z);
+    parts.push(g);
+  };
+  const h = size / 2;
+  const corners = [
+    [-h, -h],
+    [h, -h],
+    [h, h],
+    [-h, h],
+  ];
+  for (const [y, z] of corners) tube(new THREE.Vector3(0, y, z), new THREE.Vector3(len, y, z), r);
+  const step = size;
+  for (let x = 0; x < len - 0.01; x += step) {
+    const x1 = Math.min(len, x + step);
+    for (let k = 0; k < 4; k++) {
+      const a = corners[k];
+      const b = corners[(k + 1) % 4];
+      tube(new THREE.Vector3(x, a[0], a[1]), new THREE.Vector3(x1, b[0], b[1]), r * 0.55);
+    }
+  }
+  return mergeGeos(parts);
+}
+function mergeGeos(geos: THREE.BufferGeometry[]) {
+  // Простое слияние без индексов: позиции и нормали подряд.
+  let n = 0;
+  const flat = geos.map((g) => (g.index ? g.toNonIndexed() : g));
+  for (const g of flat) n += g.attributes.position.count;
+  const pos = new Float32Array(n * 3);
+  const nor = new Float32Array(n * 3);
+  let o = 0;
+  for (const g of flat) {
+    pos.set(g.attributes.position.array as Float32Array, o * 3);
+    nor.set(g.attributes.normal.array as Float32Array, o * 3);
+    o += g.attributes.position.count;
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  return out;
+}
+
+/* ---------- Люди ---------- */
+type Outfit = 'staff' | 'suit' | 'kandura' | 'abaya' | 'dress' | 'casual';
+type Look = { skin: string; hair: string; outfit: Outfit; top: string; bottom: string; long?: boolean; height?: number };
+type Person = { root: THREE.Group; legs: THREE.Group[]; arms: THREE.Group[] };
+const SKIN = ['#e7bfa0', '#c99572', '#9c6a4b', '#6e4530', '#dcae8a'];
+const HAIR = ['#2b1d16', '#4a3020', '#121212', '#7a5233', '#b8935e'];
+const matCache = new Map<string, THREE.MeshStandardMaterial>();
+const cloth = (color: string, rough = 0.85) => {
+  const k = color + rough;
+  if (!matCache.has(k)) matCache.set(k, new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 }));
+  return matCache.get(k)!;
+};
+function makePerson(look: Look): Person {
+  const root = new THREE.Group();
+  const body = new THREE.Group();
+  root.add(body);
+  const skin = cloth(look.skin, 0.6);
+  const robe = look.outfit === 'kandura' || look.outfit === 'abaya';
+  const legs: THREE.Group[] = [];
+  const arms: THREE.Group[] = [];
+  const cap = (r: number, len: number, m: THREE.Material) => {
+    const g = new THREE.CapsuleGeometry(r, len, 6, 14);
+    g.rotateX(Math.PI / 2);
+    return mesh(g, m);
+  };
+
+  if (!robe) {
+    for (const side of [-1, 1]) {
+      const hip = new THREE.Group();
+      hip.position.set(side * 0.095, 0, 0.92);
+      const leg = cap(0.068, 0.74, cloth(look.outfit === 'dress' ? look.skin : look.bottom, 0.8));
+      leg.position.z = -0.44;
+      hip.add(leg);
+      const shoe = mesh(boxGeo(0.11, 0.24, 0.07), cloth('#141414', 0.45));
+      shoe.position.set(-0.055, -0.06, -0.9);
+      hip.add(shoe);
+      body.add(hip);
+      legs.push(hip);
+    }
+  }
+  // Корпус
+  if (robe) {
+    const g = new THREE.CylinderGeometry(0.2, 0.235, 1.38, 18);
+    g.rotateX(Math.PI / 2);
+    const m = mesh(g, cloth(look.top, look.outfit === 'kandura' ? 0.75 : 0.55));
+    m.position.z = 0.69;
+    body.add(m);
+  } else if (look.outfit === 'dress') {
+    const g = new THREE.CylinderGeometry(0.16, 0.25, 0.86, 18);
+    g.rotateX(Math.PI / 2);
+    const m = mesh(g, cloth(look.top, 0.8));
+    m.position.z = 0.98;
+    body.add(m);
+  } else {
+    const torso = cap(0.175, 0.36, cloth(look.top, look.outfit === 'staff' || look.outfit === 'suit' ? 0.6 : 0.85));
+    torso.scale.set(1.02, 0.66, 1);
+    torso.position.z = 1.16;
+    body.add(torso);
+    const pelvis = cap(0.15, 0.08, cloth(look.bottom, 0.8));
+    pelvis.scale.set(1.05, 0.7, 1);
+    pelvis.position.z = 0.92;
+    body.add(pelvis);
+    if (look.outfit === 'staff' || look.outfit === 'suit') {
+      const shirt = mesh(new THREE.PlaneGeometry(0.09, 0.2), cloth('#f2f2ec', 0.7), false);
+      shirt.rotation.x = Math.PI / 2;
+      shirt.position.set(0, 0.118, 1.3);
+      body.add(shirt);
+    }
+    if (look.outfit === 'staff') {
+      const badge = mesh(new THREE.PlaneGeometry(0.07, 0.09), new THREE.MeshStandardMaterial({ color: '#d2d8a8', roughness: 0.4 }), false);
+      badge.rotation.x = Math.PI / 2;
+      badge.position.set(0.08, 0.121, 1.22);
+      body.add(badge);
+    }
+  }
+  // Руки
+  for (const side of [-1, 1]) {
+    const sh = new THREE.Group();
+    sh.position.set(side * 0.215, 0, 1.38);
+    const arm = cap(0.048, 0.52, cloth(look.top, 0.75));
+    arm.position.z = -0.3;
+    arm.rotation.y = side * 0.06;
+    sh.add(arm);
+    const hand = mesh(new THREE.SphereGeometry(0.045, 12, 10), skin);
+    hand.position.set(side * 0.02, 0, -0.62);
+    sh.add(hand);
+    body.add(sh);
+    arms.push(sh);
+  }
+  // Голова
+  const neck = mesh(new THREE.CylinderGeometry(0.05, 0.055, 0.1, 12).rotateX(Math.PI / 2), skin);
+  neck.position.z = 1.5;
+  body.add(neck);
+  const head = mesh(new THREE.SphereGeometry(0.1, 24, 18), skin);
+  head.scale.set(0.9, 0.98, 1.16);
+  head.position.z = 1.63;
+  body.add(head);
+  if (look.outfit === 'kandura') {
+    // Гутра и агаль
+    const g = new THREE.CylinderGeometry(0.11, 0.2, 0.36, 18, 1, true, Math.PI * 0.35, Math.PI * 1.3);
+    g.rotateX(Math.PI / 2);
+    const scarf = mesh(g, new THREE.MeshStandardMaterial({ color: '#f6f6f2', roughness: 0.8, side: THREE.DoubleSide }));
+    scarf.position.z = 1.55;
+    body.add(scarf);
+    const top = mesh(new THREE.SphereGeometry(0.115, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2), cloth('#f6f6f2', 0.8));
+    top.position.z = 1.66;
+    body.add(top);
+    const agal = mesh(new THREE.TorusGeometry(0.1, 0.012, 8, 24), cloth('#111111', 0.5));
+    agal.position.z = 1.72;
+    body.add(agal);
+  } else if (look.outfit === 'abaya') {
+    const sh = mesh(new THREE.SphereGeometry(0.125, 22, 16, 0, Math.PI * 2, 0, Math.PI * 0.62).rotateX(Math.PI / 2), cloth(look.top, 0.55));
+    sh.scale.set(1, 1.05, 1.12);
+    sh.position.z = 1.62;
+    sh.rotation.x = -0.25;
+    body.add(sh);
+    const drape = mesh(new THREE.CylinderGeometry(0.12, 0.2, 0.22, 18, 1, true).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: look.top, roughness: 0.55, side: THREE.DoubleSide }));
+    drape.position.z = 1.47;
+    body.add(drape);
+  } else {
+    const hair = mesh(new THREE.SphereGeometry(0.106, 22, 14, 0, Math.PI * 2, 0, Math.PI * 0.55).rotateX(Math.PI / 2), cloth(look.hair, 0.7));
+    hair.scale.set(0.93, 1.02, 1.18);
+    hair.position.set(0, -0.012, 1.64);
+    hair.rotation.x = -0.35;
+    body.add(hair);
+    if (look.long) {
+      const back = mesh(boxGeo(0.18, 0.06, 0.28), cloth(look.hair, 0.7));
+      back.position.set(-0.09, -0.11, 1.38);
+      body.add(back);
+    }
+  }
+  const s = look.height ?? 1;
+  body.scale.set(s, s, s);
+  return { root, legs, arms };
+}
+
+/* ---------- Сцена ---------- */
+export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
+  let renderer: THREE.WebGLRenderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  } catch {
+    return null;
+  }
+  const L = root.dataset;
+  const photos: string[] = JSON.parse(L.photos || '[]');
+  const narrow = () => root.clientWidth < 600;
+
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.08;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environmentIntensity = 0.38;
+  scene.fog = new THREE.Fog(0x0f100d, 26, 62);
+
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
+  camera.up.set(0, 0, 1);
+  const TARGET = new THREE.Vector3(4, 3, 1.1);
+
+  /* Свет */
+  scene.add(new THREE.HemisphereLight(0xc9c3d8, 0x16120f, 0.55));
+  const key = new THREE.DirectionalLight(0xfff4e6, 2.1);
+  key.position.set(-5, 11, 14);
+  key.target.position.set(4, 3, 0);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.left = -8;
+  key.shadow.camera.right = 8;
+  key.shadow.camera.top = 8;
+  key.shadow.camera.bottom = -8;
+  key.shadow.camera.near = 2;
+  key.shadow.camera.far = 40;
+  key.shadow.bias = -0.0004;
+  key.shadow.normalBias = 0.02;
+  key.shadow.radius = 4;
+  scene.add(key, key.target);
+  const rim = new THREE.DirectionalLight(0xc190c8, 0.7);
+  rim.position.set(12, -6, 6);
+  scene.add(rim);
+
+  /* Пол павильона: тёмный полированный бетон с сеткой */
+  const hall = mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: '#0e0f0c', roughness: 0.55, metalness: 0.05, envMapIntensity: 0.35, map: noiseTex(256, [60, 60, 56], 30, 18) }), false);
+  hall.position.set(4, 3, -0.002);
+  scene.add(hall);
+  const grid = new THREE.GridHelper(30, 30, 0x5d5f5b, 0x34352f);
+  grid.rotation.x = Math.PI / 2;
+  grid.position.set(4, 3, 0.002);
+  (grid.material as THREE.Material).transparent = true;
+  (grid.material as THREE.Material).opacity = 0.22;
+  scene.add(grid);
+
+  /* Разметка площадки */
+  const plot = new THREE.Group();
+  const dashMat = new THREE.LineDashedMaterial({ color: '#d2d8a8', dashSize: 0.3, gapSize: 0.22, transparent: true });
+  const outline = new THREE.Line(new THREE.BufferGeometry().setFromPoints([[0, 0], [8, 0], [8, 6], [0, 6], [0, 0]].map(([x, y]) => new THREE.Vector3(x, y, 0.01))), dashMat);
+  outline.computeLineDistances();
+  plot.add(outline);
+  const dimMat = new THREE.LineBasicMaterial({ color: '#d2d8a8', transparent: true });
+  plot.add(
+    new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(
+        [
+          [0, 6.7, 8, 6.7],
+          [0, 6.5, 0, 6.9],
+          [8, 6.5, 8, 6.9],
+          [8.7, 0, 8.7, 6],
+          [8.5, 0, 8.9, 0],
+          [8.5, 6, 8.9, 6],
+        ].flatMap(([a, b, c, d]) => [new THREE.Vector3(a, b, 0.01), new THREE.Vector3(c, d, 0.01)]),
+      ),
+      dimMat,
+    ),
+  );
+  const label = (text: string, w: number, h: number, px: number, weight = 700) => {
+    const t = canvasTex(512, Math.round((512 * h) / w), (c) => {
+      c.clearRect(0, 0, 512, 512);
+      c.fillStyle = '#d2d8a8';
+      c.font = `${weight} ${px}px ${FONT}`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText(text, 256, (512 * h) / w / 2);
+    });
+    const m = new THREE.Mesh(decalGeo(w, h, '+z'), new THREE.MeshBasicMaterial({ map: t.tex, transparent: true, depthWrite: false }));
+    return { m, t };
+  };
+  const area = label(L.area!, 4, 1.2, 130, 800);
+  area.m.position.set(2, 2.4, 0.012);
+  const dw = label(L.w!, 2, 0.6, 120);
+  dw.m.position.set(3, 6.85, 0.012);
+  const dd = label(L.d!, 2, 0.6, 120);
+  dd.m.rotation.z = Math.PI / 2;
+  dd.m.position.set(9.3, 2, 0.012);
+  plot.add(area.m, dw.m, dd.m);
+  scene.add(plot);
+  const labels = [area, dw, dd];
+
+  /* Логистика: деревянные ящики */
+  const wood = new THREE.MeshStandardMaterial({ map: woodTex(), roughness: 0.85 });
+  const CRATES: [number, number, number, number, number, number][] = [
+    [2.6, 2.0, 0, 1.2, 1.0, 0.9],
+    [4.0, 2.2, 0, 1.0, 1.0, 1.1],
+    [3.1, 3.3, 0, 1.4, 1.0, 0.8],
+    [2.8, 2.15, 0.9, 0.8, 0.7, 0.6],
+  ];
+  const crates = CRATES.map(([, , , w, d, h]) => {
+    const m = mesh(boxGeo(w, d, h), wood);
+    scene.add(m);
+    return m;
+  });
+
+  /* Подиум с ковром и алюминиевым кантом */
+  const carpet = new THREE.MeshStandardMaterial({ color: '#4a2c50', roughness: 1, map: noiseTex(256, [200, 200, 200], 70, 10), bumpMap: noiseTex(256, [128, 128, 128], 120, 14), bumpScale: 0.6 });
+  const floorG = new THREE.Group();
+  floorG.add(mesh(boxGeo(8, 6, F), carpet, false));
+  const alu = new THREE.MeshStandardMaterial({ color: '#c9cbc2', metalness: 0.9, roughness: 0.28 });
+  for (const [x, y, w, d] of [
+    [0, 6, 8, 0.03],
+    [8, 0, 0.03, 6.03],
+  ])
+    floorG.add(mesh(boxGeo(w, d, F + 0.005), alu, false));
+  scene.add(floorG);
+
+  /* Стены из модульных панелей */
+  const paint = new THREE.MeshStandardMaterial({ color: '#efefea', roughness: 0.9 });
+  const paintSide = new THREE.MeshStandardMaterial({ color: '#e4e5df', roughness: 0.9 });
+  const back = [0, 1, 2, 3].map((i) => {
+    const m = mesh(boxGeo(1.99, 0.12, 3), paint);
+    m.position.set(i * 2 + 0.005, -0.12, F);
+    scene.add(m);
+    return m;
+  });
+  const side = [0, 1, 2].map((j) => {
+    const m = mesh(boxGeo(0.12, 1.99, 3), paintSide);
+    m.position.set(-0.12, j * 2 + 0.005, F);
+    scene.add(m);
+    return m;
+  });
+  const storage = mesh(boxGeo(1.8, 1.5, 2.6), new THREE.MeshStandardMaterial({ color: '#e6e7e1', roughness: 0.85 }));
+  storage.position.set(0, 0, F);
+  scene.add(storage);
+  const doorTex = canvasTex(256, 512, (c) => {
+    c.fillStyle = '#c9cbc2';
+    c.fillRect(0, 0, 256, 512);
+    c.strokeStyle = 'rgba(15,16,13,0.35)';
+    c.lineWidth = 6;
+    c.strokeRect(3, 3, 250, 506);
+    c.fillStyle = '#59335f';
+    c.fillRect(196, 250, 30, 10);
+  });
+  const door = mesh(decalGeo(0.8, 2.0, '+x'), new THREE.MeshStandardMaterial({ map: doorTex.tex, roughness: 0.5 }), false);
+  door.position.set(1.802, 0.25, F);
+  scene.add(door);
+
+  /* Печать на задней стене: арка-логотип, «под ключ» и фото работы */
+  let printImg: HTMLImageElement | null = null;
+  const printTex = canvasTex(1536, 410, (c) => {
+    c.fillStyle = '#59335f';
+    c.fillRect(0, 0, 1536, 410);
+    c.strokeStyle = '#d2d8a8';
+    c.lineWidth = 40;
+    c.beginPath();
+    c.moveTo(120, 410);
+    c.lineTo(120, 180);
+    c.arc(256, 180, 136, Math.PI, 0);
+    c.lineTo(392, 410);
+    c.stroke();
+    c.fillStyle = '#d2d8a8';
+    c.beginPath();
+    c.moveTo(225, 410);
+    c.lineTo(225, 250);
+    c.arc(256, 250, 31, Math.PI, 0);
+    c.lineTo(287, 410);
+    c.fill();
+    c.font = `600 190px ${SCRIPT}`;
+    c.fillText(L.script!, 470, 262);
+    c.fillStyle = 'rgba(242,242,236,0.85)';
+    c.font = `800 54px ${FONT}`;
+    c.fillText('SIGNUP DXB', 492, 360);
+    if (printImg) {
+      cover(c, printImg, 1130, 30, 360, 350);
+      c.strokeStyle = '#f2f2ec';
+      c.lineWidth = 10;
+      c.strokeRect(1130, 30, 360, 350);
+    }
+  });
+  printTex.tex.wrapS = THREE.ClampToEdgeWrapping;
+  const printMat = new THREE.MeshStandardMaterial({ map: printTex.tex, roughness: 0.75 });
+  const print = mesh(decalGeo(6, 1.6, '+y'), printMat, false);
+  // Наклейка смотрит в +y, её «левый» край — у x = 8: печать клеится от угла стенда.
+  print.position.set(8, 0.003, F + 1.4);
+  scene.add(print);
+
+  /* LED-экран на боковой стене: слайдшоу реальных работ */
+  const imgs: (HTMLImageElement | null)[] = [];
+  let ledShown = -1;
+  const pixel = document.createElement('canvas');
+  pixel.width = pixel.height = 6;
+  const pc = pixel.getContext('2d')!;
+  pc.fillStyle = 'rgba(0,0,0,0.35)';
+  pc.fillRect(0, 0, 6, 6);
+  pc.clearRect(1, 1, 4, 4);
+  const ledTex = canvasTex(768, 435, (c) => {
+    c.fillStyle = '#120a14';
+    c.fillRect(0, 0, 768, 435);
+  });
+  const drawLed = (a: number, b: number, mixAB: number) => {
+    const c = ledTex.ctx;
+    c.fillStyle = '#120a14';
+    c.fillRect(0, 0, 768, 435);
+    const ia = imgs[a];
+    const ib = imgs[b];
+    if (ia) {
+      c.globalAlpha = 1;
+      cover(c, ia, 0, 0, 768, 435);
+    }
+    if (ib && mixAB > 0) {
+      c.globalAlpha = mixAB;
+      cover(c, ib, 0, 0, 768, 435);
+    }
+    c.globalAlpha = 1;
+    const grad = c.createLinearGradient(0, 300, 0, 435);
+    grad.addColorStop(0, 'rgba(18,10,20,0)');
+    grad.addColorStop(1, 'rgba(18,10,20,0.85)');
+    c.fillStyle = grad;
+    c.fillRect(0, 300, 768, 135);
+    c.fillStyle = '#fff';
+    c.font = `800 44px ${FONT}`;
+    c.fillText('SIGNUP DXB', 34, 404);
+    c.fillStyle = '#d2d8a8';
+    c.font = `600 60px ${SCRIPT}`;
+    c.fillText(L.script!, 340, 408);
+    c.fillStyle = c.createPattern(pixel, 'repeat')!;
+    c.fillRect(0, 0, 768, 435);
+    ledTex.tex.needsUpdate = true;
+  };
+  const ledMat = new THREE.MeshBasicMaterial({ map: ledTex.tex, toneMapped: false, color: 0x000000 });
+  const led = mesh(decalGeo(3, 1.7, '+x'), ledMat, false);
+  led.position.set(0.004, 2.0, 0.9);
+  const ledFrame = mesh(boxGeo(0.06, 3.12, 1.82), new THREE.MeshStandardMaterial({ color: '#0d0d0d', roughness: 0.4, metalness: 0.4 }), false);
+  ledFrame.position.set(-0.05, 1.94, 0.84);
+  scene.add(ledFrame, led);
+  const glow = glowTex(true);
+  const ledGlow = new THREE.Mesh(decalGeo(4.2, 2.6, '+x'), new THREE.MeshBasicMaterial({ map: glow, color: '#9b6aa3', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
+  ledGlow.position.set(0.02, 1.4, 0.45);
+  scene.add(ledGlow);
+
+  /* Ферма и прожекторы */
+  const chrome = new THREE.MeshStandardMaterial({ color: '#d9dbd4', metalness: 1, roughness: 0.22 });
+  const TOP = 3.75;
+  const colGeo = trussGeo(TOP);
+  colGeo.rotateY(-Math.PI / 2); // вдоль +z
+  const cols = [
+    [7.95, 0.2],
+    [7.95, 5.85],
+    [0.2, 5.85],
+  ].map(([x, y]) => {
+    const m = mesh(colGeo, chrome);
+    m.position.set(x, y, 0);
+    scene.add(m);
+    return m;
+  });
+  const beams = new THREE.Group();
+  const bx = mesh(trussGeo(7.75), chrome);
+  bx.position.set(0.2, 5.85, 0);
+  const byGeo = trussGeo(5.65);
+  byGeo.rotateZ(Math.PI / 2);
+  const by = mesh(byGeo, chrome);
+  by.position.set(7.95, 0.2, 0);
+  beams.add(bx, by);
+  scene.add(beams);
+  const SPOTS: [number, number, number, number][] = [
+    [2, 5.85, 2.2, 4.4],
+    [4, 5.85, 4.1, 3.6],
+    [6, 5.85, 6.2, 4.8],
+    [7.95, 2, 6.7, 1.7],
+    [7.95, 4, 6.4, 3.4],
+  ];
+  const lampMat = new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.35, metalness: 0.6 });
+  const lensMat = new THREE.MeshBasicMaterial({ color: '#fff6e0', toneMapped: false });
+  const coneTex = glowTex(false);
+  const spots = SPOTS.map(([lx, ly, fx, fy]) => {
+    const g = new THREE.Group();
+    const body = mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.26, 16), lampMat);
+    const lens = new THREE.Mesh(new THREE.CircleGeometry(0.085, 16), lensMat);
+    lens.position.y = -0.131;
+    lens.rotation.x = Math.PI / 2;
+    body.add(lens);
+    g.add(body);
+    const dir = new THREE.Vector3(fx - lx, fy - ly, F - (TOP - 0.3)).normalize();
+    body.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir);
+    const light = new THREE.SpotLight(0xfff1dc, 0, 9, 0.42, 0.65, 1.6);
+    light.position.set(0, 0, 0);
+    light.target.position.set(fx - lx, fy - ly, F - (TOP - 0.3));
+    g.add(light, light.target);
+    // Видимый конус света
+    const len = Math.hypot(fx - lx, fy - ly, TOP - 0.3 - F);
+    const cg = new THREE.ConeGeometry(0.75, len, 32, 1, true);
+    cg.translate(0, -len / 2, 0);
+    const cone = new THREE.Mesh(cg, new THREE.MeshBasicMaterial({ map: coneTex, color: '#fff1dc', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.FrontSide }));
+    cone.quaternion.copy(body.quaternion);
+    g.add(cone);
+    const pool = new THREE.Mesh(new THREE.CircleGeometry(0.85, 32), new THREE.MeshBasicMaterial({ map: glow, color: '#fff1dc', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+    pool.position.set(fx - lx, fy - ly, F - (TOP - 0.3) + 0.01);
+    g.add(pool);
+    beams.add(g);
+    g.position.set(lx, ly, TOP - 0.3);
+    return { g, light, cone, pool, body };
+  });
+
+  /* Баннер-кольцо на тросах */
+  const banner = new THREE.Group();
+  const BX = 2.6;
+  const BY = 1.6;
+  const BS = 2.8;
+  const BH = 0.7;
+  const fabric = new THREE.MeshStandardMaterial({ color: '#59335f', roughness: 0.92 });
+  const bannerTex = canvasTex(1024, 256, (c) => {
+    c.fillStyle = '#59335f';
+    c.fillRect(0, 0, 1024, 256);
+    c.fillStyle = '#ffffff';
+    c.font = `800 120px ${FONT}`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillText('SIGNUP DXB', 512, 136);
+  });
+  const bannerFace = new THREE.MeshStandardMaterial({ map: bannerTex.tex, roughness: 0.9 });
+  const ringParts: [number, number, number, number, FaceDir, number, number][] = [
+    [BX, BY - 0.002, BS, 0.05, '-y', BX, BY - 0.003],
+    [BX, BY + BS - 0.05, BS, 0.05, '+y', BX + BS, BY + BS + 0.003],
+    [BX - 0.002, BY, 0.05, BS, '-x', BX - 0.003, BY + BS],
+    [BX + BS - 0.05, BY, 0.05, BS, '+x', BX + BS + 0.003, BY],
+  ];
+  for (const [x, y, w, d, dir, ox, oy] of ringParts) {
+    const p = mesh(boxGeo(w, d, BH), fabric);
+    p.position.set(x, y, 0);
+    banner.add(p);
+    const f = mesh(decalGeo(BS, BH, dir), bannerFace, false);
+    f.position.set(ox, oy, 0);
+    banner.add(f);
+  }
+  const cableMat = new THREE.LineBasicMaterial({ color: '#8d9086', transparent: true, opacity: 0.6 });
+  banner.add(
+    new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(
+        [
+          [BX, BY],
+          [BX + BS, BY],
+          [BX + BS, BY + BS],
+          [BX, BY + BS],
+        ].flatMap(([x, y]) => [new THREE.Vector3(x, y, BH), new THREE.Vector3(x, y, BH + 8)]),
+      ),
+      cableMat,
+    ),
+  );
+  scene.add(banner);
+
+  /* Мебель */
+  const lacquer = new THREE.MeshPhysicalMaterial({ color: '#59335f', roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.12 });
+  const corian = new THREE.MeshPhysicalMaterial({ color: '#f4f4f0', roughness: 0.3, clearcoat: 0.6 });
+  const counter = new THREE.Group();
+  counter.add(mesh(boxGeo(1.8, 0.7, 1.0), lacquer));
+  const ctop = mesh(boxGeo(1.9, 0.78, 0.05), corian);
+  ctop.position.set(-0.05, -0.04, 1.0);
+  counter.add(ctop);
+  const stripTex = canvasTex(1024, 128, (c) => {
+    c.fillStyle = '#f6f8e6';
+    c.fillRect(0, 0, 1024, 128);
+    c.fillStyle = '#2b2c27';
+    c.font = `800 74px ${FONT}`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillText('SIGNUP DXB', 512, 68);
+  });
+  const stripMat = new THREE.MeshBasicMaterial({ map: stripTex.tex, toneMapped: false, color: 0x2a2b26 });
+  const strip = new THREE.Mesh(decalGeo(1.8, 0.24, '+y'), stripMat);
+  strip.position.set(1.8, 0.702, 0.62);
+  counter.add(strip);
+  counter.position.set(5.3, 4.6, F);
+  scene.add(counter);
+
+  const blackGloss = new THREE.MeshPhysicalMaterial({ color: '#1b1c1a', roughness: 0.3, clearcoat: 0.8 });
+  const bar = new THREE.Group();
+  bar.add(mesh(boxGeo(2.4, 0.65, 1.0), blackGloss));
+  const btop = mesh(boxGeo(2.5, 0.72, 0.05), corian);
+  btop.position.set(-0.05, -0.03, 1.0);
+  bar.add(btop);
+  bar.position.set(2.6, 0.25, F);
+  scene.add(bar);
+  const steel = new THREE.MeshStandardMaterial({ color: '#b9bbb5', metalness: 1, roughness: 0.3 });
+  const machine = new THREE.Group();
+  machine.add(mesh(boxGeo(0.42, 0.38, 0.46), steel));
+  const mtop = mesh(boxGeo(0.42, 0.38, 0.04), lacquer);
+  mtop.position.z = 0.46;
+  machine.add(mtop);
+  for (let i = 0; i < 3; i++) {
+    const cup = mesh(new THREE.CylinderGeometry(0.04, 0.032, 0.09, 16).rotateX(Math.PI / 2), corian);
+    cup.position.set(0.8 + i * 0.25, 0.2, 0.045);
+    machine.add(cup);
+  }
+  machine.position.set(2.8, 0.35, F + 1.05);
+  scene.add(machine);
+
+  const fabricOlive = new THREE.MeshStandardMaterial({ color: '#b9c08a', roughness: 0.95 });
+  const stools = [0, 1].map((i) => {
+    const g = new THREE.Group();
+    const leg = mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.7, 12).rotateX(Math.PI / 2), steel);
+    leg.position.z = 0.35;
+    const base = mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.02, 24).rotateX(Math.PI / 2), steel);
+    const seat = mesh(new THREE.CylinderGeometry(0.2, 0.18, 0.08, 24).rotateX(Math.PI / 2), fabricOlive);
+    seat.position.z = 0.72;
+    g.add(leg, base, seat);
+    g.position.set(3.4 + i * 1.1, 1.4, F);
+    scene.add(g);
+    return g;
+  });
+  const table = new THREE.Group();
+  const tpole = mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.72, 12).rotateX(Math.PI / 2), steel);
+  tpole.position.z = 0.36;
+  const tbase = mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.02, 32).rotateX(Math.PI / 2), steel);
+  const ttop = mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.04, 40).rotateX(Math.PI / 2), corian);
+  ttop.position.z = 0.73;
+  table.add(tpole, tbase, ttop);
+  table.position.set(2.4, 3.4, F);
+  scene.add(table);
+  const chairs = [
+    [1.55, 3.4, 0],
+    [2.4, 2.55, Math.PI / 2],
+    [3.25, 3.4, Math.PI],
+  ].map(([x, y, a]) => {
+    const g = new THREE.Group();
+    const seat = mesh(boxGeo(0.46, 0.46, 0.1), fabricOlive);
+    seat.position.set(-0.23, -0.23, 0.4);
+    const backr = mesh(boxGeo(0.08, 0.46, 0.45), fabricOlive);
+    backr.position.set(-0.27, -0.23, 0.48);
+    const legs = mesh(boxGeo(0.04, 0.04, 0.4), steel);
+    legs.position.set(-0.02, -0.02, 0);
+    g.add(seat, backr, legs);
+    g.rotation.z = a;
+    g.position.set(x, y, F);
+    scene.add(g);
+    return g;
+  });
+  const whiteGloss = new THREE.MeshPhysicalMaterial({ color: '#f6f6f2', roughness: 0.2, clearcoat: 1 });
+  const PODS: [number, number, number][] = [
+    [6.4, 1.2, 0.9],
+    [7.1, 2.1, 1.1],
+    [6.3, 2.4, 0.7],
+  ];
+  const productMats = [
+    new THREE.MeshPhysicalMaterial({ color: '#c190c8', metalness: 0.3, roughness: 0.15, clearcoat: 1 }),
+    new THREE.MeshStandardMaterial({ color: '#d9dbd4', metalness: 1, roughness: 0.12 }),
+    new THREE.MeshPhysicalMaterial({ color: '#879152', roughness: 0.35, clearcoat: 0.8 }),
+  ];
+  const pods = PODS.map(([x, y, h], i) => {
+    const g = new THREE.Group();
+    const base = mesh(boxGeo(0.55, 0.55, h), whiteGloss);
+    g.add(base);
+    const item = mesh(i === 1 ? new THREE.SphereGeometry(0.15, 32, 24) : i === 0 ? new THREE.TorusKnotGeometry(0.1, 0.035, 80, 12) : boxGeo(0.25, 0.25, 0.3), productMats[i]);
+    if (i === 2) item.position.set(0.15, 0.15, h);
+    else item.position.set(0.275, 0.275, h + 0.17);
+    g.add(item);
+    g.position.set(x, y, F);
+    scene.add(g);
+    return { g, item, base, h };
+  });
+  const leafMats = ['#4f5a25', '#66712f', '#879152'].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.75, flatShading: true }));
+  const plants = [
+    [7.4, 0.4],
+    [0.45, 5.35],
+  ].map(([x, y]) => {
+    const g = new THREE.Group();
+    const pot = mesh(new THREE.CylinderGeometry(0.2, 0.16, 0.45, 24).rotateX(Math.PI / 2), whiteGloss);
+    pot.position.z = 0.225;
+    g.add(pot);
+    let seed = Math.round(x * 13 + y * 7);
+    const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let k = 0; k < 14; k++) {
+      const leaf = mesh(new THREE.IcosahedronGeometry(0.09 + r() * 0.08, 0), leafMats[k % 3]);
+      const a = r() * Math.PI * 2;
+      const rad = r() * 0.22;
+      leaf.position.set(Math.cos(a) * rad, Math.sin(a) * rad, 0.55 + r() * 0.75);
+      leaf.scale.set(1, 1, 1.6);
+      g.add(leaf);
+    }
+    g.position.set(x, y, F);
+    scene.add(g);
+    return g;
+  });
+  const rollTex = canvasTex(256, 576, (c) => {
+    c.fillStyle = '#f4f4f0';
+    c.fillRect(0, 0, 256, 576);
+    c.fillStyle = '#59335f';
+    c.fillRect(0, 0, 256, 220);
+    c.strokeStyle = '#d2d8a8';
+    c.lineWidth = 22;
+    c.beginPath();
+    c.moveTo(78, 220);
+    c.lineTo(78, 140);
+    c.arc(128, 140, 50, Math.PI, 0);
+    c.lineTo(178, 220);
+    c.stroke();
+    c.fillStyle = '#59335f';
+    c.font = `800 34px ${FONT}`;
+    c.textAlign = 'center';
+    c.fillText('SIGNUP DXB', 128, 290);
+    c.fillStyle = '#879152';
+    c.font = `600 52px ${SCRIPT}`;
+    c.fillText(L.script!, 128, 350);
+  });
+  const rollup = new THREE.Group();
+  const rbase = mesh(boxGeo(0.88, 0.16, 0.07), steel);
+  const sheet = mesh(decalGeo(0.85, 2.0, '+y'), new THREE.MeshStandardMaterial({ map: rollTex.tex, roughness: 0.8, side: THREE.DoubleSide }));
+  sheet.position.set(0.865, 0.08, 0.07);
+  rollup.add(rbase, sheet);
+  rollup.position.set(0.3, 5.3, F);
+  scene.add(rollup);
+
+  /* Люди */
+  const staffLook = (skin: number, hair: number, long: boolean, height: number): Look => ({ skin: SKIN[skin], hair: HAIR[hair], outfit: 'staff', top: '#59335f', bottom: '#1c1e1f', long, height });
+  const STAFF = [
+    { x: 6.2, y: 4.25, h: 0, on: 17.6, look: staffLook(0, 1, true, 0.97) },
+    { x: 1.0, y: 3.6, h: -1.2, on: 17.8, look: staffLook(2, 2, false, 1.04) },
+    { x: 3.9, y: 1.05, h: 0, on: 18.0, look: staffLook(1, 0, true, 0.96) },
+    { x: 2.4, y: 4.0, h: 0.3, on: 18.2, look: staffLook(3, 2, false, 1.02) },
+  ];
+  const staff = STAFF.map((s) => {
+    const p = makePerson(s.look);
+    p.root.position.set(s.x, s.y, F);
+    p.root.rotation.z = s.h;
+    scene.add(p.root);
+    return p;
+  });
+  const staffS = STAFF.map((s, i) => tr(0, [[s.on, 1], [25.6 + i * 0.1, 0]], SNAP));
+  type Guest = { pts: [number, number][]; from: number; to: number; look: Look };
+  const GUESTS: Guest[] = [
+    { pts: [[-2, 7.3], [10, 7.3]], from: 18.2, to: 27.4, look: { skin: SKIN[4], hair: HAIR[3], outfit: 'suit', top: '#2b3550', bottom: '#2b3550', height: 1.03 } },
+    { pts: [[10, 7.9], [-2, 7.9]], from: 18.8, to: 28.0, look: { skin: SKIN[1], hair: HAIR[0], outfit: 'kandura', top: '#f4f4ef', bottom: '#f4f4ef', height: 1.05 } },
+    { pts: [[9.5, 6.8], [6.8, 6.8], [6.4, 5.7], [6.4, 5.7], [6.4, 5.7]], from: 18.4, to: 26.4, look: { skin: SKIN[2], hair: HAIR[0], outfit: 'abaya', top: '#151515', bottom: '#151515', height: 0.95 } },
+    { pts: [[-2, 6.9], [4.8, 6.9], [4.6, 4.9], [4.6, 4.9], [4.6, 4.9]], from: 19.0, to: 26.6, look: { skin: SKIN[0], hair: HAIR[4], outfit: 'dress', top: '#7d874a', bottom: '#7d874a', long: true, height: 0.97 } },
+    { pts: [[10, 8.4], [-2, 8.4]], from: 19.6, to: 28.6, look: { skin: SKIN[3], hair: HAIR[2], outfit: 'casual', top: '#c9cbc2', bottom: '#2b3550', height: 1.0 } },
+  ];
+  const guests = GUESTS.map((g) => {
+    const p = makePerson(g.look);
+    scene.add(p.root);
+    return p;
+  });
+  const at = (g: Guest, u: number): [number, number, number, number] => {
+    const n = g.pts.length - 1;
+    const f = clamp(u) * n;
+    const i = Math.min(n - 1, Math.floor(f));
+    const r = f - i;
+    const a = g.pts[i];
+    const c = g.pts[i + 1];
+    return [lerp(a[0], c[0], r), lerp(a[1], c[1], r), c[0] - a[0], c[1] - a[1]];
+  };
+
+  /* ---------- Сценарий (те же доли, что у 2D-версии) ---------- */
+  const camDist = tr(42, [[3.0, 16.5], [16, 14], [20, 12.2], [27, 14.5], [32, 17], [36.6, 42]], SOFT);
+  const camEl = tr(62, [[3.0, 31], [16, 27], [20, 15], [26.5, 21], [32, 32], [36.6, 62]], SOFT);
+  const camDev = tr(0, [[7, -13], [16, -44], [22, -48], [26, -44], [29, -6], [34, 14], [38.5, 0]], SOFT);
+  const plotOn = tr(1, [[7.2, 0], [36.0, 1]], FAST);
+  const crateSlide = CRATES.map((_, i) => tr(10, [[2.4 + i * 0.3, 0], [33.4 + i * 0.25, 10]], DROP));
+  const crateVis = CRATES.map((_, i) => tr(0, [[2.4 + i * 0.3, 1], [7.0, 0], [31.0, 1], [35.6, 0]], FAST));
+  const floorIn = wn(7.0, 31.2);
+  const floorDrop = tr(3, [[7.0, 0], [30.6, 3]], DROP);
+  const backH = back.map((_, i) => tr(0, [[7.8 + i * 0.3, 1], [29.6 - i * 0.15, 0]], DROP));
+  const sideH = side.map((_, j) => tr(0, [[8.6 + j * 0.3, 1], [29.8 - j * 0.15, 0]], DROP));
+  const storageH = tr(0, [[9.6, 1], [29.2, 0]], DROP);
+  const colH = tr(0, [[10.2, 1], [28.8, 0]], DROP);
+  const beamD = tr(3.5, [[10.8, 0], [28.5, 3.5]], DROP);
+  const beamV = wn(10.8, 28.7);
+  const lampV = SPOTS.map((_, i) => wn(11.4 + i * 0.15, 28.3, SNAP));
+  const beamOn = SPOTS.map((_, i) => wn(18.2 + i * 0.15, 25.6));
+  const ledVisT = wn(9.4, 29.4, SNAP);
+  const ledOnT = wn(13.6, 27.6);
+  const bannerDrop = tr(5, [[14.0, 0], [27.4, 5]], DROP);
+  const bannerV = wn(14.0, 27.8);
+  const counterH = tr(0, [[14.6, 1], [27.0, 0]], DROP);
+  const stripT = wn(15.2, 26.8);
+  const barH = tr(0, [[15.0, 1], [26.9, 0]], DROP);
+  const machineV = wn(15.4, 26.7, SNAP);
+  const stoolH = stools.map((_, i) => tr(0, [[15.6 + i * 0.2, 1], [26.6, 0]], DROP));
+  const tableH = tr(0, [[15.8, 1], [26.4, 0]], DROP);
+  const chairH = chairs.map((_, i) => tr(0, [[16.0 + i * 0.2, 1], [26.3, 0]], DROP));
+  const podH = pods.map((_, i) => tr(0, [[16.2 + i * 0.2, 1], [26.2, 0]], DROP));
+  const podItem = pods.map((_, i) => wn(16.6 + i * 0.2, 26.0, SNAP));
+  const plantV = plants.map((_, i) => wn(16.8 + i * 0.2, 25.9, SNAP));
+  const rollH = tr(0, [[17.0, 1], [25.8, 0]], DROP);
+
+  /* Чек-лист и подписи этапов (SVG поверх холста) */
+  const checks = [...root.querySelectorAll('[data-check]')] as SVGGElement[];
+  const caps = [...root.querySelectorAll('[data-cap]')] as SVGGElement[];
+  const ckFill = checks.map((c) => c.querySelector('[data-ck-fill]') as SVGElement);
+  const ckTick = checks.map((c) => c.querySelector('[data-ck-tick]') as SVGElement);
+  const ckLabel = checks.map((c) => c.querySelector('[data-ck-label]') as SVGElement);
+  const checksGroup = root.querySelector('.hs__checks') as SVGGElement;
+  const ticks = [3.6, 11.4, 14.2, 16.0, 18.0].map((on, i) => tr(0, [[on, 1], [33.4 + i * 0.2, 0]], SNAP));
+  const capVis = [tr(1, [[2.0, 0], [36.2, 1]], FAST), wn(2.2, 6.8), wn(7.0, 27.2), wn(27.4, 36.0)];
+  const checksVis = tr(1, [[19.6, 0], [32.6, 1]], SOFT);
+
+  /* Шрифты и фото: дорисовать текстуры, когда загрузятся */
+  const redrawText = () => {
+    printTex.redraw();
+    bannerTex.redraw();
+    stripTex.redraw();
+    rollTex.redraw();
+    labels.forEach((l) => l.t.redraw());
+    ledShown = -1;
+  };
+  document.fonts?.ready.then(redrawText);
+  Promise.all(photos.map(loadImg)).then((list) => {
+    list.forEach((im, i) => (imgs[i] = im));
+    printImg = list[list.length - 1] ?? null;
+    redrawText();
+  });
+
+  const pop = (o: THREE.Object3D, v: number) => {
+    const s = Math.max(0.0001, v);
+    o.visible = v > 0.01;
+    o.scale.setScalar(s);
+  };
+
+  function seek(t: number) {
+    t = wrap(t, LOOPT);
+    const b = t / BEAT;
+
+    /* Камера */
+    const az = ((-40 + (360 * b) / LB + camDev(t)) * Math.PI) / 180;
+    const el = (camEl(t) * Math.PI) / 180;
+    const d = camDist(t);
+    camera.position.set(TARGET.x + d * Math.cos(el) * Math.cos(az), TARGET.y + d * Math.cos(el) * Math.sin(az), TARGET.z + d * Math.sin(el));
+    camera.lookAt(TARGET);
+
+    /* Площадка и логистика */
+    const po = clamp(plotOn(t));
+    plot.visible = po > 0.01;
+    dashMat.opacity = dimMat.opacity = po;
+    labels.forEach((l) => ((l.m.material as THREE.MeshBasicMaterial).opacity = po));
+    CRATES.forEach((c, i) => {
+      const s = crateSlide[i](t);
+      const v = clamp(crateVis[i](t));
+      crates[i].visible = v > 0.02;
+      crates[i].position.set(c[0] + s * 0.25, c[1] + s, c[2]);
+      crates[i].scale.setScalar(0.6 + 0.4 * v);
+    });
+
+    /* Пол */
+    const fv = clamp(floorIn(t));
+    floorG.visible = fv > 0.02;
+    floorG.position.z = floorDrop(t);
+
+    /* Стены, подсобка */
+    back.forEach((w, i) => {
+      const h = Math.max(0, backH[i](t));
+      w.visible = h > 0.01;
+      w.scale.z = Math.max(0.001, h);
+    });
+    side.forEach((w, j) => {
+      const h = Math.max(0, sideH[j](t));
+      w.visible = h > 0.01;
+      w.scale.z = Math.max(0.001, h);
+    });
+    const sh = Math.max(0, storageH(t));
+    storage.visible = sh > 0.01;
+    storage.scale.z = Math.max(0.001, sh);
+    door.visible = sh > 0.92;
+
+    /* Печать клеится от угла */
+    const pp = clamp(b < 20 ? ease((b - 12.0) / 1.6) : 1 - ease((b - 28.0) / 0.8));
+    print.visible = pp > 0.002 && back[3].scale.z > 0.95;
+    print.scale.x = Math.max(0.001, pp);
+    printTex.tex.repeat.x = Math.max(0.001, pp);
+
+    /* LED */
+    const lv = clamp(ledVisT(t));
+    const lo = clamp(ledOnT(t));
+    led.visible = ledFrame.visible = lv > 0.02 && side[2].scale.z > 0.8;
+    ledMat.color.setScalar(0.05 + 0.95 * lo);
+    (ledGlow.material as THREE.MeshBasicMaterial).opacity = 0.32 * lo;
+    ledGlow.visible = lo > 0.01;
+    if (imgs.length) {
+      const per = 2.5; // секунд на слайд
+      const k = Math.max(0, t - 13.6 * BEAT);
+      const idx = Math.floor(k / per) % Math.max(1, imgs.length - 1);
+      const f = clamp(((k % per) - (per - 0.5)) / 0.5);
+      const key2 = idx * 100 + Math.round(f * 10);
+      if (key2 !== ledShown && lo > 0.01) {
+        ledShown = key2;
+        drawLed(idx, (idx + 1) % Math.max(1, imgs.length - 1), f);
+      }
+    }
+
+    /* Ферма и свет */
+    const ch = Math.max(0, colH(t));
+    cols.forEach((c) => {
+      c.visible = ch > 0.01;
+      c.scale.set(1, 1, Math.max(0.001, ch));
+    });
+    const bv = clamp(beamV(t));
+    beams.visible = bv > 0.01;
+    beams.position.z = TOP - 0.15 + beamD(t);
+    spots.forEach((s, i) => {
+      const v = clamp(lampV[i](t));
+      s.body.visible = v > 0.02;
+      const o = clamp(beamOn[i](t));
+      s.light.intensity = 26 * o;
+      (s.cone.material as THREE.MeshBasicMaterial).opacity = 0.07 * o;
+      (s.pool.material as THREE.MeshBasicMaterial).opacity = 0.45 * o;
+      s.cone.visible = s.pool.visible = o > 0.01;
+      lensMat.color.set(o > 0.5 ? '#fff6e0' : '#3a3a36');
+    });
+
+    /* Баннер */
+    const rv = clamp(bannerV(t));
+    banner.visible = rv > 0.01;
+    banner.position.set(0, 0, 4.7 + bannerDrop(t));
+
+    /* Мебель вырастает из пола */
+    const grow = (o: THREE.Object3D, v: number) => {
+      o.visible = v > 0.01;
+      o.scale.set(1, 1, Math.max(0.001, v));
+    };
+    grow(counter, Math.max(0, counterH(t)));
+    const so = clamp(stripT(t));
+    stripMat.color.setScalar(0.16 + 0.84 * so);
+    grow(bar, Math.max(0, barH(t)));
+    pop(machine, Math.max(0, machineV(t)));
+    machine.position.z = F + 1.05 * Math.max(0, barH(t));
+    stools.forEach((s, i) => grow(s, Math.max(0, stoolH[i](t))));
+    grow(table, Math.max(0, tableH(t)));
+    chairs.forEach((c, i) => grow(c, Math.max(0, chairH[i](t))));
+    pods.forEach((p, i) => {
+      grow(p.g, Math.max(0, podH[i](t)));
+      const iv = Math.max(0, podItem[i](t));
+      p.item.visible = iv > 0.02;
+      p.item.scale.set(iv, iv, iv / Math.max(0.05, p.g.scale.z));
+      if (i === 0) p.item.rotation.z = t * 0.8;
+    });
+    plants.forEach((p, i) => pop(p, Math.max(0, plantV[i](t))));
+    const rh = Math.max(0, rollH(t));
+    rollup.visible = rh > 0.01;
+    sheet.scale.z = Math.max(0.001, clamp(rh, 0, 1.08));
+
+    /* Люди */
+    staff.forEach((p, i) => {
+      const v = Math.max(0, staffS[i](t));
+      p.root.visible = v > 0.02;
+      p.root.scale.setScalar(Math.max(0.001, v));
+      const breathe = Math.sin(t * 2.1 + i * 1.7) * 0.03;
+      p.root.rotation.z = STAFF[i].h + breathe;
+      p.arms[0].rotation.x = 0.05 + breathe;
+      p.arms[1].rotation.x = 0.05 - breathe;
+    });
+    GUESTS.forEach((g, i) => {
+      const p = guests[i];
+      const u = (b - g.from) / (g.to - g.from);
+      if (u <= 0 || u >= 1) {
+        p.root.visible = false;
+        return;
+      }
+      p.root.visible = true;
+      const [x, y, dx, dy] = at(g, u);
+      const moving = Math.hypot(dx, dy) > 0.01;
+      const onStand = y < 6 && x > 0 && x < 8;
+      p.root.position.set(x, y, onStand ? F : 0);
+      if (moving) p.root.rotation.z = Math.atan2(dy, dx) - Math.PI / 2;
+      const ph = moving ? t * Math.PI * 3.4 + i : 0;
+      const sw = moving ? Math.sin(ph) * 0.42 : 0;
+      p.legs.forEach((l, k) => (l.rotation.x = k ? sw : -sw));
+      p.arms.forEach((a, k) => (a.rotation.x = k ? -sw * 0.8 : sw * 0.8));
+      p.root.position.z += moving ? Math.abs(Math.cos(ph)) * 0.025 : 0;
+      p.root.scale.setScalar(clamp(Math.min(u, 1 - u) * 14, 0.001, 1));
+    });
+
+    renderer.render(scene, camera);
+
+    /* Подписи поверх */
+    checksGroup.style.opacity = clamp(checksVis(t)).toFixed(3);
+    checks.forEach((_, i) => {
+      const raw = ticks[i](t);
+      const v = clamp(raw);
+      ckFill[i].style.opacity = v.toFixed(3);
+      ckFill[i].setAttribute('r', (9 * (0.6 + 0.4 * Math.max(0, raw))).toFixed(2));
+      ckTick[i].style.strokeDashoffset = (1 - v).toFixed(3);
+      ckLabel[i].style.opacity = (0.5 + 0.5 * v).toFixed(3);
+    });
+    caps.forEach((c, i) => {
+      const v = clamp(capVis[i](t));
+      c.style.display = v < 0.01 ? 'none' : '';
+      c.style.opacity = v.toFixed(3);
+      c.setAttribute('transform', `translate(22 ${(514 + (1 - v) * 10).toFixed(2)})`);
+    });
+  }
+
+  function fit(width: number) {
+    const mobile = narrow();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 1.75));
+    renderer.setSize(width, width, false);
+    key.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
+    camera.aspect = 1;
+    camera.updateProjectionMatrix();
+  }
+
+  return { seek, fit };
+}
