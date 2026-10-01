@@ -56,6 +56,7 @@ const CAPS: [number, string][] = [
 
     <!-- Что уже готово -->
     <g class="hs__checks" transform="translate(412 24)">
+      <rect class="hs__ck-bg" x="-12" y="-10" width="150" height="150" rx="14"></rect>
       {
         T.checks.map((c, i) => (
           <g data-check transform={`translate(0 ${i * 27})`}>
@@ -113,6 +114,13 @@ const CAPS: [number, string][] = [
   .hs.is-ready .hs__canvas {
     opacity: 1;
   }
+  /* Подписи появляются вместе со сценой, а не над пустым местом. */
+  .hs__svg {
+    transition: opacity 0.6s ease;
+  }
+  .hs:not(.is-ready) .hs__svg {
+    opacity: 0;
+  }
   .hs__svg {
     position: absolute;
     inset: 0;
@@ -121,6 +129,10 @@ const CAPS: [number, string][] = [
     overflow: visible;
     font-family: inherit;
     user-select: none;
+  }
+  /* Подложка: чек-лист читается поверх фермы и баннера. */
+  .hs__ck-bg {
+    fill: rgb(15 16 13 / 0.62);
   }
   .hs__ck-ring {
     fill: rgb(15 16 13 / 0.5);

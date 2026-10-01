@@ -343,7 +343,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.08;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
@@ -378,7 +378,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
   scene.add(rim);
 
   /* Пол павильона: тёмный полированный бетон с сеткой */
-  const hall = mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: '#0e0f0c', roughness: 0.55, metalness: 0.05, envMapIntensity: 0.35, map: noiseTex(256, [60, 60, 56], 30, 18) }), false);
+  const hall = mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: '#0e0f0c', roughness: 0.92, metalness: 0, envMapIntensity: 0.12, map: noiseTex(256, [60, 60, 56], 30, 18) }), false);
   hall.position.set(4, 3, -0.002);
   scene.add(hall);
   const grid = new THREE.GridHelper(30, 30, 0x5d5f5b, 0x34352f);
