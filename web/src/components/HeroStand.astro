@@ -1,0 +1,205 @@
+---
+/**
+ * Вариант А первого экрана: «Стенд собирается сам», 3D.
+ * Островной стенд 48 м²: логистика → пол → модульные стены → подсобка →
+ * ферма с прожекторами → печать, LED-экран, подвесной баннер → мебель →
+ * персонал и посетители → демонтаж. Камера подлетает, облетает стенд и отлетает.
+ * Сцену рисует scripts/hero-stand.ts на Canvas 2D; чек-лист и этапы — SVG поверх.
+ */
+import { getLang } from '@/i18n';
+import { process } from '@/data/process';
+
+const lang = getLang(Astro.url);
+const STEPS = process(lang);
+const T = {
+  ru: {
+    area: '48 м²',
+    w: '8 м',
+    d: '6 м',
+    checks: ['Логистика', 'Стенд', 'Печать', 'Питание', 'Персонал'],
+    script: 'под ключ',
+    pause: 'Остановить анимацию',
+    play: 'Запустить анимацию',
+  },
+  en: {
+    area: '48 m²',
+    w: '8 m',
+    d: '6 m',
+    checks: ['Logistics', 'Stand', 'Print', 'Catering', 'Staff'],
+    script: 'turnkey',
+    pause: 'Pause animation',
+    play: 'Play animation',
+  },
+}[lang];
+/** Подписи внизу — этапы из схемы работы. */
+const CAPS: [number, string][] = [
+  [3, STEPS[2].title],
+  [4, STEPS[3].title],
+  [5, STEPS[4].title],
+  [6, STEPS[5].title],
+];
+---
+
+<div
+  class="hs"
+  data-hero-stand
+  data-area={T.area}
+  data-w={T.w}
+  data-d={T.d}
+  data-script={T.script}
+>
+  <canvas class="hs__canvas" aria-hidden="true"></canvas>
+  <svg class="hs__svg" viewBox="0 0 560 560" width="560" height="560" aria-hidden="true">
+
+    <!-- Что уже готово -->
+    <g class="hs__checks" transform="translate(412 24)">
+      {
+        T.checks.map((c, i) => (
+          <g data-check transform={`translate(0 ${i * 27})`}>
+            <circle class="hs__ck-ring" cx="9" cy="9" r="9"></circle>
+            <circle class="hs__ck-fill" data-ck-fill cx="9" cy="9" r="9"></circle>
+            <path class="hs__ck-tick" data-ck-tick d="M5 9.5l2.7 2.7 5.3-5.8" pathLength="1"></path>
+            <text class="hs__ck-label" data-ck-label x="26" y="14">{c}</text>
+          </g>
+        ))
+      }
+    </g>
+
+    <!-- Этап из схемы работы -->
+    {
+      CAPS.map(([n, title]) => (
+        <g class="hs__cap" data-cap transform="translate(22 514)">
+          <circle cx="14" cy="14" r="14"></circle>
+          <text class="hs__cap-n" x="14" y="19" text-anchor="middle">{n}</text>
+          <text class="hs__cap-t" x="38" y="19">{title}</text>
+        </g>
+      ))
+    }
+  </svg>
+  <button class="hs__pp" type="button" data-hm-toggle data-label-pause={T.pause} data-label-play={T.play} aria-label={T.pause} hidden>
+    <svg class="hs__pp-pause" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
+    <svg class="hs__pp-play" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l12.5-7.5z"></path></svg>
+  </button>
+</div>
+
+<style>
+  .hs {
+    position: relative;
+    width: 100%;
+    max-width: 620px;
+    aspect-ratio: 1 / 1;
+    justify-self: end;
+  }
+  /* Края сцены растворяются в фоне: стены и сетка не обрываются по рамке. */
+  .hs__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0, #000 14%, #000 86%, transparent 100%),
+      linear-gradient(to bottom, transparent 0, #000 12%, #000 84%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent 0, #000 14%, #000 86%, transparent 100%),
+      linear-gradient(to bottom, transparent 0, #000 12%, #000 84%, transparent 100%);
+    mask-composite: intersect;
+  }
+  .hs__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    font-family: inherit;
+    user-select: none;
+  }
+  .hs__ck-ring {
+    fill: rgb(15 16 13 / 0.5);
+    stroke: rgb(255 255 255 / 0.25);
+    stroke-width: 1.5;
+  }
+  .hs__ck-fill {
+    fill: #d2d8a8;
+  }
+  .hs__ck-tick {
+    fill: none;
+    stroke: #0f100d;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+  }
+  .hs__ck-label {
+    font-size: 14px;
+    font-weight: 600;
+    fill: #f2f2ec;
+  }
+  .hs__cap circle {
+    fill: #d2d8a8;
+  }
+  .hs__cap-n {
+    font-size: 14px;
+    font-weight: 800;
+    fill: #0f100d;
+  }
+  .hs__cap-t {
+    font-size: 16px;
+    font-weight: 700;
+    fill: #f2f2ec;
+  }
+  .hs__pp {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--stage-line);
+    background: rgb(15 16 13 / 0.6);
+    color: var(--on-stage-muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .hs__pp:hover {
+    color: var(--olive-pastel);
+    border-color: var(--olive-pastel);
+  }
+  .hs__pp:focus-visible {
+    outline: 2px solid var(--olive-pastel);
+    outline-offset: 3px;
+  }
+  .hs__pp-play,
+  .hs[data-paused] .hs__pp-pause {
+    display: none;
+  }
+  .hs[data-paused] .hs__pp-play {
+    display: block;
+  }
+  @media (max-width: 1080px) {
+    .hs {
+      justify-self: center;
+      max-width: 540px;
+    }
+  }
+  /* На телефоне чек-лист мелкий — оставляем только подпись этапа, крупнее. */
+  @media (max-width: 600px) {
+    .hs__checks {
+      display: none;
+    }
+    .hs__cap-t {
+      font-size: 24px;
+    }
+    .hs__cap-n {
+      font-size: 18px;
+    }
+    .hs__cap circle {
+      r: 17;
+    }
+  }
+</style>
+
+<script>
+  import '@/scripts/hero-stand';
+</script>

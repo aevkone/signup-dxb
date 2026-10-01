@@ -1,0 +1,11 @@
+---
+/** Прототипы первого экрана для сравнения. В сборку для сайта не попадают. */
+import View from '@/views/Home.astro';
+
+export function getStaticPaths() {
+  return import.meta.env.DEV ? [{ params: { v: 'stand' } }, { params: { v: 'neon' } }] : [];
+}
+const v = Astro.params.v as 'stand' | 'neon';
+---
+
+<View hero={v} />

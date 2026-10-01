@@ -1,0 +1,412 @@
+---
+/**
+ * Вариант Б первого экрана: «Дубай зажигает вывески».
+ * Ночной город в три слоя глубины, набережная с потоком машин и вода с аброй.
+ * Вывески загораются по одной — у каждой подпись технологии или позиции прайса.
+ * В финале город светится целиком, гаснет, и петля начинается заново.
+ * На вывесках только SIGNUP DXB — никаких чужих брендов.
+ */
+import { getLang } from '@/i18n';
+
+const lang = getLang(Astro.url);
+const T = {
+  ru: {
+    labels: ['Гибкий неон', 'Контражурная подсветка', 'Световой короб', 'LED-экран', 'Печать на баннере', 'Крышная установка', 'Световая консоль'],
+    script: 'под ключ',
+    pause: 'Остановить анимацию',
+    play: 'Запустить анимацию',
+  },
+  en: {
+    labels: ['Flexible neon', 'Halo lighting', 'Lightbox', 'LED screen', 'Banner print', 'Rooftop sign', 'Projecting sign'],
+    script: 'turnkey',
+    pause: 'Pause animation',
+    play: 'Play animation',
+  },
+}[lang];
+
+const BASE = 404; // основание зданий
+const WATER = 414; // линия воды
+
+/** Детерминированный «случайный» ряд — кадр не меняется между загрузками. */
+let seed = 11;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+/** Дальний слой: тусклые силуэты. */
+const FAR: [number, number, number][] = [];
+for (let x = -60; x < 640; ) {
+  const w = 26 + Math.round(rnd() * 40);
+  FAR.push([x, w, 120 + Math.round(rnd() * 170)]);
+  x += w + 2;
+}
+/** Ближний слой: x, ширина, высота. */
+const NEAR = {
+  n1: [0, 172, 270],
+  n2: [178, 62, 360],
+  n3: [246, 156, 300],
+  n4: [408, 88, 236],
+  n5: [500, 60, 290],
+} as const;
+const windows = (x: number, w: number, h: number, step = 12, p = 0.22) => {
+  const out: [number, number][] = [];
+  for (let yy = BASE - h + 14; yy < BASE - 16; yy += step) for (let xx = x + 7; xx < x + w - 7; xx += 10) if (rnd() < p) out.push([xx, yy]);
+  return out;
+};
+const FAR_WIN = FAR.flatMap(([x, w, h]) => windows(x, w, h, 14, 0.12));
+const NEAR_WIN = Object.values(NEAR).flatMap(([x, w, h]) => windows(x, w, h, 12, 0.16));
+const STARS = Array.from({ length: 34 }, () => [Math.round(rnd() * 560), Math.round(rnd() * 120) + 6, +(0.6 + rnd() * 0.9).toFixed(2)]);
+const ROOF = 'SIGNUP'.split('');
+const [n1x, n1w] = NEAR.n1;
+const [n2x, n2w, n2h] = NEAR.n2;
+const [n3x, n3w, n3h] = NEAR.n3;
+const [n4x, n4w] = NEAR.n4;
+const [n5x, n5w] = NEAR.n5;
+/** Подписи: [x, y] плашки для каждой вывески. */
+const LABELS: [number, number][] = [
+  [12, 100],
+  [318, 132],
+  [14, 334],
+  [262, 238],
+  [120, 300],
+  [258, 26],
+  [374, 356],
+];
+---
+
+<div class="hn" data-hero-neon>
+  <svg class="hn__svg" viewBox="0 0 560 560" width="560" height="560" aria-hidden="true">
+    <defs>
+      <filter id="hn-glow" x="-40%" y="-60%" width="180%" height="220%">
+        <feGaussianBlur stdDeviation="5"></feGaussianBlur>
+      </filter>
+      <filter id="hn-soft" x="-60%" y="-80%" width="220%" height="260%">
+        <feGaussianBlur stdDeviation="14"></feGaussianBlur>
+      </filter>
+      <linearGradient id="hn-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0b0c0a" stop-opacity="0"></stop>
+        <stop offset="0.75" stop-color="#3a2140" stop-opacity="0.55"></stop>
+        <stop offset="1" stop-color="#59335f" stop-opacity="0.75"></stop>
+      </linearGradient>
+      <pattern id="hn-ripple" data-ripple width="560" height="6" patternUnits="userSpaceOnUse">
+        <rect width="560" height="3.4" fill="#fff"></rect>
+      </pattern>
+      <mask id="hn-reflect" maskUnits="userSpaceOnUse" x="-100" y={WATER} width="760" height={560 - WATER}>
+        <rect x="-100" y={WATER} width="760" height={560 - WATER} fill="url(#hn-ripple)"></rect>
+      </mask>
+      <linearGradient id="hn-fade" x1="0" y1={WATER} x2="0" y2="560" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#fff" stop-opacity="0.9"></stop>
+        <stop offset="1" stop-color="#fff" stop-opacity="0.08"></stop>
+      </linearGradient>
+      <mask id="hn-fademask" maskUnits="userSpaceOnUse" x="-100" y={WATER} width="760" height={560 - WATER}>
+        <rect x="-100" y={WATER} width="760" height={560 - WATER} fill="url(#hn-fade)"></rect>
+      </mask>
+      <pattern id="hn-pixels" width="5" height="5" patternUnits="userSpaceOnUse">
+        <rect width="5" height="5" fill="#59335f"></rect>
+        <circle cx="2.5" cy="2.5" r="0.9" fill="#c190c8" opacity="0.5"></circle>
+      </pattern>
+      <clipPath id="hn-bannerclip">
+        <rect data-banner-clip x={n2x + 8} y={BASE - n2h + 44} width={n2w - 16} height="0"></rect>
+      </clipPath>
+    </defs>
+
+    <!-- Небо и звёзды -->
+    <rect x="0" y="0" width="560" height={WATER} fill="url(#hn-sky)"></rect>
+    <g data-stars>{STARS.map(([x, y, r]) => <circle cx={x} cy={y} r={r} fill="#f2f2ec"></circle>)}</g>
+
+    <g data-cam>
+      <!-- Дальний слой -->
+      <g data-far>
+        {FAR.map(([x, w, h]) => <rect class="hn__far" x={x} y={BASE - h} width={w} height={h}></rect>)}
+        <g class="hn__farwin">{FAR_WIN.map(([x, y]) => <rect x={x} y={y} width="3" height="4"></rect>)}</g>
+      </g>
+
+      <g id="hn-city">
+        <!-- Ближний слой -->
+        <rect class="hn__bld" x={n1x} y={BASE - NEAR.n1[2]} width={n1w} height={NEAR.n1[2]}></rect>
+        <path class="hn__bld" d={`M${n2x} ${BASE}V${BASE - n2h + 70}H${n2x + 10}V${BASE - n2h + 30}H${n2x + 22}V${BASE - n2h}H${n2x + 40}V${BASE - n2h + 30}H${n2x + 52}V${BASE - n2h + 70}H${n2x + n2w}V${BASE}Z`}></path>
+        <path class="hn__spire" d={`M${n2x + 31} ${BASE - n2h}V${BASE - n2h - 40}`}></path>
+        <rect class="hn__bld" x={n3x} y={BASE - n3h} width={n3w} height={n3h}></rect>
+        <rect class="hn__bld" x={n5x} y={BASE - NEAR.n5[2]} width={n5w} height={NEAR.n5[2]}></rect>
+        <rect class="hn__bld" x={n4x} y={BASE - NEAR.n4[2]} width={n4w} height={NEAR.n4[2]}></rect>
+        <g data-windows class="hn__win">{NEAR_WIN.map(([x, y]) => <rect x={x} y={y} width="5" height="6"></rect>)}</g>
+
+        <!-- Свет вывесок на фасадах -->
+        <ellipse data-spill cx={n1x + n1w / 2} cy="244" rx="86" ry="54" fill="#c190c8" filter="url(#hn-soft)" opacity="0"></ellipse>
+        <ellipse data-spill cx={n4x + n4w / 2} cy="230" rx="52" ry="34" fill="#d2d8a8" filter="url(#hn-soft)" opacity="0"></ellipse>
+        <ellipse data-spill cx={n3x + n3w / 2} cy="182" rx="76" ry="52" fill="#c190c8" filter="url(#hn-soft)" opacity="0"></ellipse>
+        <ellipse data-spill cx={n3x + n3w / 2} cy={BASE - n3h - 16} rx="86" ry="26" fill="#f8e6fb" filter="url(#hn-soft)" opacity="0"></ellipse>
+        <ellipse data-spill cx={n5x + n5w / 2} cy="236" rx="40" ry="70" fill="#d2d8a8" filter="url(#hn-soft)" opacity="0"></ellipse>
+
+        <!-- 1. Гибкий неон во всю стену -->
+        <g>
+          <text class="hn__neon hn__neon--glow" data-neon-glow x={n1x + n1w / 2} y="262" text-anchor="middle" filter="url(#hn-glow)">signup</text>
+          <text class="hn__neon hn__neon--tube" data-neon-tube x={n1x + n1w / 2} y="262" text-anchor="middle">signup</text>
+        </g>
+
+        <!-- 2. Контражур -->
+        <g>
+          <text class="hn__halo hn__halo--light" data-halo x={n4x + n4w / 2} y="248" text-anchor="middle" filter="url(#hn-glow)">DXB</text>
+          <text class="hn__halo hn__halo--face" x={n4x + n4w / 2} y="248" text-anchor="middle">DXB</text>
+        </g>
+
+        <!-- 3. Световые короба витрин -->
+        {
+          [
+            [n1x + 14, n1w - 28],
+            [n3x + 14, n3w - 28],
+          ].map(([x, w]) => (
+            <g>
+              <rect class="hn__box" x={x} y="368" width={w} height="26" rx="2"></rect>
+              <text class="hn__boxt hn__boxt--glow" data-box-glow x={x + w / 2} y="386" text-anchor="middle" filter="url(#hn-glow)">SIGNUP DXB</text>
+              <text class="hn__boxt" data-box-text x={x + w / 2} y="386" text-anchor="middle">SIGNUP DXB</text>
+            </g>
+          ))
+        }
+
+        <!-- 4. LED-экран на фасаде -->
+        <g>
+          <rect x={n3x + 14} y="138" width={n3w - 28} height="88" rx="3" fill="#0b0c0a" stroke="rgb(255 255 255 / 0.25)"></rect>
+          <rect data-led x={n3x + 18} y="142" width={n3w - 36} height="80" fill="url(#hn-pixels)" opacity="0"></rect>
+          <text data-led-a class="hn__led-a" x={n3x + n3w / 2} y="190" text-anchor="middle" opacity="0">SIGNUP DXB</text>
+          <text data-led-b class="hn__led-b" x={n3x + n3w / 2} y="198" text-anchor="middle" opacity="0">{T.script}</text>
+        </g>
+
+        <!-- 5. Печать на баннере: вертикальный баннер по фасаду башни -->
+        <g clip-path="url(#hn-bannerclip)">
+          <rect x={n2x + 8} y={BASE - n2h + 44} width={n2w - 16} height="250" fill="#59335f"></rect>
+          <path d={`M${n2x + 17} ${BASE - n2h + 112}V${BASE - n2h + 84}a14 14 0 0 1 28 0V${BASE - n2h + 112}`} fill="none" stroke="#d2d8a8" stroke-width="5"></path>
+          <text class="hn__banner-t" x={n2x + n2w / 2 + 9} y={BASE - n2h + 200} text-anchor="middle" transform={`rotate(-90 ${n2x + n2w / 2 + 9} ${BASE - n2h + 200})`}>{T.script}</text>
+          <rect x={n2x + 18} y={BASE - n2h + 270} width={n2w - 36} height="4" rx="2" fill="#f2f2ec" opacity="0.7"></rect>
+        </g>
+
+        <!-- 6. Крышная установка -->
+        <g>
+          <path class="hn__frame" d={`M${n3x + 20} ${BASE - n3h}V${BASE - n3h - 10}M${n3x + n3w - 20} ${BASE - n3h}V${BASE - n3h - 10}M${n3x + 12} ${BASE - n3h - 10}H${n3x + n3w - 12}`}></path>
+          <text class="hn__roof hn__roof--glow" x={n3x + n3w / 2} y={BASE - n3h - 16} text-anchor="middle" filter="url(#hn-glow)">{ROOF.map((ch) => <tspan data-roof-glow>{ch}</tspan>)}</text>
+          <text class="hn__roof" x={n3x + n3w / 2} y={BASE - n3h - 16} text-anchor="middle">{ROOF.map((ch) => <tspan data-roof>{ch}</tspan>)}</text>
+        </g>
+
+        <!-- 7. Световая консоль -->
+        <g>
+          <path class="hn__frame" d={`M${n4x + n4w} 286h10M${n4x + n4w} 340h10`}></path>
+          <rect data-console x={n4x + n4w + 6} y="280" width="20" height="66" rx="2" stroke="rgb(255 255 255 / 0.3)"></rect>
+          <rect data-console-glow x={n4x + n4w + 6} y="280" width="20" height="66" rx="2" fill="#d2d8a8" filter="url(#hn-glow)" opacity="0"></rect>
+          <text data-console-t class="hn__console-t" x={n4x + n4w + 16} y="313" text-anchor="middle" transform={`rotate(-90 ${n4x + n4w + 16} 313)`}>DXB</text>
+        </g>
+
+        <!-- 8. Неоновая арка-логотип -->
+        <g>
+          <path data-arch-glow d={`M${n5x + 14} 300V196a18 18 0 0 1 36 0V300`} fill="none" stroke="#d2d8a8" stroke-width="9" filter="url(#hn-glow)" opacity="0"></path>
+          <path data-arch d={`M${n5x + 14} 300V196a18 18 0 0 1 36 0V300`} fill="none" stroke="#3a3b36" stroke-width="2.4" stroke-linecap="round" pathLength="1" stroke-dasharray="1"></path>
+        </g>
+      </g>
+
+      <!-- Набережная: поток фар -->
+      <rect x="-100" y={BASE} width="760" height={WATER - BASE} fill="#0b0c0a"></rect>
+      <g data-cars>
+        {Array.from({ length: 14 }, (_, i) => <rect data-car y={i % 2 ? BASE + 6 : BASE + 2} width="7" height="2" rx="1" fill={i % 2 ? '#e2574c' : '#f8f4dc'}></rect>)}
+      </g>
+
+      <!-- Отражение в воде -->
+      <g mask="url(#hn-fademask)">
+        <g mask="url(#hn-reflect)">
+          <use href="#hn-city" transform={`translate(0 ${WATER * 2 - 6}) scale(1 -1)`}></use>
+        </g>
+      </g>
+      <path d={`M-100 ${WATER}H660`} stroke="rgb(255 255 255 / 0.14)" stroke-width="1"></path>
+
+      <!-- Абра пересекает воду -->
+      <g data-boat>
+        <path d="M-34 0h68l-8 9h-52z" fill="#121310" stroke="rgb(255 255 255 / 0.22)"></path>
+        <path d="M-20 -10h40v10h-40z" fill="#1a1b17" stroke="rgb(255 255 255 / 0.18)"></path>
+        <path d="M-24 -10h48" stroke="#2a2b26" stroke-width="3"></path>
+        <circle cx="-12" cy="-4" r="2" fill="#f8f4dc"></circle>
+        <circle cx="12" cy="-4" r="2" fill="#f8f4dc"></circle>
+        <circle cx="0" cy="-4" r="7" fill="#f8f4dc" filter="url(#hn-glow)" opacity="0.35"></circle>
+        <path d="M34 6c18 2 34 2 52 0M30 9c14 2 26 3 40 2" stroke="rgb(255 255 255 / 0.2)" fill="none"></path>
+      </g>
+    </g>
+
+    <!-- Подписи технологий -->
+    {
+      LABELS.map(([x, y], i) => (
+        <g class="hn__label" data-label transform={`translate(${x} ${y})`}>
+          <rect class="hn__label-bg" data-label-bg x="0" y="0" height="30" rx="15"></rect>
+          <circle cx="15" cy="15" r="4.5" fill="#d2d8a8"></circle>
+          <text x="28" y="20">{T.labels[i]}</text>
+        </g>
+      ))
+    }
+  </svg>
+  <button class="hn__pp" type="button" data-hm-toggle data-label-pause={T.pause} data-label-play={T.play} aria-label={T.pause} hidden>
+    <svg class="hn__pp-pause" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
+    <svg class="hn__pp-play" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l12.5-7.5z"></path></svg>
+  </button>
+</div>
+
+<style>
+  .hn {
+    position: relative;
+    width: 100%;
+    max-width: 620px;
+    aspect-ratio: 1 / 1;
+    justify-self: end;
+  }
+  .hn__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    font-family: inherit;
+    user-select: none;
+  }
+  .hn__far {
+    fill: #0d0e0c;
+    stroke: rgb(255 255 255 / 0.05);
+  }
+  .hn__farwin rect {
+    fill: #d2d8a8;
+    opacity: 0.12;
+  }
+  .hn__bld {
+    fill: #121310;
+    stroke: rgb(255 255 255 / 0.18);
+    stroke-width: 1;
+  }
+  .hn__spire {
+    stroke: rgb(255 255 255 / 0.35);
+    stroke-width: 1.5;
+  }
+  .hn__win rect {
+    fill: #d2d8a8;
+    opacity: 0.24;
+  }
+  .hn__neon {
+    font-family: var(--script);
+    font-size: 64px;
+    fill: none;
+    stroke-linejoin: round;
+    stroke-dasharray: 1400;
+  }
+  .hn__neon--tube {
+    stroke: #fbeefc;
+    stroke-width: 2;
+  }
+  .hn__neon--glow {
+    stroke: #c190c8;
+    stroke-width: 8;
+  }
+  .hn__halo {
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+  .hn__halo--light {
+    fill: #d2d8a8;
+    stroke: #d2d8a8;
+    stroke-width: 10;
+  }
+  .hn__halo--face {
+    fill: #0f100d;
+    stroke: rgb(255 255 255 / 0.22);
+    stroke-width: 0.8;
+  }
+  .hn__box {
+    fill: #0b0c0a;
+    stroke: rgb(255 255 255 / 0.28);
+  }
+  .hn__boxt {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+  }
+  .hn__boxt--glow {
+    fill: #f2f2ec;
+  }
+  .hn__led-a {
+    fill: #fff;
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .hn__led-b {
+    fill: #d2d8a8;
+    font-family: var(--script);
+    font-size: 40px;
+  }
+  .hn__banner-t {
+    fill: #d2d8a8;
+    font-family: var(--script);
+    font-size: 40px;
+  }
+  .hn__frame {
+    fill: none;
+    stroke: rgb(255 255 255 / 0.4);
+    stroke-width: 1.5;
+  }
+  .hn__roof {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+  }
+  .hn__roof--glow {
+    fill: #c190c8;
+    stroke: #c190c8;
+    stroke-width: 5;
+  }
+  .hn__console-t {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+  }
+  .hn__label text {
+    font-size: 14px;
+    font-weight: 700;
+    fill: #f2f2ec;
+  }
+  .hn__label-bg {
+    fill: rgb(15 16 13 / 0.85);
+    stroke: rgb(210 216 168 / 0.55);
+    stroke-width: 1;
+  }
+
+  .hn__pp {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--stage-line);
+    background: rgb(15 16 13 / 0.6);
+    color: var(--on-stage-muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .hn__pp:hover {
+    color: var(--olive-pastel);
+    border-color: var(--olive-pastel);
+  }
+  .hn__pp:focus-visible {
+    outline: 2px solid var(--olive-pastel);
+    outline-offset: 3px;
+  }
+  .hn__pp-play,
+  .hn[data-paused] .hn__pp-pause {
+    display: none;
+  }
+  .hn[data-paused] .hn__pp-play {
+    display: block;
+  }
+  @media (max-width: 1080px) {
+    .hn {
+      justify-self: center;
+      max-width: 540px;
+    }
+  }
+</style>
+
+<script>
+  import '@/scripts/hero-neon';
+</script>

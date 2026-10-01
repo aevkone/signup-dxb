@@ -3,6 +3,8 @@ import Base from '@/layouts/Base.astro';
 import Icon from '@/components/Icon.astro';
 import Configurator from '@/components/Configurator.astro';
 import HeroMotion from '@/components/HeroMotion.astro';
+import HeroStand from '@/components/HeroStand.astro';
+import HeroNeon from '@/components/HeroNeon.astro';
 import { featuredWorks } from '@/data/works';
 import LeadForm from '@/components/LeadForm.astro';
 import { getLang, link } from '@/i18n';
@@ -14,6 +16,9 @@ import { TOTAL_PRICES } from '@/data/prices';
 import { workById, workTitle } from '@/data/works';
 import { CONTACTS } from '@/consts';
 
+/** Сцена первого экрана: на сайте — 3D-стенд; ui и neon — запасные варианты (смотреть на /proto/ в разработке). */
+type Props = { hero?: 'ui' | 'stand' | 'neon' };
+const { hero = 'stand' } = Astro.props;
 const lang = getLang(Astro.url);
 const u = ui(lang);
 const BLOCKS = blocks(lang);
@@ -169,7 +174,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
 
 <Base>
   <!-- 1. Первый экран: сцена -->
-  <section class="hero stage">
+  <section class:list={['hero', 'stage', `hero--${hero}`]}>
     <picture class="hero__bg" aria-hidden="true">
       <source type="image/webp" media="(max-width: 800px)" srcset={link('/img/dubai-night-800.webp')} />
       <source type="image/webp" media="(max-width: 1280px)" srcset={link('/img/dubai-night-1280.webp')} />
@@ -205,7 +210,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
           {T.facts.map(([h, t]) => <li><strong>{h}</strong><span>{t}</span></li>)}
         </ul>
       </div>
-      <HeroMotion />
+      {hero === 'stand' ? <HeroStand /> : hero === 'neon' ? <HeroNeon /> : <HeroMotion />}
     </div>
   </section>
 
@@ -448,6 +453,10 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     object-position: center 60%;
     opacity: 0.42;
     filter: saturate(0.8);
+  }
+  /* Вариант с ночным городом: своя панорама в сцене, фото фона приглушаем. */
+  .hero--neon .hero__bg img {
+    opacity: 0.14;
   }
   /* Чёрная сцена сверху и сливовое свечение снизу — как у образца, в цветах Кристины. */
   .hero::before {
@@ -1089,7 +1098,9 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     .hero__copy {
       display: contents;
     }
-    .hero__grid > :global(.hm) {
+    .hero__grid > :global(.hm),
+    .hero__grid > :global(.hs),
+    .hero__grid > :global(.hn) {
       order: 1;
       margin-top: 40px;
     }
