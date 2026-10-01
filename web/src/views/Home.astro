@@ -147,12 +147,6 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
 <Base>
   <!-- 1. Первый экран: сцена -->
   <section class:list={['hero', 'stage', `hero--${hero}`]}>
-    <picture class="hero__bg" aria-hidden="true">
-      <source type="image/webp" media="(max-width: 800px)" srcset={link('/img/dubai-night-800.webp')} />
-      <source type="image/webp" media="(max-width: 1280px)" srcset={link('/img/dubai-night-1280.webp')} />
-      <source type="image/webp" srcset={link('/img/dubai-night-1920.webp')} />
-      <img src={link('/img/dubai-night-1280.jpg')} alt="" width="1920" height="1080" fetchpriority="high" />
-    </picture>
     <div class="shell hero__grid">
       <div class="hero__copy">
         <h1 class="hero__title">
@@ -421,32 +415,16 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     display: grid;
     align-items: center;
   }
-  .hero__bg {
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-  }
-  .hero__bg img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 60%;
-    opacity: 0.42;
-    filter: saturate(0.8);
-  }
-  /* Вариант с ночным городом: своя панорама в сцене, фото фона приглушаем. */
-  .hero--neon .hero__bg img {
-    opacity: 0.14;
-  }
-  /* Чёрная сцена сверху и сливовое свечение снизу — как у образца, в цветах Кристины. */
+  /* Чистая тёмная сцена без фото: за стендом мягкое сливовое свечение, снизу — сливовый закат.
+     Холст 3D прозрачный, поэтому за ним ничего не должно «просвечивать». */
   .hero::before {
     content: '';
     position: absolute;
     inset: 0;
     z-index: -1;
     background:
-      linear-gradient(100deg, var(--stage) 0%, rgb(15 16 13 / 0.92) 38%, rgb(15 16 13 / 0.35) 72%, rgb(15 16 13 / 0.2) 100%),
-      linear-gradient(180deg, rgb(15 16 13 / 0) 45%, rgb(89 51 95 / 0.85) 100%);
+      radial-gradient(48% 62% at 74% 46%, rgb(89 51 95 / 0.32), rgb(89 51 95 / 0) 72%),
+      linear-gradient(180deg, rgb(15 16 13 / 0) 50%, rgb(89 51 95 / 0.7) 100%);
   }
   .hero__grid {
     display: grid;
