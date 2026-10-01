@@ -474,6 +474,19 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     gap: 48px;
     align-items: center;
   }
+  /* 3D-стенд на компьютере — в 1,5 раза крупнее колонки и на уровне заголовка.
+     Мягкие края сцены уходят в фон, поэтому выход за колонку незаметен. */
+  @media (min-width: 1081px) {
+    .hero__grid > :global(.hs) {
+      width: 150%;
+      max-width: none;
+      margin-inline: -22% -28%;
+      align-self: start;
+      margin-top: -16%;
+      margin-bottom: -18%;
+      justify-self: stretch;
+    }
+  }
   .hero__title {
     font-size: clamp(38px, 4vw, 58px);
     line-height: 1.02;

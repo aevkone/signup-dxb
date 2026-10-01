@@ -477,7 +477,7 @@ function build(root: HTMLElement) {
   const ticks = [3.6, 11.4, 14.2, 16.0, 18.0].map((on, i) => tr(0, [[on, 1], [33.4 + i * 0.2, 0]], SNAP));
   const capVis = [tr(1, [[2.0, 0], [36.2, 1]], FAST), wn(2.2, 6.8), wn(7.0, 27.2), wn(27.4, 36.0)];
   // Когда всё отмечено и камера близко — чек-лист уходит, чтобы не спорить с баннером.
-  const checksGroup = root.querySelector('.hs__checks') as SVGGElement;
+  const checksGroup = root.querySelector<SVGGElement>('.hs__checks'); // чек-листа на главной может не быть
   const checksVis = tr(1, [[19.6, 0], [32.6, 1]], SOFT);
 
   /* ---------- Кадр ---------- */
@@ -740,7 +740,7 @@ function build(root: HTMLElement) {
     }
 
     /* --- Чек-лист и этапы (SVG поверх холста) --- */
-    checksGroup.style.opacity = clamp(checksVis(t)).toFixed(3);
+    if (checksGroup) checksGroup.style.opacity = clamp(checksVis(t)).toFixed(3);
     checks.forEach((_, i) => {
       const raw = ticks[i](t);
       const v = clamp(raw);

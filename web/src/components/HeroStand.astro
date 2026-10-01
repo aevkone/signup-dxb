@@ -18,7 +18,6 @@ const T = {
     area: '48 м²',
     w: '8 м',
     d: '6 м',
-    checks: ['Логистика', 'Стенд', 'Печать', 'Питание', 'Персонал'],
     script: 'под ключ',
     pause: 'Остановить анимацию',
     play: 'Запустить анимацию',
@@ -27,7 +26,6 @@ const T = {
     area: '48 m²',
     w: '8 m',
     d: '6 m',
-    checks: ['Logistics', 'Stand', 'Print', 'Catering', 'Staff'],
     script: 'turnkey',
     pause: 'Pause animation',
     play: 'Play animation',
@@ -54,20 +52,6 @@ const CAPS: [number, string][] = [
   <canvas class="hs__canvas" aria-hidden="true"></canvas>
   <svg class="hs__svg" viewBox="0 0 560 560" width="560" height="560" aria-hidden="true">
 
-    <!-- Что уже готово -->
-    <g class="hs__checks" transform="translate(412 24)">
-      <rect class="hs__ck-bg" x="-12" y="-10" width="150" height="150" rx="14"></rect>
-      {
-        T.checks.map((c, i) => (
-          <g data-check transform={`translate(0 ${i * 27})`}>
-            <circle class="hs__ck-ring" cx="9" cy="9" r="9"></circle>
-            <circle class="hs__ck-fill" data-ck-fill cx="9" cy="9" r="9"></circle>
-            <path class="hs__ck-tick" data-ck-tick d="M5 9.5l2.7 2.7 5.3-5.8" pathLength="1"></path>
-            <text class="hs__ck-label" data-ck-label x="26" y="14">{c}</text>
-          </g>
-        ))
-      }
-    </g>
 
     <!-- Этап из схемы работы -->
     {
@@ -94,7 +78,7 @@ const CAPS: [number, string][] = [
     aspect-ratio: 1 / 1;
     justify-self: end;
   }
-  /* Края сцены растворяются в фоне: стены и сетка не обрываются по рамке. */
+  /* Края сцены мягко растворяются в фоне по эллипсу — без рамки и обрыва. */
   .hs__canvas {
     position: absolute;
     inset: 0;
@@ -102,14 +86,8 @@ const CAPS: [number, string][] = [
     height: 100%;
     opacity: 0;
     transition: opacity 0.6s ease;
-    -webkit-mask-image:
-      linear-gradient(to right, transparent 0, #000 14%, #000 86%, transparent 100%),
-      linear-gradient(to bottom, transparent 0, #000 12%, #000 84%, transparent 100%);
-    -webkit-mask-composite: source-in;
-    mask-image:
-      linear-gradient(to right, transparent 0, #000 14%, #000 86%, transparent 100%),
-      linear-gradient(to bottom, transparent 0, #000 12%, #000 84%, transparent 100%);
-    mask-composite: intersect;
+    -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 48%, #000 38%, rgb(0 0 0 / 0.85) 50%, rgb(0 0 0 / 0.55) 64%, rgb(0 0 0 / 0.25) 80%, rgb(0 0 0 / 0.08) 92%, transparent 100%);
+    mask-image: radial-gradient(ellipse 50% 50% at 50% 48%, #000 38%, rgb(0 0 0 / 0.85) 50%, rgb(0 0 0 / 0.55) 64%, rgb(0 0 0 / 0.25) 80%, rgb(0 0 0 / 0.08) 92%, transparent 100%);
   }
   .hs.is-ready .hs__canvas {
     opacity: 1;
@@ -129,31 +107,6 @@ const CAPS: [number, string][] = [
     overflow: visible;
     font-family: inherit;
     user-select: none;
-  }
-  /* Подложка: чек-лист читается поверх фермы и баннера. */
-  .hs__ck-bg {
-    fill: rgb(15 16 13 / 0.62);
-  }
-  .hs__ck-ring {
-    fill: rgb(15 16 13 / 0.5);
-    stroke: rgb(255 255 255 / 0.25);
-    stroke-width: 1.5;
-  }
-  .hs__ck-fill {
-    fill: #d2d8a8;
-  }
-  .hs__ck-tick {
-    fill: none;
-    stroke: #0f100d;
-    stroke-width: 2.2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 1;
-  }
-  .hs__ck-label {
-    font-size: 14px;
-    font-weight: 600;
-    fill: #f2f2ec;
   }
   .hs__cap circle {
     fill: #d2d8a8;
@@ -197,17 +150,31 @@ const CAPS: [number, string][] = [
   .hs[data-paused] .hs__pp-play {
     display: block;
   }
+  /* На компьютере сцена в 1,5 раза больше колонки: подпись и пауза — в видимой части. */
+  @media (min-width: 1081px) {
+    .hs__pp {
+      right: 27%;
+      bottom: 24%;
+    }
+    .hs__cap-t {
+      font-size: 11px;
+    }
+    .hs__cap-n {
+      font-size: 10px;
+    }
+    .hs__cap circle {
+      r: 10;
+      cy: 15;
+    }
+  }
   @media (max-width: 1080px) {
     .hs {
       justify-self: center;
       max-width: 540px;
     }
   }
-  /* На телефоне чек-лист мелкий — оставляем только подпись этапа, крупнее. */
+  /* На телефоне подпись этапа крупнее. */
   @media (max-width: 600px) {
-    .hs__checks {
-      display: none;
-    }
     .hs__cap-t {
       font-size: 24px;
     }

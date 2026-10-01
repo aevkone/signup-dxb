@@ -193,7 +193,142 @@ function mergeGeos(geos: THREE.BufferGeometry[]) {
 
 /* ---------- Люди ---------- */
 type Outfit = 'staff' | 'suit' | 'kandura' | 'abaya' | 'dress' | 'casual';
-type Look = { skin: string; hair: string; outfit: Outfit; top: string; bottom: string; long?: boolean; height?: number };
+type Look = { skin: string; hair: string; outfit: Outfit; top: string; bottom: string; long?: boolean; height?: number; beard?: boolean; eyes?: string; female?: boolean };
+
+/**
+ * Лицо — текстура на передней части головы: тени глазниц, белки, радужка с бликом,
+ * брови, переносица и крылья носа, губы, румянец, у бороды — щетина.
+ * Кешируется по сочетанию тона кожи, волос и бороды.
+ */
+const faceCache = new Map<string, THREE.CanvasTexture>();
+function shadeHex(hex: string, f: number) {
+  const n = parseInt(hex.slice(1), 16);
+  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(clamp(v * f, 0, 255)));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+function faceTexture(look: Look) {
+  const key = `${look.skin}|${look.hair}|${look.beard}|${look.eyes}|${look.female}`;
+  const hit = faceCache.get(key);
+  if (hit) return hit;
+  const S = 256;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = S;
+  const c = cv.getContext('2d')!;
+  // Кожа: ровный тон, лёгкий объём к центру
+  c.fillStyle = look.skin;
+  c.fillRect(0, 0, S, S);
+  const vol = c.createRadialGradient(128, 120, 10, 128, 128, 150);
+  vol.addColorStop(0, 'rgba(255,240,225,0.18)');
+  vol.addColorStop(1, 'rgba(0,0,0,0.12)');
+  c.fillStyle = vol;
+  c.fillRect(0, 0, S, S);
+  const eyeY = 112;
+  for (const ex of [94, 162]) {
+    // Глазница
+    const sock = c.createRadialGradient(ex, eyeY, 4, ex, eyeY, 30);
+    sock.addColorStop(0, shadeHex(look.skin, 0.72));
+    sock.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = sock;
+    c.beginPath();
+    c.ellipse(ex, eyeY, 30, 20, 0, 0, Math.PI * 2);
+    c.fill();
+    // Белок, радужка, зрачок, блик
+    c.fillStyle = '#f1ece6';
+    c.beginPath();
+    c.ellipse(ex, eyeY, 15, 7.5, 0, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = look.eyes ?? '#4a2f1d';
+    c.beginPath();
+    c.arc(ex, eyeY, 6.8, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = '#0d0907';
+    c.beginPath();
+    c.arc(ex, eyeY, 3, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = 'rgba(255,255,255,0.9)';
+    c.beginPath();
+    c.arc(ex + 2.4, eyeY - 2.4, 1.6, 0, Math.PI * 2);
+    c.fill();
+    // Верхнее веко и ресницы
+    c.strokeStyle = shadeHex(look.skin, 0.45);
+    c.lineWidth = look.female ? 3.4 : 2.4;
+    c.beginPath();
+    c.ellipse(ex, eyeY + 1, 15.5, 8.5, 0, Math.PI * 1.08, Math.PI * 1.92);
+    c.stroke();
+    // Бровь
+    c.strokeStyle = look.hair;
+    c.lineWidth = look.female ? 4 : 6;
+    c.lineCap = 'round';
+    c.beginPath();
+    c.moveTo(ex - 18, eyeY - 20);
+    c.quadraticCurveTo(ex, eyeY - 28, ex + 18, eyeY - 21);
+    c.stroke();
+  }
+  // Нос: тень по боку и крылья
+  c.strokeStyle = shadeHex(look.skin, 0.78);
+  c.lineWidth = 5;
+  c.beginPath();
+  c.moveTo(118, 118);
+  c.quadraticCurveTo(114, 150, 116, 162);
+  c.stroke();
+  c.fillStyle = shadeHex(look.skin, 0.6);
+  for (const nx of [118, 138]) {
+    c.beginPath();
+    c.ellipse(nx, 166, 5, 3, 0, 0, Math.PI * 2);
+    c.fill();
+  }
+  // Борода и щетина
+  if (look.beard) {
+    c.fillStyle = look.hair;
+    c.globalAlpha = 0.92;
+    c.beginPath();
+    c.moveTo(56, 150);
+    c.quadraticCurveTo(70, 240, 128, 246);
+    c.quadraticCurveTo(186, 240, 200, 150);
+    c.quadraticCurveTo(186, 210, 128, 214);
+    c.quadraticCurveTo(70, 210, 56, 150);
+    c.fill();
+    c.beginPath();
+    c.moveTo(98, 182);
+    c.quadraticCurveTo(128, 172, 158, 182);
+    c.quadraticCurveTo(128, 192, 98, 182);
+    c.fill();
+    c.globalAlpha = 1;
+  }
+  // Губы
+  const lip = look.female ? '#a8505a' : shadeHex(look.skin, 0.68);
+  c.fillStyle = lip;
+  c.beginPath();
+  c.moveTo(108, 192);
+  c.quadraticCurveTo(128, 184, 148, 192);
+  c.quadraticCurveTo(128, 206, 108, 192);
+  c.fill();
+  c.strokeStyle = shadeHex(look.skin, 0.45);
+  c.lineWidth = 1.6;
+  c.beginPath();
+  c.moveTo(108, 192);
+  c.quadraticCurveTo(128, 196, 148, 192);
+  c.stroke();
+  // Румянец
+  c.fillStyle = 'rgba(200,90,90,0.12)';
+  for (const bx of [80, 176]) {
+    c.beginPath();
+    c.arc(bx, 162, 20, 0, Math.PI * 2);
+    c.fill();
+  }
+  const t = new THREE.CanvasTexture(cv);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  faceCache.set(key, t);
+  return t;
+}
+/** Передняя часть головы под текстуру лица: смотрит в +y, верх — +z. */
+const faceGeo = (() => {
+  const g = new THREE.SphereGeometry(0.1015, 40, 30, Math.PI / 2 - 0.95, 1.9, Math.PI / 2 - 0.9, 1.8);
+  g.rotateX(Math.PI / 2);
+  g.rotateZ(Math.PI);
+  return g;
+})();
 type Person = { root: THREE.Group; legs: THREE.Group[]; arms: THREE.Group[] };
 const SKIN = ['#e7bfa0', '#c99572', '#9c6a4b', '#6e4530', '#dcae8a'];
 const HAIR = ['#2b1d16', '#4a3020', '#121212', '#7a5233', '#b8935e'];
@@ -284,10 +419,21 @@ function makePerson(look: Look): Person {
   const neck = mesh(new THREE.CylinderGeometry(0.05, 0.055, 0.1, 12).rotateX(Math.PI / 2), skin);
   neck.position.z = 1.5;
   body.add(neck);
-  const head = mesh(new THREE.SphereGeometry(0.1, 24, 18), skin);
+  const head = mesh(new THREE.SphereGeometry(0.1, 32, 24), skin);
   head.scale.set(0.9, 0.98, 1.16);
   head.position.z = 1.63;
   body.add(head);
+  // Лицо, нос и уши
+  head.add(mesh(faceGeo, new THREE.MeshStandardMaterial({ map: faceTexture(look), roughness: 0.55 }), false));
+  const nose = mesh(new THREE.ConeGeometry(0.016, 0.045, 10).rotateX(-0.25), skin, false);
+  nose.position.set(0, 0.104, -0.012);
+  head.add(nose);
+  for (const side of [-1, 1]) {
+    const ear = mesh(new THREE.SphereGeometry(0.024, 12, 10), skin, false);
+    ear.scale.set(0.45, 0.8, 1.2);
+    ear.position.set(side * 0.1, 0, -0.005);
+    head.add(ear);
+  }
   if (look.outfit === 'kandura') {
     // Гутра и агаль
     const g = new THREE.CylinderGeometry(0.11, 0.2, 0.36, 18, 1, true, Math.PI * 0.35, Math.PI * 1.3);
@@ -855,7 +1001,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
   scene.add(rollup);
 
   /* Люди */
-  const staffLook = (skin: number, hair: number, long: boolean, height: number): Look => ({ skin: SKIN[skin], hair: HAIR[hair], outfit: 'staff', top: '#59335f', bottom: '#1c1e1f', long, height });
+  const staffLook = (skin: number, hair: number, long: boolean, height: number): Look => ({ skin: SKIN[skin], hair: HAIR[hair], outfit: 'staff', top: '#59335f', bottom: '#1c1e1f', long, height, female: long });
   const STAFF = [
     { x: 6.2, y: 4.25, h: 0, on: 17.6, look: staffLook(0, 1, true, 0.97) },
     { x: 1.0, y: 3.6, h: -1.2, on: 17.8, look: staffLook(2, 2, false, 1.04) },
@@ -873,9 +1019,9 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
   type Guest = { pts: [number, number][]; from: number; to: number; look: Look };
   const GUESTS: Guest[] = [
     { pts: [[-2, 7.3], [10, 7.3]], from: 18.2, to: 27.4, look: { skin: SKIN[4], hair: HAIR[3], outfit: 'suit', top: '#2b3550', bottom: '#2b3550', height: 1.03 } },
-    { pts: [[10, 7.9], [-2, 7.9]], from: 18.8, to: 28.0, look: { skin: SKIN[1], hair: HAIR[0], outfit: 'kandura', top: '#f4f4ef', bottom: '#f4f4ef', height: 1.05 } },
-    { pts: [[9.5, 6.8], [6.8, 6.8], [6.4, 5.7], [6.4, 5.7], [6.4, 5.7]], from: 18.4, to: 26.4, look: { skin: SKIN[2], hair: HAIR[0], outfit: 'abaya', top: '#151515', bottom: '#151515', height: 0.95 } },
-    { pts: [[-2, 6.9], [4.8, 6.9], [4.6, 4.9], [4.6, 4.9], [4.6, 4.9]], from: 19.0, to: 26.6, look: { skin: SKIN[0], hair: HAIR[4], outfit: 'dress', top: '#7d874a', bottom: '#7d874a', long: true, height: 0.97 } },
+    { pts: [[10, 7.9], [-2, 7.9]], from: 18.8, to: 28.0, look: { skin: SKIN[1], hair: HAIR[0], outfit: 'kandura', top: '#f4f4ef', bottom: '#f4f4ef', height: 1.05, beard: true } },
+    { pts: [[9.5, 6.8], [6.8, 6.8], [6.4, 5.7], [6.4, 5.7], [6.4, 5.7]], from: 18.4, to: 26.4, look: { skin: SKIN[2], hair: HAIR[0], outfit: 'abaya', top: '#151515', bottom: '#151515', height: 0.95, female: true } },
+    { pts: [[-2, 6.9], [4.8, 6.9], [4.6, 4.9], [4.6, 4.9], [4.6, 4.9]], from: 19.0, to: 26.6, look: { skin: SKIN[0], hair: HAIR[4], outfit: 'dress', top: '#7d874a', bottom: '#7d874a', long: true, height: 0.97, female: true, eyes: '#3d6b8a' } },
     { pts: [[10, 8.4], [-2, 8.4]], from: 19.6, to: 28.6, look: { skin: SKIN[3], hair: HAIR[2], outfit: 'casual', top: '#c9cbc2', bottom: '#2b3550', height: 1.0 } },
   ];
   const guests = GUESTS.map((g) => {
@@ -932,7 +1078,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
   const ckFill = checks.map((c) => c.querySelector('[data-ck-fill]') as SVGElement);
   const ckTick = checks.map((c) => c.querySelector('[data-ck-tick]') as SVGElement);
   const ckLabel = checks.map((c) => c.querySelector('[data-ck-label]') as SVGElement);
-  const checksGroup = root.querySelector('.hs__checks') as SVGGElement;
+  const checksGroup = root.querySelector<SVGGElement>('.hs__checks'); // чек-листа на главной может не быть
   const ticks = [3.6, 11.4, 14.2, 16.0, 18.0].map((on, i) => tr(0, [[on, 1], [33.4 + i * 0.2, 0]], SNAP));
   const capVis = [tr(1, [[2.0, 0], [36.2, 1]], FAST), wn(2.2, 6.8), wn(7.0, 27.2), wn(27.4, 36.0)];
   const checksVis = tr(1, [[19.6, 0], [32.6, 1]], SOFT);
@@ -1114,7 +1260,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
     renderer.render(scene, camera);
 
     /* Подписи поверх */
-    checksGroup.style.opacity = clamp(checksVis(t)).toFixed(3);
+    if (checksGroup) checksGroup.style.opacity = clamp(checksVis(t)).toFixed(3);
     checks.forEach((_, i) => {
       const raw = ticks[i](t);
       const v = clamp(raw);
