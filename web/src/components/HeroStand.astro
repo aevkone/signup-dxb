@@ -31,13 +31,8 @@ const T = {
     play: 'Play animation',
   },
 }[lang];
-/** Подписи внизу — этапы из схемы работы. */
-const CAPS: [number, string][] = [
-  [3, STEPS[2].title],
-  [4, STEPS[3].title],
-  [5, STEPS[4].title],
-  [6, STEPS[5].title],
-];
+/** Подписи внизу — все шесть этапов из схемы работы, по порядку. */
+const CAPS: [number, string][] = STEPS.map((s, i) => [i + 1, s.title]);
 ---
 
 <div
