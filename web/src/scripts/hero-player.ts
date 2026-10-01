@@ -21,9 +21,13 @@ export function playScene(root: HTMLElement, scene: Scene, stillAt: number) {
   let userPaused = false;
 
   const now = () => base + (raf ? (performance.now() - since) / 1000 : 0);
-  const frame = () => {
-    scene.seek(base + (performance.now() - since) / 1000, false);
+  // Не чаще 60 кадров в секунду: на экранах 120 Гц иначе сцена рисуется вдвое чаще нужного.
+  let last = 0;
+  const frame = (ts: number) => {
     raf = requestAnimationFrame(frame);
+    if (ts - last < 15) return;
+    last = ts;
+    scene.seek(base + (performance.now() - since) / 1000, false);
   };
   const play = () => {
     if (raf || userPaused || !visible || document.hidden || reduce.matches) return;

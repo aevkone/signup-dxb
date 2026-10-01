@@ -1105,7 +1105,45 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
     o.scale.setScalar(s);
   };
 
+  /* Качество подстраивается под устройство: если кадры не успевают, снижаем
+     разрешение, потом тени и конусы света. Повышать обратно не пытаемся. */
+  let quality = 0;
+  let lastWidth = 0;
+  let prevSeek = 0;
+  let slow = 0;
+  let samples = 0;
+  const applyQuality = () => {
+    const mobile = narrow();
+    const dprCap = [mobile ? 1.25 : 1.35, 1.0, 0.8][quality];
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
+    if (lastWidth) renderer.setSize(lastWidth, lastWidth, false);
+    const sm = quality === 0 && !mobile ? 1024 : 512;
+    if (key.shadow.mapSize.x !== sm) {
+      key.shadow.mapSize.set(sm, sm);
+      key.shadow.map?.dispose();
+      key.shadow.map = null;
+    }
+    key.castShadow = quality < 2;
+    spots.forEach((s) => (s.cone.material as THREE.MeshBasicMaterial).visible = quality < 2);
+  };
+  const watch = () => {
+    const nowMs = performance.now();
+    const dt = nowMs - prevSeek;
+    prevSeek = nowMs;
+    if (dt <= 0 || dt > 250) return; // пауза, вкладка была скрыта
+    samples++;
+    if (dt > 24) slow++;
+    if (samples >= 90) {
+      if (slow > 30 && quality < 2) {
+        quality++;
+        applyQuality();
+      }
+      samples = slow = 0;
+    }
+  };
+
   function seek(t: number) {
+    watch();
     t = wrap(t, LOOPT);
     const b = t / BEAT;
 
@@ -1278,13 +1316,26 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement) {
   }
 
   function fit(width: number) {
-    const mobile = narrow();
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 1.75));
+    lastWidth = width;
+    applyQuality();
     renderer.setSize(width, width, false);
-    key.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
     camera.aspect = 1;
     camera.updateProjectionMatrix();
   }
+
+  /* Прогрев: все шейдеры и текстуры готовим заранее, пока все предметы видимы.
+     Иначе каждый новый материал компилируется в момент появления — отсюда рывки. */
+  camera.position.set(4 + 16, 3 + 16, 12);
+  camera.lookAt(TARGET);
+  for (const s of spots) s.light.intensity = 1;
+  scene.traverse((o) => {
+    const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+    if (m && 'map' in m && m.map) renderer.initTexture(m.map);
+  });
+  renderer.compile(scene, camera);
+  renderer.setSize(Math.max(64, root.clientWidth), Math.max(64, root.clientWidth), false);
+  renderer.render(scene, camera);
+  for (const s of spots) s.light.intensity = 0;
 
   return { seek, fit };
 }
