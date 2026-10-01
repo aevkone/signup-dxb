@@ -167,7 +167,10 @@ const FEATURED = featuredWorks();
 const COLLAGE = ['36', '20'].map((id) => workById(id)!);
 /** Фото карточек направлений. У выставок и консьержа своих снимков нет —
  *  берём табличку «для выставок» и панораму Дубая. */
-const ENTRY_IMG = ['/img/works/w50-600', '/img/works/w27-600', '/img/dubai-hero-800'];
+const ENTRY_IMG = ['/img/works/w50-600', '/img/works/w27-600', '/img/concierge'];
+/** У консьержа своё чёткое фото Дубая в двух размерах; у работ — по одному. */
+const entrySet = (i: number, ext: string) =>
+  i === 2 ? `${link(`${ENTRY_IMG[i]}-800.${ext}`)} 800w, ${link(`${ENTRY_IMG[i]}-1200.${ext}`)} 1200w` : link(`${ENTRY_IMG[i]}.${ext}`);
 const NUMS = [BLOCKS.length, CATS.length, TOTAL_PRICES, 4];
 const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${size}.${ext}`);
 ---
@@ -265,8 +268,8 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
             <a class="entry" href={link(href, lang)} data-reveal style={`--d:${i * 120}ms`}>
               <div class="entry__media" data-drift>
                 <picture>
-                  <source type="image/webp" srcset={link(`${ENTRY_IMG[i]}.webp`)} />
-                  <img src={link(`${ENTRY_IMG[i]}.jpg`)} width="600" height="600" alt="" loading="lazy" />
+                  <source type="image/webp" srcset={entrySet(i, 'webp')} sizes="(max-width: 760px) 92vw, (max-width: 1080px) 46vw, 400px" />
+                  <img src={i === 2 ? link(`${ENTRY_IMG[i]}-800.jpg`) : link(`${ENTRY_IMG[i]}.jpg`)} srcset={i === 2 ? entrySet(i, 'jpg') : undefined} sizes="(max-width: 760px) 92vw, (max-width: 1080px) 46vw, 400px" width="600" height="600" alt="" loading="lazy" />
                 </picture>
               </div>
               <h3 class="entry__title">{h}</h3>
