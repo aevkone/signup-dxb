@@ -14,6 +14,23 @@ export const CONTACTS = {
   instagram: 'https://www.instagram.com/kris_dkf/',
 } as const;
 
+/**
+ * Первая строка сообщения в WhatsApp: посетителю не нужно придумывать,
+ * с чего начать, а мы сразу видим, что человек пришёл с сайта и откуда.
+ */
+const WA_TEXT = {
+  ru: (ctx?: string) => `Здравствуйте! Пишу с сайта SIGNUP DXB${ctx ? `: ${ctx}` : ''}.`,
+  en: (ctx?: string) => `Hello! I’m writing from the SIGNUP DXB website${ctx ? `: ${ctx}` : ''}.`,
+} as const;
+
+/** Текст первого сообщения. Контекст — раздел или страница; точка в конце не задваивается. */
+export const waText = (lang: Lang, context?: string): string =>
+  WA_TEXT[lang](context?.replace(/\s+/g, ' ').trim().replace(/[.!?…]+$/, '') || undefined);
+
+/** Ссылка на WhatsApp с готовым первым сообщением. */
+export const waLink = (lang: Lang, context?: string): string =>
+  `${CONTACTS.whatsapp}${CONTACTS.whatsapp.includes('?') ? '&' : '?'}text=${encodeURIComponent(waText(lang, context))}`;
+
 const L = {
   ru: {
     hours: 'Ежедневно, 9:00–20:00',

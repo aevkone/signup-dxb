@@ -12,6 +12,9 @@ const L = local(lang);
 const GROUPS = priceGroups(lang);
 const TERMS = priceTerms(lang);
 
+/** Сумма не рвётся по строкам: «от 2 000 AED» целиком. */
+const nb = (s: string) => s.replace(/ /g, '\u00a0');
+
 /** Склонение слова «позиция» при числе. */
 const pluralRu = (n: number) => {
   const d10 = n % 10;
@@ -41,6 +44,8 @@ const T = {
     count: (n: number) => `${n} ${pluralRu(n)}`,
     ask: 'Уточнить цену в WhatsApp',
     askText: (group: string) => `Здравствуйте! Хочу уточнить цены: ${group}`,
+    /* Внизу прайса отсылка «ориентиры — в открытом прайсе» звучала бы странно. */
+    bandText: `Нужна точная смета? Опишите задачу — посчитаем под ваш бюджет. Минимальный заказ ${nb(L.minOrder)}.`,
   },
   en: {
     title: 'Price list',
@@ -61,6 +66,7 @@ const T = {
     count: (n: number) => `${n} ${n === 1 ? 'item' : 'items'}`,
     ask: 'Ask about prices on WhatsApp',
     askText: (group: string) => `Hello! I’d like to ask about prices: ${group}`,
+    bandText: `Need an exact quote? Tell us what you need and we’ll price it around your budget. Orders start ${nb(L.minOrder)}.`,
   },
 }[lang];
 
@@ -209,9 +215,8 @@ const CHEVRON = '<path d="M6 9l6 6 6-6"/>';
     })();
   </script>
 
-  <section class="section">
-    <div class="shell"><CtaBand /></div>
-  </section>
+  {/* CtaBand сам себе секция и контейнер — вторая обёртка удваивала поля на телефоне. */}
+  <CtaBand text={T.bandText} />
 </Base>
 
 <script>

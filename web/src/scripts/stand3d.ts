@@ -327,7 +327,7 @@ function faceTexture(look: Look) {
 }
 /** Передняя часть головы под текстуру лица: смотрит в +y, верх — +z. */
 const faceGeo = (() => {
-  const g = new THREE.SphereGeometry(0.1015, 40, 30, Math.PI / 2 - 0.95, 1.9, Math.PI / 2 - 0.9, 1.8);
+  const g = new THREE.SphereGeometry(0.1015, 18, 13, Math.PI / 2 - 0.95, 1.9, Math.PI / 2 - 0.9, 1.8);
   g.rotateX(Math.PI / 2);
   g.rotateZ(Math.PI);
   return g;
@@ -341,134 +341,265 @@ const cloth = (color: string, rough = 0.85) => {
   if (!matCache.has(k)) matCache.set(k, new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 }));
   return matCache.get(k)!;
 };
+
+/**
+ * Пропорции взрослого — канон 8 голов (img2threejs, forge/stage2_spec/humanoid_proportions.py,
+ * anatomy.source = canon-table): доли роста H. Рост базовой фигуры 1,75 м, дальше её
+ * масштабирует look.height.
+ */
+const PH = 1.75;
+const HEAD_H = PH / 8; // высота головы 0,219
+const HIP_Z = 0.5 * PH; // линия бедра 0,875 — ноги ровно 4 головы
+const KNEE_Z = 0.25 * PH; // линия колена 0,4375 (голень с ногой — тоже 0,25 H)
+const UPPER_ARM = 0.187 * PH; // плечо 0,327
+const FOREARM = 0.187 * PH; // предплечье 0,327
+const SHOULDER_W = 0.25 * PH; // ширина плеч 0,4375 — 2 головы
+const HIP_W = 0.1875 * PH; // ширина бёдер 0,328
+const WAIST_W = 0.125 * PH; // талия 0,219 (без одежды)
+// Корпус канона не даёт этих отметок — это условности рисунка фигуры, не измерения:
+const SHOULDER_Z = 1.42; // плечевой сустав ≈ 1⅓ головы от макушки
+const HAND_L = 0.15; // кисть ≈ лицо: кончики пальцев у середины бедра
+const FOOT_L = 0.25; // стопа ≈ голова, в обуви
+const ANKLE_Z = 0.07;
+const HEAD_S = HEAD_H / 0.232; // голова 0,2 × 1,16 → ровно 1/8 роста
+const HEAD_Z = PH - HEAD_H / 2; // центр головы = линия глаз
+const DEPTH = 0.64; // глубина корпуса к ширине
+const CLOTH = 0.03; // припуск одежды на талии
+
+/** Профиль вращения (радиус, высота) → тело с овальным сечением: ось z, глубина по y. */
+function latheGeo(pts: [number, number][], depth = DEPTH, seg = 14) {
+  const g = new THREE.LatheGeometry(pts.map(([r, z]) => new THREE.Vector2(r, z)), seg);
+  g.rotateX(Math.PI / 2);
+  g.scale(1, depth, 1);
+  return g;
+}
+/** Сужающийся сегмент конечности от шарнира вниз: r0 у шарнира, r1 у конца. */
+function limbGeo(r0: number, r1: number, len: number, over = 0) {
+  const g = new THREE.CylinderGeometry(r0, r1, len + over, 10, 1, true);
+  g.rotateX(Math.PI / 2);
+  g.translate(0, 0, over - (len + over) / 2);
+  return g;
+}
+/** Плечевой пояс одежды: от талии к шее, с трапецией. sw — полуширина плеч по одежде. */
+const yoke = (sw: number): [number, number][] => [
+  [sw, 1.38],
+  [sw - 0.004, 1.43],
+  [sw - 0.02, 1.46],
+  [0.12, 1.485],
+  [0.06, 1.505],
+  [0.045, 1.51],
+];
+/** Перед корпуса на высоте груди: y поверхности для x при полуширине r. */
+const front = (x: number, r: number, depth = DEPTH) => depth * r * Math.sqrt(Math.max(0, 1 - (x / r) ** 2));
+
 function makePerson(look: Look): Person {
   const root = new THREE.Group();
   const body = new THREE.Group();
   root.add(body);
+  const fem = !!look.female;
+  const k = fem ? 0.88 : 1; // женские конечности тоньше (условность, не канон)
   const skin = cloth(look.skin, 0.6);
   const robe = look.outfit === 'kandura' || look.outfit === 'abaya';
+  const jacket = look.outfit === 'staff' || look.outfit === 'suit';
+  const topMat = cloth(look.top, robe ? (look.outfit === 'kandura' ? 0.75 : 0.55) : jacket ? 0.6 : 0.82);
+  const botMat = cloth(look.bottom, 0.8);
+  const shoeMat = cloth(look.outfit === 'kandura' ? '#4a3426' : look.outfit === 'dress' ? '#5a4034' : '#141414', 0.45);
   const legs: THREE.Group[] = [];
   const arms: THREE.Group[] = [];
-  const cap = (r: number, len: number, m: THREE.Material) => {
-    const g = new THREE.CapsuleGeometry(r, len, 6, 14);
-    g.rotateX(Math.PI / 2);
-    return mesh(g, m);
-  };
 
-  if (!robe) {
-    for (const side of [-1, 1]) {
-      const hip = new THREE.Group();
-      hip.position.set(side * 0.095, 0, 0.92);
-      const leg = cap(0.068, 0.74, cloth(look.outfit === 'dress' ? look.skin : look.bottom, 0.8));
-      leg.position.z = -0.44;
-      hip.add(leg);
-      const shoe = mesh(boxGeo(0.11, 0.24, 0.07), cloth('#141414', 0.45));
-      shoe.position.set(-0.055, -0.06, -0.9);
-      hip.add(shoe);
-      body.add(hip);
-      legs.push(hip);
+  // Полуширины по канону: плечевой сустав внутри дельты, бёдра, талия с припуском
+  const delt = 0.056 * k;
+  const shX = (SHOULDER_W / 2) * (fem ? 0.9 : 1) - delt;
+  const sw = shX + delt * 0.25;
+  const hipR = (HIP_W / 2) * (fem ? 1.05 : 1) + 0.004;
+  const waistR = (WAIST_W / 2) * (fem ? 0.92 : 1) + CLOTH;
+  const chestR = fem ? sw - 0.012 : sw - 0.004;
+
+  /* Ноги: бедро → колено → голень → обувь. Левая — зеркало правой (scale.x = −1). */
+  const standing = look.outfit === 'staff';
+  for (const side of [-1, 1]) {
+    const hip = new THREE.Group();
+    hip.position.set(side * 0.09 * (fem ? 1.02 : 1), 0, HIP_Z);
+    hip.scale.x = side;
+    const thigh = new THREE.Group();
+    hip.add(thigh);
+    const knee = new THREE.Group();
+    knee.position.z = -(HIP_Z - KNEE_Z);
+    thigh.add(knee);
+    if (!robe) {
+      const bare = look.outfit === 'dress';
+      const legMat = bare ? skin : botMat;
+      thigh.add(mesh(limbGeo(0.08 * k, 0.056 * k, HIP_Z - KNEE_Z, 0.05), legMat));
+      knee.add(mesh(new THREE.SphereGeometry(0.056 * k, 8, 6), legMat));
+      if (bare) {
+        // Икра с изгибом, тонкая щиколотка
+        const shin = latheGeo([[0.029, -(KNEE_Z - ANKLE_Z) - 0.03], [0.031, -0.3], [0.046, -0.13], [0.047, -0.05], [0.049, 0.01]], 1, 10);
+        knee.add(mesh(shin, skin));
+      } else {
+        knee.add(mesh(limbGeo(0.056 * k, 0.05 * k, KNEE_Z - ANKLE_Z, 0.01), legMat));
+      }
     }
+    // Обувь: длина — условная стопа, пятка на 5 см за щиколоткой, носок чуть наружу
+    const sr = (fem ? 0.037 : 0.043) * (robe ? 0.95 : 1);
+    const shoe = mesh(new THREE.CapsuleGeometry(sr, FOOT_L * (fem ? 0.94 : 1) - sr * 2, 3, 10), shoeMat);
+    shoe.scale.z = 0.72;
+    shoe.position.set(0, FOOT_L * 0.22, -KNEE_Z + sr * 0.72);
+    shoe.rotation.z = -0.12;
+    knee.add(shoe);
+    if (standing && side < 0) {
+      // Вес на правой ноге: левая расслаблена — бедро вперёд, колено согнуто
+      thigh.rotation.x = 0.13;
+      knee.rotation.x = -0.24;
+      shoe.rotation.x = 0.1;
+    }
+    body.add(hip);
+    legs.push(hip);
   }
-  // Корпус
+  if (standing) body.rotation.y = 0.022; // корпус над опорной ногой
+
+  /* Корпус: профиль вращения — широкие плечи, узкая талия, таз */
   if (robe) {
-    const g = new THREE.CylinderGeometry(0.2, 0.235, 1.38, 18);
-    g.rotateX(Math.PI / 2);
-    const m = mesh(g, cloth(look.top, look.outfit === 'kandura' ? 0.75 : 0.55));
-    m.position.z = 0.69;
-    body.add(m);
+    const hem = look.outfit === 'abaya' ? 0.24 : 0.215;
+    const g = latheGeo([[hem, 0.025], [hem - 0.015, 0.3], [hipR + 0.02, 0.72], [hipR + 0.008, 0.9], [waistR + 0.02, 1.08], [chestR, 1.24], ...yoke(sw)], 0.66, 16);
+    body.add(mesh(g, topMat));
   } else if (look.outfit === 'dress') {
-    const g = new THREE.CylinderGeometry(0.16, 0.25, 0.86, 18);
-    g.rotateX(Math.PI / 2);
-    const m = mesh(g, cloth(look.top, 0.8));
-    m.position.z = 0.98;
-    body.add(m);
+    const g = latheGeo([[0.225, 0.47], [0.205, 0.62], [hipR + 0.012, 0.8], [hipR + 0.006, 0.9], [waistR + 0.004, 1.06], [chestR, 1.22], [chestR, 1.3], ...yoke(sw)], 0.68, 16);
+    body.add(mesh(g, topMat));
   } else {
-    const torso = cap(0.175, 0.36, cloth(look.top, look.outfit === 'staff' || look.outfit === 'suit' ? 0.6 : 0.85));
-    torso.scale.set(1.02, 0.66, 1);
-    torso.position.z = 1.16;
-    body.add(torso);
-    const pelvis = cap(0.15, 0.08, cloth(look.bottom, 0.8));
-    pelvis.scale.set(1.05, 0.7, 1);
-    pelvis.position.z = 0.92;
-    body.add(pelvis);
-    if (look.outfit === 'staff' || look.outfit === 'suit') {
-      const shirt = mesh(new THREE.PlaneGeometry(0.09, 0.2), cloth('#f2f2ec', 0.7), false);
-      shirt.rotation.x = Math.PI / 2;
-      shirt.position.set(0, 0.118, 1.3);
+    // Брюки: таз до талии
+    body.add(mesh(latheGeo([[0.02, 0.78], [0.11, 0.786], [hipR - 0.012, 0.83], [hipR, 0.88], [hipR - 0.012, 0.94], [waistR - 0.004, 1.0], [waistR - 0.012, 1.04]]), botMat));
+    // Пиджак закрывает таз, свитер — до пояса
+    const hemPts: [number, number][] = jacket
+      ? [[hipR + 0.006, 0.83], [hipR + 0.004, 0.9], [hipR - 0.004, 0.95], [waistR + 0.012, 1.0], [waistR + 0.004, 1.05]]
+      : [[hipR - 0.004, 0.93], [waistR + 0.01, 0.99], [waistR + 0.004, 1.05]];
+    body.add(mesh(latheGeo([...hemPts, [waistR + 0.01, 1.13], [chestR - 0.014, 1.22], [chestR, 1.31], ...yoke(sw)]), topMat));
+    if (jacket) {
+      // Вырез пиджака: белая рубашка клином, у костюма — галстук
+      const v = new THREE.BufferGeometry();
+      v.setAttribute('position', new THREE.Float32BufferAttribute([-0.04, 0, 0.15, 0.04, 0, 0.15, 0, 0, 0], 3));
+      v.computeVertexNormals();
+      const shirt = mesh(v, new THREE.MeshStandardMaterial({ color: '#f2f2ec', roughness: 0.7, side: THREE.DoubleSide }), false);
+      shirt.position.set(0, front(0, sw) + 0.005, 1.29);
+      shirt.rotation.x = 0.09;
       body.add(shirt);
+      if (look.outfit === 'suit') {
+        const tie = mesh(new THREE.PlaneGeometry(0.022, 0.15), new THREE.MeshStandardMaterial({ color: '#6e2a36', roughness: 0.5, side: THREE.DoubleSide }), false);
+        tie.rotation.x = -Math.PI / 2;
+        tie.position.set(0, front(0, sw) + 0.008, 1.37);
+        body.add(tie);
+      }
     }
     if (look.outfit === 'staff') {
-      const badge = mesh(new THREE.PlaneGeometry(0.07, 0.09), new THREE.MeshStandardMaterial({ color: '#d2d8a8', roughness: 0.4 }), false);
-      badge.rotation.x = Math.PI / 2;
-      badge.position.set(0.08, 0.121, 1.22);
+      const bx = fem ? 0.07 : 0.08;
+      const by = front(bx, chestR);
+      const badge = mesh(new THREE.PlaneGeometry(0.07, 0.09), new THREE.MeshStandardMaterial({ color: '#d2d8a8', roughness: 0.4, side: THREE.DoubleSide }), false);
+      badge.rotation.set(-Math.PI / 2, 0, -Math.atan((bx * DEPTH * DEPTH) / by), 'ZXY'); // по изгибу груди
+      badge.position.set(bx, by + 0.004, 1.27);
       body.add(badge);
     }
   }
-  // Руки
+
+  /* Руки: дельта → плечо → локоть (лёгкий сгиб) → предплечье → кисть. Левая — зеркало. */
+  const flare = look.outfit === 'abaya';
+  const bareArm = look.outfit === 'dress';
   for (const side of [-1, 1]) {
     const sh = new THREE.Group();
-    sh.position.set(side * 0.215, 0, 1.38);
-    const arm = cap(0.048, 0.52, cloth(look.top, 0.75));
-    arm.position.z = -0.3;
-    arm.rotation.y = side * 0.06;
-    sh.add(arm);
-    const hand = mesh(new THREE.SphereGeometry(0.045, 12, 10), skin);
-    hand.position.set(side * 0.02, 0, -0.62);
-    sh.add(hand);
+    sh.position.set(side * shX, 0, SHOULDER_Z);
+    sh.scale.x = side;
+    const a = new THREE.Group();
+    a.rotation.y = -0.07; // кисть чуть отходит от бедра
+    sh.add(a);
+    const deltoid = mesh(new THREE.SphereGeometry(delt, 8, 6), topMat);
+    deltoid.scale.z = 0.75; // дельта не торчит над линией плеч
+    deltoid.position.z = -0.01;
+    a.add(deltoid);
+    a.add(mesh(limbGeo(0.05 * k, 0.043 * k, UPPER_ARM), topMat));
+    const elbow = new THREE.Group();
+    elbow.position.z = -UPPER_ARM;
+    elbow.rotation.x = 0.2;
+    a.add(elbow);
+    const foreMat = bareArm ? skin : topMat;
+    elbow.add(mesh(new THREE.SphereGeometry(bareArm ? 0.036 : 0.043 * k, 8, 6), foreMat));
+    elbow.add(mesh(limbGeo(bareArm ? 0.035 : 0.042 * k, flare ? 0.07 : bareArm ? 0.026 : 0.035 * k, FOREARM), foreMat));
+    if (jacket) {
+      const cuff = mesh(limbGeo(0.034 * k, 0.033 * k, 0.018), cloth('#f2f2ec', 0.7), false);
+      cuff.position.z = -FOREARM + 0.012;
+      elbow.add(cuff);
+    }
+    // Кисть: ладонь к бедру, большой палец вперёд
+    const hand = new THREE.Group();
+    hand.position.z = -FOREARM;
+    hand.rotation.x = 0.06;
+    elbow.add(hand);
+    const palm = mesh(new THREE.SphereGeometry(HAND_L / 3.4, 8, 6), skin);
+    palm.scale.set(0.55 * k, 0.98 * k, 1.7);
+    palm.position.z = -HAND_L * 0.47;
+    hand.add(palm);
+    const thumb = mesh(new THREE.SphereGeometry(0.016 * k, 6, 4), skin, false);
+    thumb.scale.set(1, 1, 2);
+    thumb.position.set(-0.012, 0.03 * k, -0.045);
+    thumb.rotation.x = -0.4;
+    hand.add(thumb);
     body.add(sh);
     arms.push(sh);
   }
-  // Голова
-  const neck = mesh(new THREE.CylinderGeometry(0.05, 0.055, 0.1, 12).rotateX(Math.PI / 2), skin);
-  neck.position.z = 1.5;
-  body.add(neck);
-  const head = mesh(new THREE.SphereGeometry(0.1, 32, 24), skin);
+
+  /* Шея и голова */
+  body.add(mesh(limbGeo(0.05 * k, 0.057 * k, 0.13).translate(0, 0, 1.575), skin));
+  const headG = new THREE.Group();
+  headG.position.z = HEAD_Z;
+  headG.scale.setScalar(HEAD_S);
+  body.add(headG);
+  const head = mesh(new THREE.SphereGeometry(0.1, 18, 12), skin);
   head.scale.set(0.9, 0.98, 1.16);
-  head.position.z = 1.63;
-  body.add(head);
+  headG.add(head);
   // Лицо, нос и уши
   head.add(mesh(faceGeo, new THREE.MeshStandardMaterial({ map: faceTexture(look), roughness: 0.55 }), false));
-  const nose = mesh(new THREE.ConeGeometry(0.016, 0.045, 10).rotateX(-0.25), skin, false);
+  const nose = mesh(new THREE.ConeGeometry(0.016, 0.045, 8).rotateX(-0.25), skin, false);
   nose.position.set(0, 0.104, -0.012);
   head.add(nose);
   for (const side of [-1, 1]) {
-    const ear = mesh(new THREE.SphereGeometry(0.024, 12, 10), skin, false);
+    const ear = mesh(new THREE.SphereGeometry(0.024, 6, 5), skin, false);
     ear.scale.set(0.45, 0.8, 1.2);
     ear.position.set(side * 0.1, 0, -0.005);
     head.add(ear);
   }
+  // Головные уборы и волосы — от центра головы, вместе с ней в масштабе
   if (look.outfit === 'kandura') {
     // Гутра и агаль
-    const g = new THREE.CylinderGeometry(0.11, 0.2, 0.36, 18, 1, true, Math.PI * 0.35, Math.PI * 1.3);
+    const g = new THREE.CylinderGeometry(0.11, 0.2, 0.36, 16, 1, true, Math.PI * 0.35, Math.PI * 1.3);
     g.rotateX(Math.PI / 2);
     const scarf = mesh(g, new THREE.MeshStandardMaterial({ color: '#f6f6f2', roughness: 0.8, side: THREE.DoubleSide }));
-    scarf.position.z = 1.55;
-    body.add(scarf);
-    const top = mesh(new THREE.SphereGeometry(0.115, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2), cloth('#f6f6f2', 0.8));
-    top.position.z = 1.66;
-    body.add(top);
-    const agal = mesh(new THREE.TorusGeometry(0.1, 0.012, 8, 24), cloth('#111111', 0.5));
-    agal.position.z = 1.72;
-    body.add(agal);
+    scarf.position.z = -0.08;
+    headG.add(scarf);
+    const top = mesh(new THREE.SphereGeometry(0.115, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2), cloth('#f6f6f2', 0.8));
+    top.position.z = 0.03;
+    headG.add(top);
+    const agal = mesh(new THREE.TorusGeometry(0.1, 0.012, 6, 20), cloth('#111111', 0.5));
+    agal.position.z = 0.09;
+    headG.add(agal);
   } else if (look.outfit === 'abaya') {
-    const sh = mesh(new THREE.SphereGeometry(0.125, 22, 16, 0, Math.PI * 2, 0, Math.PI * 0.62).rotateX(Math.PI / 2), cloth(look.top, 0.55));
+    const sh = mesh(new THREE.SphereGeometry(0.125, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.62).rotateX(Math.PI / 2), cloth(look.top, 0.55));
     sh.scale.set(1, 1.05, 1.12);
-    sh.position.z = 1.62;
+    sh.position.z = -0.01;
     sh.rotation.x = -0.25;
-    body.add(sh);
-    const drape = mesh(new THREE.CylinderGeometry(0.12, 0.2, 0.22, 18, 1, true).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: look.top, roughness: 0.55, side: THREE.DoubleSide }));
-    drape.position.z = 1.47;
-    body.add(drape);
+    headG.add(sh);
+    const drape = mesh(new THREE.CylinderGeometry(0.12, 0.2, 0.22, 16, 1, true).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: look.top, roughness: 0.55, side: THREE.DoubleSide }));
+    drape.position.z = -0.16;
+    headG.add(drape);
   } else {
-    const hair = mesh(new THREE.SphereGeometry(0.106, 22, 14, 0, Math.PI * 2, 0, Math.PI * 0.55).rotateX(Math.PI / 2), cloth(look.hair, 0.7));
+    const hair = mesh(new THREE.SphereGeometry(0.106, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.55).rotateX(Math.PI / 2), cloth(look.hair, 0.7));
     hair.scale.set(0.93, 1.02, 1.18);
-    hair.position.set(0, -0.012, 1.64);
+    hair.position.set(0, -0.012, 0.01);
     hair.rotation.x = -0.35;
-    body.add(hair);
+    headG.add(hair);
     if (look.long) {
-      const back = mesh(boxGeo(0.18, 0.06, 0.28), cloth(look.hair, 0.7));
-      back.position.set(-0.09, -0.11, 1.38);
-      body.add(back);
+      // Хвост/каре сзади до лопаток
+      const back = mesh(new THREE.CapsuleGeometry(0.07, 0.2, 3, 10), cloth(look.hair, 0.7));
+      back.scale.set(1.15, 0.38, 1);
+      back.position.set(0, -0.086, -0.12);
+      back.rotation.x = 0.12;
+      headG.add(back);
     }
   }
   const s = look.height ?? 1;

@@ -3,12 +3,15 @@ import Logo from './Logo.astro';
 import Icon from './Icon.astro';
 import { LANGS, LANG_LABEL, altPath, link, splitPath } from '@/i18n';
 import { ui } from '@/i18n/ui';
-import { nav, CONTACTS } from '@/consts';
+import { nav, CONTACTS, waLink } from '@/consts';
 
 const { lang, path: rawPath } = splitPath(Astro.url.pathname);
 const path = altPath(rawPath);
 const t = ui(lang);
 const items = nav(lang);
+const wa = waLink(lang);
+/** В мобильном меню есть место для «Наших работ» — в широкой шапке строка и так на пределе. */
+const mItems = [...items.slice(0, -1), { href: '/works/', label: t.works }, ...items.slice(-1)];
 const isActive = (href: string) =>
   href === '/exhibitions/'
     ? path.startsWith('/exhibitions/') && !path.startsWith('/exhibitions/concierge/')
@@ -41,7 +44,7 @@ const isActive = (href: string) =>
           ))
         }
       </nav>
-      <a class="hdr__wa" href={CONTACTS.whatsapp} target="_blank" rel="noopener" aria-label={t.whatsapp}>
+      <a class="hdr__wa" href={wa} data-wa-page target="_blank" rel="noopener" aria-label={t.whatsapp}>
         <Icon name="whatsapp" size={22} />
       </a>
       <a class="btn btn--outline-plum hdr__cta" href={link('/configurator/', lang)}>{t.calc}</a>
@@ -55,7 +58,7 @@ const isActive = (href: string) =>
       <div class="mnav__panel">
         <nav aria-label={t.mobileMenu}>
           {
-            items.map((item) => (
+            mItems.map((item) => (
               <a href={link(item.href, lang)} class:list={['mnav__link', { 'is-active': isActive(item.href) }]}>
                 {item.label}
               </a>
@@ -63,7 +66,7 @@ const isActive = (href: string) =>
           }
         </nav>
         <a class="btn btn--primary" href={link('/configurator/', lang)}>{t.calc}</a>
-        <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+        <a class="btn btn--ghost" href={wa} data-wa-page target="_blank" rel="noopener">
           <Icon name="whatsapp" size={20} /> {t.whatsapp}
         </a>
         <a class="mnav__phone" href={CONTACTS.phoneHref}>{CONTACTS.phone}</a>
@@ -84,7 +87,8 @@ const isActive = (href: string) =>
   /**
    * Мобильное меню на <details>: закрывается по Escape, по нажатию на ссылку
    * внутри и при переходе к широкой шапке. Пока оно открыто, на <html>
-   * висит класс mnav-open — по нему прячется нижняя панель действий.
+   * висит класс mnav-open — по нему прячется нижняя панель действий
+   * и замирает прокрутка страницы под меню.
    */
   document.querySelectorAll<HTMLDetailsElement>('details.mnav').forEach((menu) => {
     const toggle = menu.querySelector('summary');
@@ -130,44 +134,6 @@ const isActive = (href: string) =>
   .hdr__nav {
     display: flex;
     gap: 26px;
-  }
-  /* 1101–1400px: меню целиком, но плотнее (в обычном размере оно влезает
-     только с 1380px) — бургер только ниже 1100px. */
-  @media (max-width: 1400px) {
-    .hdr__row {
-      gap: 20px;
-      /* Поле сжимается ровно настолько, чтобы меню влезло: на 1280px шапка
-         почти совпадает с сеткой страницы, к 1100px поле — 24px. */
-      padding-inline: clamp(24px, calc((100vw - 1110px) / 2), var(--gutter));
-    }
-    .hdr__nav {
-      gap: 18px;
-    }
-    .hdr__link {
-      font-size: 14px;
-    }
-    .hdr__actions {
-      gap: 10px;
-    }
-    .hdr__cta {
-      padding-inline: 18px;
-    }
-  }
-  @media (max-width: 1180px) {
-    .hdr__row {
-      gap: 16px;
-    }
-    .hdr__nav {
-      gap: 15px;
-    }
-  }
-  @media (max-width: 1140px) {
-    .hdr__row {
-      gap: 12px;
-    }
-    .hdr__nav {
-      gap: 12px;
-    }
   }
   .hdr__link {
     position: relative;
@@ -257,9 +223,62 @@ const isActive = (href: string) =>
     font-size: 14px;
     white-space: nowrap;
   }
+  /* Сжатие стоит после базовых правил, иначе они его перебивают.
+     1101–1439px: меню целиком, но плотнее (в обычном размере оно влезает
+     только с ~1430px — у «Рассчитать стоимость» подпись длиннее) — бургер только ниже 1100px. */
+  @media (max-width: 1439px) {
+    .hdr__row {
+      gap: 20px;
+      /* Поле сжимается ровно настолько, чтобы меню влезло: на 1280px шапка
+         почти совпадает с сеткой страницы, к 1100px поле — 24px. */
+      padding-inline: clamp(24px, calc((100vw - 1110px) / 2), var(--gutter));
+    }
+    .hdr__nav {
+      gap: 18px;
+    }
+    .hdr__link {
+      font-size: 14px;
+    }
+    .hdr__actions {
+      gap: 10px;
+    }
+    .hdr__cta {
+      padding-inline: 18px;
+    }
+  }
+  @media (max-width: 1180px) {
+    .hdr__row {
+      gap: 16px;
+    }
+    .hdr__nav {
+      gap: 15px;
+    }
+  }
+  /* «Рассчитать стоимость» длиннее прежней подписи — у самого края
+     бургера ужимаем промежутки и поля кнопки, чтобы строка не рвалась. */
+  @media (max-width: 1140px) {
+    .hdr__row {
+      gap: 12px;
+    }
+    .hdr__nav {
+      gap: 12px;
+    }
+    .hdr__actions {
+      gap: 8px;
+    }
+    .hdr__cta {
+      padding-inline: 14px;
+    }
+  }
 
   .mnav {
     display: none;
+  }
+  /* Под открытым меню страница не прокручивается; место полосы прокрутки
+     сохраняется, чтобы шапка не прыгала в узком окне компьютера. */
+  :global(html.mnav-open) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
   }
   @keyframes mnav-in {
     from {
@@ -319,6 +338,7 @@ const isActive = (href: string) =>
       top: 68px;
       height: calc(100dvh - 68px);
       overflow-y: auto;
+      overscroll-behavior: contain;
       background: var(--stage);
       border-top: 1px solid var(--stage-line);
       padding: 20px var(--gutter) 32px;
@@ -333,6 +353,10 @@ const isActive = (href: string) =>
     .mnav__toggle {
       transition: transform 0.16s var(--ease-out);
       touch-action: manipulation;
+    }
+    /* На низком экране меню прокручивается, а не сплющивает кнопки. */
+    .mnav__panel > * {
+      flex-shrink: 0;
     }
     .mnav__panel nav {
       display: flex;
@@ -358,6 +382,11 @@ const isActive = (href: string) =>
       color: var(--on-stage);
       font-weight: 700;
       font-size: 18px;
+      white-space: nowrap;
+    }
+    /* Кнопки меню во всю ширину: подпись в одну строку и на 320px. */
+    .mnav__panel :global(.btn) {
+      padding-inline: 16px;
       white-space: nowrap;
     }
     .mnav :global(.btn--ghost) {

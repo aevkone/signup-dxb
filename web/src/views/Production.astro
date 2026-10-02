@@ -6,10 +6,12 @@ import CtaBand from '@/components/CtaBand.astro';
 import { getLang, link } from '@/i18n';
 import { categories, TOTAL_ITEMS } from '@/data/production';
 import { workById, workTitle, type Work } from '@/data/works';
-import { local } from '@/consts';
+import { ui } from '@/i18n/ui';
+import { local, waLink } from '@/consts';
 
 const lang = getLang(Astro.url);
 const L = local(lang);
+const u = ui(lang);
 const CATS = categories(lang);
 /** Склонение по числу: 1 вид, 3 вида, 5 видов. */
 const plural = (n: number, [one, few, many]: [string, string, string]) => {
@@ -23,7 +25,7 @@ const T = {
   ru: {
     title: 'Наружная реклама и производство',
     metaTitle: 'Производство наружной рекламы в Дубае',
-    crumb: 'Производство',
+    crumb: 'Наружная реклама',
     description: 'Производство наружной рекламы в Дубае, Шардже и Аджмане: световые вывески, печать, брендирование транспорта, таблички, витрины и сувениры.',
     lead: (n: number) => `Девять направлений и ${n} видов работ — делаем напрямую с производством в ОАЭ. Заказывается отдельно от выставки — или вместе с ней.`,
     prices: (min: string) => `Ориентировочные цены — в прайсе · минимальный заказ ${min}`,
@@ -32,11 +34,12 @@ const T = {
     count: (n: number) => `${n} ${plural(n, ['вид работ', 'вида работ', 'видов работ'])}`,
     tech: 'Материалы и технологии',
     open: 'Открыть',
+    quote: 'Рассчитать стоимость',
   },
   en: {
     title: 'Outdoor advertising & production',
     metaTitle: 'Outdoor advertising production in Dubai',
-    crumb: 'Production',
+    crumb: 'Outdoor advertising',
     description: 'Outdoor advertising production in Dubai, Sharjah and Ajman: illuminated signs, large-format print, vehicle branding, plaques, shop windows and gifts.',
     lead: (n: number) => `Nine service lines and ${n} types of work, made directly with production in the UAE. Order separately from an exhibition — or together with it.`,
     prices: (min: string) => `Indicative prices in the price list · minimum order ${min}`,
@@ -45,6 +48,7 @@ const T = {
     count: (n: number) => `${n} ${n === 1 ? 'type' : 'types'} of work`,
     tech: 'Materials & technologies',
     open: 'Open',
+    quote: 'Get a quote',
   },
 }[lang];
 
@@ -73,6 +77,13 @@ const COVER: Record<string, string[]> = {
 
 <Base title={T.metaTitle} description={T.description} crumbs={[{ label: T.crumb }]}>
   <PageHero title={T.title} lead={T.lead(TOTAL_ITEMS)} crumbs={[{ label: T.crumb }]}>
+    {/* Расчёт открывается сразу с выбранной «Вывеской» — её можно сменить на первом шаге. */}
+    <div class="hero-actions">
+      <a class="btn btn--primary" href={link('/configurator/?service=sign', lang)}>{T.quote}</a>
+      <a class="btn btn--ghost" href={waLink(lang, T.title)} target="_blank" rel="noopener">
+        <Icon name="whatsapp" size={20} /> {u.whatsapp}
+      </a>
+    </div>
     <ul class="terms">
       <li><Icon name="pin" size={18} />{L.productionArea}</li>
       <li><Icon name="payment" size={18} /><a href={link('/prices/', lang)}>{T.prices(L.minOrder)}</a></li>
@@ -156,6 +167,12 @@ const COVER: Record<string, string[]> = {
   <CtaBand />
 </Base>
 <style>
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+  }
   .terms {
     display: flex;
     flex-wrap: wrap;

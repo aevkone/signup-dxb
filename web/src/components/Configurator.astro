@@ -3,8 +3,14 @@ import Icon from './Icon.astro';
 import type { IconName } from './Icon.astro';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
-import { CONTACTS, local } from '@/consts';
+import { local, waLink } from '@/consts';
+import { standRate, groupFrom } from '@/data/production';
 
+interface Props {
+  /** Конфигуратор — главное на странице (/configurator/): нижней панели с кнопками там нет. */
+  page?: boolean;
+}
+const { page = false } = Astro.props;
 const lang = getLang(Astro.url);
 const t = ui(lang);
 const c = t.cfg;
@@ -23,12 +29,51 @@ const BRANCHES: Branch[] = ['expo', 'expo', 'prod', 'prod', 'staff', 'concierge'
 const nb = (s: string) =>
   s.replace(/(\d) (?=\d)/g, '$1 ').replace(/ (AED|м²|m²|м|m)(?!\p{L})/gu, ' $1').replace(/AED /g, 'AED ');
 
-/** Первая услуга в списке — выставка под ключ, у неё свой порог бюджета. */
-const EXPO_SERVICE = c.services[0];
+/** Слаги услуг для ссылок вида /configurator/?service=stand — порядок как в c.services. */
+const SERVICE_SLUGS = ['turnkey', 'stand', 'sign', 'print', 'staff', 'concierge'];
+
+/**
+ * Короткие подсказки в полях: на экране 320px длинные обрезались.
+ * И строки ориентира по прайсу — цифры из data/prices.ts, здесь только слова.
+ */
+const LOCAL = {
+  ru: {
+    expoPh: 'Выставка или адрес',
+    datesPh: 'Например, в октябре',
+    sizePh: 'Например, 3 × 1 м',
+    qtyPh: 'Например, 2',
+    badContact: 'Проверьте номер: нужно не меньше 7 цифр',
+    waCtx: 'расчёт стоимости',
+    estK: 'Ориентир по прайсу',
+    vat: 'без VAT',
+    exact: 'точную смету пришлём в ответ',
+    allIn: ['все позиции — ', 'в прайсе'],
+    onlyLink: ['Ориентиры — ', 'в прайсе'],
+  },
+  en: {
+    expoPh: 'Show or venue address',
+    datesPh: 'e.g. in October',
+    sizePh: 'e.g. 3 × 1 m',
+    qtyPh: 'e.g. 2',
+    badContact: 'Check the number: it needs at least 7 digits',
+    waCtx: 'quote request',
+    estK: 'Price-list guide',
+    vat: 'excl. VAT',
+    exact: 'we’ll send an exact quote in reply',
+    allIn: ['all items are in the ', 'price list'],
+    onlyLink: ['Indicative prices are in the ', 'price list'],
+  },
+}[lang];
+
+/** Ставка стенда за м² и «от» по вывескам и печати — из прайса. */
+const rate = standRate(lang);
+const signFrom = groupFrom(lang, 'illuminated');
+const printFrom = groupFrom(lang, 'print');
 
 /** Строки для клиентского скрипта. */
 const i18n = {
-  expoService: EXPO_SERVICE,
+  /** Выставка под ключ и стенд — бюджеты выставочного масштаба. */
+  standServices: c.services.slice(0, 2),
   labels: c.labels,
   step: c.step(0),
   done: c.done,
@@ -41,10 +86,29 @@ const i18n = {
   attachBig: t.attachBig,
   attachWa: t.attachWa,
   mb: lang === 'en' ? 'MB' : 'МБ',
+  lang,
+  slugs: SERVICE_SLUGS,
+  /** WhatsApp с готовым первым сообщением: общий и под каждую услугу. */
+  wa: waLink(lang, LOCAL.waCtx),
+  waBy: c.services.map((s) => waLink(lang, s)),
+  badContact: LOCAL.badContact,
+  est: {
+    k: LOCAL.estK,
+    vat: LOCAL.vat,
+    exact: LOCAL.exact,
+    allIn: LOCAL.allIn,
+    onlyLink: LOCAL.onlyLink,
+    prices: link('/prices/', lang),
+    rate,
+    /** Границы площади по порядку L.areas: «до 12», «12–36», «36–100», «больше 100», «пока не знаю». */
+    areas: [[0, 12], [12, 36], [36, 100], [100, null], null],
+    sign: signFrom,
+    print: printFrom,
+  },
 };
 ---
 
-<div class="cfg" data-cfg data-i18n={JSON.stringify(i18n)}>
+<div class:list={['cfg', page && 'cfg--page']} data-cfg data-i18n={JSON.stringify(i18n)}>
   <div class="cfg__main card">
     <div class="cfg__progress" data-progress>
       <span class="caption" data-step-label>{c.step(1)}</span>
@@ -60,7 +124,7 @@ const i18n = {
         {
           c.services.map((label, i) => (
             <label class="tile">
-              <input type="radio" name="service" value={label} data-branch={BRANCHES[i]} />
+              <input type="radio" name="service" value={label} data-branch={BRANCHES[i]} data-idx={i} />
               <Icon name={ICONS[i]} size={26} />
               <span>{label}</span>
             </label>
@@ -77,15 +141,15 @@ const i18n = {
       {/* Поля показываются по ветке услуги; скрытые отключаются и не попадают в заявку. */}
       <label class="field" data-for="expo staff">
         <span>{c.expo}</span>
-        <input class="input" name="expo" placeholder={c.expoPh} />
+        <input class="input" name="expo" placeholder={LOCAL.expoPh} />
       </label>
       <div class="field" data-for="expo" role="radiogroup" aria-labelledby="cfg-area">
         <span id="cfg-area">{c.area}</span>
         <div class="pills">
           {
-            L.areas.map((a) => (
+            L.areas.map((a, i) => (
               <label class="pill">
-                <input type="radio" name="area" value={a} />
+                <input type="radio" name="area" value={a} data-idx={i} />
                 <span>{nb(a)}</span>
               </label>
             ))
@@ -95,11 +159,11 @@ const i18n = {
       <div class="cfg__pair" data-for="prod">
         <label class="field">
           <span>{c.size}</span>
-          <input class="input" name="size" placeholder={c.sizePh} />
+          <input class="input" name="size" placeholder={LOCAL.sizePh} />
         </label>
         <label class="field">
           <span>{c.qty}</span>
-          <input class="input" name="qty" inputmode="numeric" placeholder={c.qtyPh} />
+          <input class="input" name="qty" inputmode="numeric" placeholder={LOCAL.qtyPh} />
         </label>
       </div>
       <label class="field" data-for="staff">
@@ -112,7 +176,7 @@ const i18n = {
       </label>
       <label class="field" data-for="expo staff concierge">
         <span>{c.dates}</span>
-        <input class="input" name="dates" placeholder={c.datesPh} />
+        <input class="input" name="dates" placeholder={LOCAL.datesPh} />
       </label>
       <label class="field" data-for="prod">
         <span>{c.deadline}</span>
@@ -141,30 +205,7 @@ const i18n = {
         <h2 class="h3 cfg__title" id="cfg-t3" tabindex="-1">{c.s3}</h2>
         <p class="caption">{c.s3sub}</p>
       </div>
-      <div class="field" role="radiogroup" aria-labelledby="cfg-budget">
-        <span id="cfg-budget">{c.budget}</span>
-        {/* Пороги разные: выставка начинается от 10 000, производство — от 2 000. */}
-        <div class="pills" data-budgets="expo">
-          {
-            L.budgets.map((b) => (
-              <label class="pill">
-                <input type="radio" name="budget" value={b} />
-                <span>{nb(b)}</span>
-              </label>
-            ))
-          }
-        </div>
-        <div class="pills" data-budgets="prod" hidden>
-          {
-            L.budgetsProduction.map((b) => (
-              <label class="pill">
-                <input type="radio" name="budget" value={b} />
-                <span>{nb(b)}</span>
-              </label>
-            ))
-          }
-        </div>
-      </div>
+      {/* Сначала контакт — без него заявку не отправить; бюджет — по желанию. */}
       <div class="grid grid--2">
         <label class="field">
           <span>{t.name}</span>
@@ -174,6 +215,30 @@ const i18n = {
           <span>{t.contact}</span>
           <input class="input" name="contact" type="tel" autocomplete="tel" placeholder="+971" />
         </label>
+      </div>
+      <div class="field" role="radiogroup" aria-labelledby="cfg-budget">
+        <span id="cfg-budget">{c.budget}</span>
+        {/* Пороги разные: выставка начинается от 10 000, производство — от 2 000. */}
+        <div class="pills pills--grid" data-budgets="expo">
+          {
+            L.budgets.map((b) => (
+              <label class="pill">
+                <input type="radio" name="budget" value={b} />
+                <span>{nb(b)}</span>
+              </label>
+            ))
+          }
+        </div>
+        <div class="pills pills--grid" data-budgets="prod" hidden>
+          {
+            L.budgetsProduction.map((b) => (
+              <label class="pill">
+                <input type="radio" name="budget" value={b} />
+                <span>{nb(b)}</span>
+              </label>
+            ))
+          }
+        </div>
       </div>
     </fieldset>
 
@@ -191,8 +256,8 @@ const i18n = {
         <span class="cfg__back-text">{c.back}</span>
       </button>
       <button type="button" class="btn btn--primary" data-next>{c.next}</button>
-      <a class="cfg__wa" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
-        <Icon name="whatsapp" size={18} /> <span class="cfg__wa-text">{c.preferWa}</span>
+      <a class="cfg__wa" href={waLink(lang, LOCAL.waCtx)} target="_blank" rel="noopener" data-wa>
+        <Icon name="whatsapp" size={18} /> <span class="cfg__wa-text">{t.whatsapp}</span>
       </a>
     </div>
   </div>
@@ -205,6 +270,8 @@ const i18n = {
       <Icon name="arrow" size={18} />
     </button>
     <h2 class="cfg__sum-h" id="cfg-sum-h">{c.summary}</h2>
+    {/* Ориентир по прайсу — виден и на телефоне, когда сводка свёрнута. */}
+    <p class="cfg__est" data-est aria-live="polite" hidden></p>
     <div class="cfg__sum-body" id="cfg-sum-body">
       <dl data-summary></dl>
       <p class="caption">
@@ -219,7 +286,7 @@ const i18n = {
   import { MAX_FILE_BYTES, sendLead } from '@/scripts/lead';
 
   type Strings = {
-    expoService: string;
+    standServices: string[];
     labels: Record<string, string>;
     step: string;
     done: string;
@@ -232,6 +299,23 @@ const i18n = {
     attachBig: string;
     attachWa: string;
     mb: string;
+    lang: 'ru' | 'en';
+    slugs: string[];
+    wa: string;
+    waBy: string[];
+    badContact: string;
+    est: {
+      k: string;
+      vat: string;
+      exact: string;
+      allIn: [string, string];
+      onlyLink: [string, string];
+      prices: string;
+      rate: { lo: number; hi: number | null; unit: string } | null;
+      areas: ([number, number | null] | null)[];
+      sign: { money: string; unit: string } | null;
+      print: { money: string; unit: string } | null;
+    };
   };
   type Branch = 'expo' | 'prod' | 'staff' | 'concierge';
 
@@ -277,6 +361,9 @@ const i18n = {
     const fileInput = root.querySelector<HTMLInputElement>('[data-file]')!;
     const fileName = root.querySelector<HTMLElement>('[data-file-name]')!;
     const fileDrop = root.querySelector<HTMLButtonElement>('[data-file-drop]')!;
+    const est = root.querySelector<HTMLElement>('[data-est]')!;
+    const wa = root.querySelector<HTMLAnchorElement>('[data-wa]')!;
+    const E = S.est;
 
     const branch = (): Branch =>
       (root.querySelector<HTMLInputElement>('input[name="service"]:checked')?.dataset.branch as Branch) ?? 'expo';
@@ -292,8 +379,73 @@ const i18n = {
     };
     const file = () => (fileInput.disabled ? null : (fileInput.files?.[0] ?? null));
 
-    const problem = (v: Record<string, string>) =>
-      step === 1 && !v.service ? S.needService : step === 3 && !v.contact ? S.needContact : '';
+    /** Телефон — не меньше 7 цифр; почта или @ник проходят как есть. */
+    const badContact = (x: string) => !x.includes('@') && x.replace(/\D/g, '').length < 7;
+
+    const problem = (v: Record<string, string>) => {
+      if (step === 1 && !v.service) return S.needService;
+      if (step === 3 && !v.contact) return S.needContact;
+      if (step === 3 && badContact(v.contact!)) return S.badContact;
+      return '';
+    };
+
+    /* ---------- Ориентир по прайсу ---------- */
+    const num = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, S.lang === 'en' ? ',' : '\u00a0');
+    const money = (lo: number, hi: number | null) =>
+      S.lang === 'en'
+        ? hi
+          ? `AED\u00a0${num(lo)} – ${num(hi)}`
+          : `from AED\u00a0${num(lo)}`
+        : hi
+          ? `${num(lo)} – ${num(hi)}\u00a0AED`
+          : `от ${num(lo)}\u00a0AED`;
+    const idx = (name: string) => {
+      const el = root.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`);
+      return el && !el.disabled ? Number(el.dataset.idx) : -1;
+    };
+
+    /**
+     * Ориентир под выбор: стенд — ставка за м² × границы площади,
+     * вывеска и печать — «от» самой низкой строки группы, остальное — ссылка на прайс.
+     * figure — цифра для заявки; tail — что дописать после неё; null — ничего не показываем.
+     */
+    const estimate = (): { figure: string | null; tail: 'exact' | 'all' | 'link' } | null => {
+      const s = idx('service');
+      if (s < 0) return null;
+      if (s <= 1 && E.rate) {
+        const a = idx('area');
+        const bounds = a < 0 ? [0, 12] : E.areas[a];
+        if (!bounds) return { figure: null, tail: 'link' };
+        const [from, to] = bounds as [number, number | null];
+        // «до 12 м²» и площадь ещё не выбрана — показываем ставку за м²; «больше 100» — только «от».
+        if (from === 0) return { figure: `${money(E.rate.lo, null)} ${E.rate.unit}`, tail: 'exact' };
+        const hi = to !== null && E.rate.hi !== null ? to * E.rate.hi : null;
+        return { figure: money(from * E.rate.lo, hi), tail: 'exact' };
+      }
+      const g = s === 2 ? E.sign : s === 3 ? E.print : null;
+      if (g) return { figure: `${g.money} ${g.unit}`, tail: 'all' };
+      return { figure: null, tail: 'link' };
+    };
+    /** Строка ориентира для поля «Задача» в заявке — без ссылок. */
+    const estimateText = () => {
+      const e = estimate();
+      return e?.figure ? `${E.k}: ${e.figure} ${E.vat}` : '';
+    };
+    const renderEstimate = () => {
+      const e = estimate();
+      est.hidden = !e;
+      if (!e) return;
+      const a = (text: string) => `<a class="cfg__inline-link" href="${E.prices}">${esc(text)}</a>`;
+      if (!e.figure) {
+        est.innerHTML = `<span>${esc(E.onlyLink[0])}${a(E.onlyLink[1])}</span>`;
+        return;
+      }
+      const tail = e.tail === 'exact' ? esc(E.exact) : `${esc(E.allIn[0])}${a(E.allIn[1])}`;
+      est.innerHTML =
+        `<span class="cfg__est-k">${esc(E.k)}</span>` +
+        `<span class="cfg__est-v"><strong>${esc(e.figure)}</strong> ${esc(E.vat)}</span>` +
+        `<span class="cfg__est-t">${tail}</span>`;
+    };
 
     const say = (text: string) => {
       hint.hidden = false;
@@ -302,7 +454,7 @@ const i18n = {
 
     /** Показывает набор бюджетов под выбранную услугу и чистит скрытый. */
     const syncBudgets = (service?: string) => {
-      const want = service === S.expoService ? 'expo' : 'prod';
+      const want = service && S.standServices.includes(service) ? 'expo' : 'prod';
       root.querySelectorAll<HTMLElement>('[data-budgets]').forEach((box) => {
         const on = box.dataset.budgets === want;
         box.hidden = !on;
@@ -332,6 +484,7 @@ const i18n = {
       next.textContent = step === 3 ? S.submit : S.next;
       next.setAttribute('aria-disabled', String(Boolean(problem(v))));
       label.textContent = step === 4 ? S.done : stepText(step);
+      root.dataset.at = String(step);
       bar.style.transform = `scaleX(${Math.min(step, 3) / 3})`;
       const rows = ORDER[b];
       summary.innerHTML = rows
@@ -344,6 +497,9 @@ const i18n = {
         .filter((k) => k !== 'name' && k !== 'contact' && k !== 'file' && v[k])
         .map((k) => nb(EXTRA.includes(k) && k !== 'size' ? `${S.labels[k]}: ${v[k]}` : v[k]));
       brief.textContent = picked.length ? picked.join(' · ') : '—';
+      renderEstimate();
+      // В WhatsApp сразу уходит выбранная услуга.
+      wa.href = S.waBy[idx('service')] ?? S.wa;
       if (!problem(v) && hint.dataset.kind !== 'file') hint.hidden = true;
     };
 
@@ -443,6 +599,9 @@ const i18n = {
       for (const k of ['service', 'expo', 'area', 'dates', 'budget', 'name', 'contact']) if (v[k]) lead[k] = v[k];
       if (!lead.dates && v.deadline) lead.dates = v.deadline;
       const extra = EXTRA.filter((k) => v[k]).map((k) => `${S.labels[k]}: ${v[k]}`);
+      // Ориентир по прайсу тоже уходит в «Задачу» — команда видит, какую цифру клиент уже знает.
+      const guide = estimateText();
+      if (guide) extra.push(guide);
       if (extra.length) lead.task = extra.join(' · ');
 
       const f = file();
@@ -462,7 +621,17 @@ const i18n = {
       }
     });
 
-    render();
+    // Ссылка вида /configurator/?service=stand сразу выбирает услугу и открывает шаг 2.
+    const want = new URLSearchParams(location.search).get('service');
+    const preset = want ? S.slugs.indexOf(want) : -1;
+    const tile = preset >= 0 ? root.querySelectorAll<HTMLInputElement>('input[name="service"]')[preset] : null;
+    if (tile) {
+      tile.checked = true;
+      step = 2;
+      render();
+    } else {
+      render();
+    }
   });
 </script>
 <style>
@@ -742,6 +911,34 @@ const i18n = {
     white-space: nowrap;
     overflow-wrap: normal;
   }
+  /* Ориентир по прайсу: подпись, цифра крупно, хвост мелко. */
+  .cfg__est {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--base-soft);
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--muted);
+  }
+  .cfg__est[hidden] {
+    display: none;
+  }
+  .cfg__est :global(.cfg__est-k) {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .cfg__est :global(.cfg__est-v) {
+    color: var(--ink);
+  }
+  .cfg__est :global(strong) {
+    font-size: 18px;
+    line-height: 26px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
   @media (max-width: 960px) {
     .cfg {
       grid-template-columns: minmax(0, 1fr);
@@ -755,8 +952,44 @@ const i18n = {
       --pad: 22px;
       min-height: 0;
     }
+    /* Бюджет на телефоне — сетка в две колонки, а не пять пилюль во всю ширину. */
+    .pills--grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .pills--grid[hidden] {
+      display: none;
+    }
+    .pills--grid .pill {
+      height: auto;
+      min-height: 44px;
+      padding: 8px 12px;
+      justify-content: center;
+      text-align: center;
+      white-space: normal;
+      line-height: 20px;
+    }
+    .pills--grid .pill:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+    .cfg__progress {
+      margin-bottom: 18px;
+    }
+    .cfg__step {
+      gap: 14px;
+    }
     .cfg__tiles {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    /* Плитки ниже — на iPhone SE первый ряд целиком виден над липкой панелью. */
+    .tile {
+      min-height: 96px;
+      padding: 14px 16px;
+      gap: 8px;
+      font-size: 15px;
+      line-height: 20px;
     }
     /* Навигация прилипает к низу экрана, пока конфигуратор в поле зрения.
        72px снизу — место под нижнюю панель с кнопками на телефоне. */
@@ -771,6 +1004,10 @@ const i18n = {
       background: var(--surface);
       border-radius: 0 0 var(--radius) var(--radius);
       box-shadow: 0 -12px 24px -18px rgb(28 30 31 / 0.35);
+    }
+    /* На /configurator/ нижней панели нет — прижимаемся к самому низу экрана. */
+    .cfg--page .cfg__nav {
+      bottom: env(safe-area-inset-bottom, 0px);
     }
     .cfg__nav .btn {
       flex: 1;
@@ -861,6 +1098,9 @@ const i18n = {
     .cfg__summary.is-open .cfg__brief :global(svg) {
       transform: rotate(-90deg);
     }
+    .cfg__est {
+      margin: 0 20px 16px;
+    }
     .cfg__sum-h {
       position: absolute;
       width: 1px;
@@ -875,6 +1115,22 @@ const i18n = {
     }
     .cfg__summary.is-open .cfg__sum-body {
       display: flex;
+    }
+  }
+  /* Узкий телефон: размер и количество — друг под другом, чтобы подсказки не обрезались. */
+  @media (max-width: 420px) {
+    .cfg__pair {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  /* 320px: «Отправить заявку» не влезает между двумя круглыми кнопками — на последнем шаге
+     WhatsApp прячем (он есть в шапке), кнопке отправки оставляем всю ширину. */
+  @media (max-width: 360px) {
+    .cfg[data-at='3'] .cfg__wa {
+      display: none;
+    }
+    .cfg__nav .btn:not(.cfg__back) {
+      padding-inline: 8px;
     }
   }
 </style>

@@ -13,6 +13,7 @@ import { blocks } from '@/data/exhibitions';
 import { faq, process } from '@/data/process';
 import { workById, workTitle } from '@/data/works';
 import { CONTACTS } from '@/consts';
+import { priceGroups } from '@/data/prices';
 
 /** Сцена первого экрана: на сайте — 3D-стенд; ui и neon — запасные варианты (смотреть на /proto/ в разработке). */
 type Props = { hero?: 'ui' | 'stand' | 'neon' };
@@ -26,7 +27,9 @@ const T = {
     h1pre: 'Организуем участие в выставках в Дубае',
     h1script: 'под ключ',
     scriptFirst: false,
-    lead: 'От контракта с организатором до демонтажа после выставки. Берите весь пакет или отдельные блоки — подберём объём под ваш бюджет.',
+    lead: 'Полный цикл — от контракта до демонтажа. Плюс вывески и наружная реклама в ОАЭ.',
+    /** {from} — нижняя граница «Выставочный стенд, модульная система» из прайса (data/prices.ts). */
+    priceFrom: 'Стенд под ключ — ориентир от {from} AED/м²',
     facts: [
       ['Один договор', 'Стенд, печать, персонал и логистика — у одного исполнителя'],
       ['Прямая связь с площадками', 'Выходим на организаторов напрямую'],
@@ -49,6 +52,7 @@ const T = {
       ['/production/', 'Наружная реклама и производство', 'Световые вывески, печать, оклейка транспорта, витрины, полиграфия.', 'Открыть каталог'],
       ['/exhibitions/concierge/', 'Консьерж-сервис', 'Встреча, размещение, сим-карты, обмен валюты, перемещение по городу.', 'Что входит'],
     ],
+    standAlt: 'Визуализация выставочного стенда под ключ',
     conciergeAlt: 'Панорама Дубая днём: небоскрёбы и побережье',
     inclH: 'Что входит в работу под ключ',
     inclSub: 'У каждого блока своя страница с составом работ. Берите все восемь или только нужные.',
@@ -56,7 +60,7 @@ const T = {
     howHa: 'Как мы',
     howHb: 'работаем',
     howSub: 'Шесть этапов — от первой заявки до демонтажа и итогов выставки.',
-    worksH: 'Примеры работ',
+    worksH: 'Вывески и конструкции',
     worksSub: 'Изготовленные конструкции: световые вывески, неон, интерьерные логотипы, навигация.',
     worksAll: 'Все работы',
     prev: 'Предыдущая работа',
@@ -66,7 +70,7 @@ const T = {
     terms: [
       ['24', 'часа', 'Срок ответа на заявку'],
       ['50/50', '', 'Оплата: 50% предоплата, 50% перед отгрузкой или монтажом'],
-      ['500', 'AED', 'Выезд на замер — сумма засчитывается в заказ'],
+      ['500', 'AED', 'Выезд на замер вывески — сумма засчитывается в заказ'],
       ['12', 'месяцев', 'Гарантия на конструкции и электрику'],
     ],
     termsLink: 'Все условия — в прайсе',
@@ -79,7 +83,8 @@ const T = {
     h1pre: 'exhibitions in Dubai',
     h1script: 'Turnkey',
     scriptFirst: true,
-    lead: 'From the organiser’s contract to breakdown after the show. Take the full package or just the services you need — we’ll fit the scope to your budget.',
+    lead: 'Full cycle, from the organiser’s contract to breakdown. Plus signage and outdoor advertising in the UAE.',
+    priceFrom: 'Turnkey stand — a guide price from AED {from}/m²',
     facts: [
       ['One contract', 'Stand, print, staff and logistics from a single team'],
       ['Direct line to venues', 'We deal with organisers directly'],
@@ -102,6 +107,7 @@ const T = {
       ['/production/', 'Signage & outdoor advertising', 'Illuminated signs, print, vehicle wraps, shop windows and printed materials.', 'Browse the catalogue'],
       ['/exhibitions/concierge/', 'Concierge', 'Airport pickup, accommodation, SIM cards, currency exchange and getting around.', 'What’s included'],
     ],
+    standAlt: 'Visualisation of a turnkey exhibition stand',
     conciergeAlt: 'Dubai skyline by day: high-rises and the coast',
     inclH: 'What’s included in turnkey service',
     inclSub: 'Each service has its own page with the full scope. Take all eight or only what you need.',
@@ -109,7 +115,7 @@ const T = {
     howHa: 'How we',
     howHb: 'work',
     howSub: 'Six stages, from your first request to breakdown and wrap-up.',
-    worksH: 'Examples of work',
+    worksH: 'Signs and structures',
     worksSub: 'Finished pieces: illuminated signs, neon, interior logos and wayfinding.',
     worksAll: 'See all work',
     prev: 'Previous project',
@@ -119,7 +125,7 @@ const T = {
     terms: [
       ['24', 'hours', 'Response time to your request'],
       ['50/50', '', 'Payment: 50% upfront, 50% before dispatch or installation'],
-      ['500', 'AED', 'Site survey visit, credited against the order', 'before'],
+      ['500', 'AED', 'Signage site survey visit, credited against the order', 'before'],
       ['12', 'months', 'Warranty on structures and electrics'],
     ],
     termsLink: 'Full terms in the price list',
@@ -133,15 +139,29 @@ const STEPS = process(lang);
 const FEATURED = featuredWorks();
 /** Коллаж — реальные работы из data/works.ts. */
 const COLLAGE = ['36', '20'].map((id) => workById(id)!);
-/** Фото карточек направлений. У выставок и консьержа своих снимков нет —
- *  берём табличку «для выставок» и панораму Дубая. */
-const ENTRY_IMG = ['/img/works/w50-600', '/img/works/w27-600', '/img/concierge'];
-/** Подписи к фото карточек: у работ — название из data/works.ts, у консьержа — описание панорамы. */
-const ENTRY_ALT = [workTitle(workById('50')!, lang), workTitle(workById('27')!, lang), T.conciergeAlt];
-/** У консьержа своё чёткое фото Дубая в двух размерах; у работ — по одному. */
-const entrySet = (i: number, ext: string) =>
-  i === 2 ? `${link(`${ENTRY_IMG[i]}-800.${ext}`)} 800w, ${link(`${ENTRY_IMG[i]}-1200.${ext}`)} 1200w` : link(`${ENTRY_IMG[i]}.${ext}`);
 const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${size}.${ext}`);
+/** Фото карточек направлений: у выставок — кадр 3D-визуализации стенда (подписан как визуализация),
+ *  у производства — табличка из data/works.ts, у консьержа — панорама Дубая. */
+const STILL = lang === 'en' ? 'stand-en-1' : 'stand-1';
+const stand = (size: number, ext = 'webp') => link(`/img/stand/${STILL}-${size}.${ext}`);
+const concierge = (size: number, ext = 'webp') => link(`/img/concierge-${size}.${ext}`);
+const ENTRY_PIC = [
+  { webp: `${stand(800)} 800w, ${stand(1600)} 1600w`, jpg: stand(800, 'jpg'), alt: T.standAlt },
+  { webp: `${w('27', 600)} 600w, ${w('27', 800)} 800w`, jpg: w('27', 600, 'jpg'), alt: workTitle(workById('27')!, lang) },
+  {
+    webp: `${concierge(800)} 800w, ${concierge(1200)} 1200w`,
+    jpg: concierge(800, 'jpg'),
+    jpgSet: `${concierge(800, 'jpg')} 800w, ${concierge(1200, 'jpg')} 1200w`,
+    alt: T.conciergeAlt,
+  },
+];
+/** Ширина карточки направления: одна колонка до 760 px, две до 1080 px, три — по 384 px (ширина карточки, без масштаба картинки). */
+const ENTRY_SIZES = '(max-width: 760px) calc(100vw - 40px), (max-width: 1080px) calc(50vw - 52px), 384px';
+/** Ориентир цены под кнопками — только из прайса: «Выставочный стенд, модульная система», нижняя граница. */
+const standRow = priceGroups(lang)
+  .find((g) => g.slug === 'expo')
+  ?.rows.find((r) => /модульн|modular/i.test(r.title));
+const standFrom = standRow?.price.split('–')[0]?.trim();
 ---
 
 <Base>
@@ -172,6 +192,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
             <span class="arrow-link__disc" aria-hidden="true"><Icon name="arrow" size={16} /></span>
           </a>
         </div>
+        {standFrom && <p class="hero__price">{T.priceFrom.replace('{from}', standFrom)}</p>}
         <ul class="hero__facts">
           {T.facts.map(([h, t]) => <li><strong>{h}</strong><span>{t}</span></li>)}
         </ul>
@@ -232,8 +253,8 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
             <a class="entry" href={link(href, lang)} data-reveal style={`--d:${i * 70}ms`}>
               <div class="entry__media" data-drift>
                 <picture>
-                  <source type="image/webp" srcset={entrySet(i, 'webp')} sizes="(max-width: 760px) 92vw, (max-width: 1080px) 46vw, 400px" />
-                  <img src={i === 2 ? link(`${ENTRY_IMG[i]}-800.jpg`) : link(`${ENTRY_IMG[i]}.jpg`)} srcset={i === 2 ? entrySet(i, 'jpg') : undefined} sizes="(max-width: 760px) 92vw, (max-width: 1080px) 46vw, 400px" width="600" height="600" alt={ENTRY_ALT[i]} loading="lazy" />
+                  <source type="image/webp" srcset={ENTRY_PIC[i]!.webp} sizes={ENTRY_SIZES} />
+                  <img src={ENTRY_PIC[i]!.jpg} srcset={ENTRY_PIC[i]!.jpgSet} sizes={ENTRY_SIZES} width="800" height="600" alt={ENTRY_PIC[i]!.alt} loading="lazy" />
                 </picture>
               </div>
               <h3 class="entry__title">{h}</h3>
@@ -321,7 +342,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
             <figure class="car__slide" data-slide>
               <a href={w(wk.id, 1200)} target="_blank" rel="noopener">
                 <picture>
-                  <source type="image/webp" srcset={`${w(wk.id, 600)} 600w, ${w(wk.id, 1200)} 1200w`} sizes="(max-width: 700px) 78vw, 560px" />
+                  <source type="image/webp" srcset={`${w(wk.id, 600)} 600w, ${w(wk.id, 800)} 800w, ${w(wk.id, 1200)} 1200w`} sizes="(max-width: 717px) 78vw, 560px" />
                   <img src={w(wk.id, 600, 'jpg')} width="600" height="600" alt={workTitle(wk, lang)} loading="lazy" />
                 </picture>
               </a>
@@ -484,6 +505,13 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     height: 56px;
     padding-inline: 32px;
   }
+  /* Ориентир цены из прайса: одна тихая строка под кнопками, не отдельный блок. */
+  .hero__price {
+    margin-top: 18px;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--on-stage-muted);
+  }
   .hero__facts {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -518,13 +546,15 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
   }
   :global(.js-motion) .hero__lead,
   :global(.js-motion) .hero__actions,
+  :global(.js-motion) .hero__price,
   :global(.js-motion) .hero__facts {
     animation: fade 0.8s var(--ease-out) both;
   }
   :global(.js-motion) .hero__lead {
     animation-delay: 0.35s;
   }
-  :global(.js-motion) .hero__actions {
+  :global(.js-motion) .hero__actions,
+  :global(.js-motion) .hero__price {
     animation-delay: 0.5s;
   }
   :global(.js-motion) .hero__facts {
@@ -554,6 +584,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     :global(.js-motion) .hero__script,
     :global(.js-motion) .hero__lead,
     :global(.js-motion) .hero__actions,
+    :global(.js-motion) .hero__price,
     :global(.js-motion) .hero__facts {
       animation: none !important;
     }
@@ -1161,9 +1192,19 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     }
   }
   @media (max-width: 760px) {
+    /* Телефон: главная кнопка — на первом экране даже на iPhone SE (320×568). */
     .hero {
-      padding-block: 56px 64px;
+      padding-block: 32px 64px;
       min-height: 0;
+    }
+    .hero__lead {
+      margin-top: 18px;
+      font-size: 16px;
+      line-height: 26px;
+    }
+    .hero__actions {
+      margin-top: 24px;
+      gap: 16px 28px;
     }
     .hero__facts,
     .promises,
@@ -1187,6 +1228,11 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
       justify-self: start;
       text-align: left;
       translate: 12px 0;
+    }
+  }
+  @media (max-width: 400px) {
+    .hero__title {
+      font-size: 34px;
     }
   }
 </style>

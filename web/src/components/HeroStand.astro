@@ -10,9 +10,10 @@ import { getLang, link } from '@/i18n';
 import { process } from '@/data/process';
 
 const lang = getLang(Astro.url);
-/** Реальные фото работ: слайдшоу на LED-экране стенда; последнее — на печати задней стены. */
 const POSTER = lang === 'en' ? 'stand-en-2' : 'stand-2';
-const PHOTOS = ['27', '17', '24', '36', '50', '20'].map((id) => link(`/img/works/w${id}-600.jpg`));
+/** Реальные фото работ: слайдшоу на LED-экране стенда; последнее — на печати задней стены.
+ *  Те же webp, что в галереях сайта: один и тот же снимок не качается второй раз в jpg. */
+const PHOTOS = ['27', '17', '24', '36', '50', '20'].map((id) => link(`/img/works/w${id}-600.webp`));
 const STEPS = process(lang);
 const T = {
   ru: {
@@ -45,25 +46,29 @@ const CAPS: [number, string][] = STEPS.map((s, i) => [i + 1, s.title]);
   data-script={T.script}
   data-photos={JSON.stringify(PHOTOS)}
 >
-  <!-- Кадр стенда, пока 3D готовится: место под сцену не пустует. -->
+  <!-- Кадр стенда, пока 3D готовится: место под сцену не пустует.
+       Ширина кадра — 92 % сцены: на телефоне и планшете сцена во всю ширину экрана,
+       на компьютере кадр не шире ~740 px (1440 px и шире), так что файл 1600 нужен только экранам 2x. -->
   <picture class="hs__poster" aria-hidden="true">
-    <source type="image/webp" srcset={`${link(`/img/stand/${POSTER}-800.webp`)} 800w, ${link(`/img/stand/${POSTER}-1600.webp`)} 1600w`} sizes="(max-width: 1080px) 100vw, 900px" />
+    <source type="image/webp" srcset={`${link(`/img/stand/${POSTER}-800.webp`)} 800w, ${link(`/img/stand/${POSTER}-1600.webp`)} 1600w`} sizes="(max-width: 1080px) 92vw, (max-width: 1360px) 50vw, 740px" />
     <img src={link(`/img/stand/${POSTER}-800.jpg`)} width="800" height="600" alt="" decoding="async" fetchpriority="high" />
   </picture>
   <canvas class="hs__canvas" aria-hidden="true"></canvas>
   <svg class="hs__svg" viewBox="0 0 560 560" width="560" height="560" aria-hidden="true">
 
 
-    <!-- Этап из схемы работы -->
-    {
-      CAPS.map(([n, title]) => (
-        <g class="hs__cap" data-cap transform="translate(22 514)">
-          <circle cx="14" cy="14" r="14"></circle>
-          <text class="hs__cap-n" x="14" y="19" text-anchor="middle">{n}</text>
-          <text class="hs__cap-t" x="38" y="19">{title}</text>
-        </g>
-      ))
-    }
+    <!-- Этап из схемы работы. Сдвиг подписи сцены задаёт группа, transform этапов — анимация. -->
+    <g class="hs__caps">
+      {
+        CAPS.map(([n, title]) => (
+          <g class="hs__cap" data-cap transform="translate(22 514)">
+            <circle cx="14" cy="14" r="14"></circle>
+            <text class="hs__cap-n" x="14" y="19" text-anchor="middle">{n}</text>
+            <text class="hs__cap-t" x="38" y="19">{title}</text>
+          </g>
+        ))
+      }
+    </g>
   </svg>
   <button class="hs__pp" type="button" data-hm-toggle data-label-pause={T.pause} data-label-play={T.play} aria-label={T.pause} hidden>
     <svg class="hs__pp-pause" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
@@ -166,11 +171,16 @@ const CAPS: [number, string][] = STEPS.map((s, i) => [i + 1, s.title]);
   .hs[data-paused] .hs__pp-play {
     display: block;
   }
-  /* На компьютере сцена в 1,5 раза больше колонки: подпись и пауза — в видимой части. */
+  /* На компьютере сцена в 1,5 раза больше колонки: подпись и пауза — в видимой части.
+     Левый нижний угол сцены заходит под колонку текста, поэтому подпись этапа поднята
+     на уровень кнопки паузы и сдвинута вправо — к преимуществам под заголовком не прилипает. */
   @media (min-width: 1081px) {
     .hs__pp {
       right: 27%;
       bottom: 24%;
+    }
+    .hs__caps {
+      transform: translate(110px, -120px);
     }
     .hs__cap-t {
       font-size: 11px;

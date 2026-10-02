@@ -13,14 +13,18 @@ interface Props {
   class?: string;
   /** light — светлый логотип для тёмного фона. */
   tone?: 'dark' | 'light';
+  /** Логотип внизу страницы (подвал) — lazy: на первом экране он не нужен. */
+  loading?: 'eager' | 'lazy';
 }
-const { width = 72, class: cls, tone = 'dark' } = Astro.props;
+const { width = 72, class: cls, tone = 'dark', loading = 'eager' } = Astro.props;
 const f = tone === 'light' ? 'logo-light' : 'logo';
 const height = Math.round((width * 635) / 640);
+/** Светлый webp — с потерями под реальные размеры (scripts/logo-webp.mjs), тёмный — 160/320. */
+const WEBP = tone === 'light' ? [120, 184, 320] : [160, 320];
 ---
 
 <picture class={cls}>
-  <source type="image/webp" srcset={`${link(`/img/${f}-160.webp`)} 160w, ${link(`/img/${f}-320.webp`)} 320w`} sizes={`${width}px`} />
+  <source type="image/webp" srcset={WEBP.map((w) => `${link(`/img/${f}-${w}.webp`)} ${w}w`).join(', ')} sizes={`${width}px`} />
   <img
     src={link(`/img/${f}-160.png`)}
     srcset={`${link(`/img/${f}-160.png`)} 160w, ${link(`/img/${f}-320.png`)} 320w`}
@@ -28,6 +32,7 @@ const height = Math.round((width * 635) / 640);
     width={width}
     height={height}
     alt="SIGNUP DXB"
+    loading={loading}
     decoding="async"
   />
 </picture>

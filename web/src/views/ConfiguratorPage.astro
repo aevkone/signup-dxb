@@ -1,33 +1,107 @@
 ---
 import Base from '@/layouts/Base.astro';
-import PageHero from '@/components/PageHero.astro';
 import Configurator from '@/components/Configurator.astro';
-import { getLang } from '@/i18n';
+import { getLang, link } from '@/i18n';
+import { ui } from '@/i18n/ui';
 
 const lang = getLang(Astro.url);
+const u = ui(lang);
 const T = {
   ru: {
-    title: 'Собрать заявку',
+    title: 'Рассчитать стоимость',
     metaTitle: 'Смета на стенд или вывеску в Дубае',
-    description: 'Соберите заявку на выставку, стенд, вывеску или печать в Дубае за минуту — вернёмся с вариантами под ваш бюджет. Без звонков, если вам так удобнее.',
-    h1: 'Соберите заявку за минуту',
-    lead: 'Три шага: что нужно, параметры, бюджет. Вернёмся с вариантами под вашу сумму — без звонков, если вам так удобнее.',
+    description: 'Рассчитайте стоимость выставки, стенда, вывески или печати в Дубае за минуту — вернёмся с вариантами под ваш бюджет. Без звонков, если вам так удобнее.',
+    h1: 'Расчёт стоимости',
+    lead: 'Три шага — вернёмся с вариантами под ваш бюджет.',
   },
   en: {
-    title: 'Request a quote',
+    title: 'Get a quote',
     metaTitle: 'Quick quote for a stand or sign in Dubai',
-    description: 'Put together a request for an exhibition, stand, sign or print in Dubai in a minute — we’ll come back with options that fit your budget.',
-    h1: 'Build your request in a minute',
-    lead: 'Three steps: what you need, the details, your budget. We’ll come back with options for your budget — no calls needed if you prefer.',
+    description: 'Get a quote for an exhibition, stand, sign or print in Dubai in a minute — we’ll come back with options that fit your budget.',
+    h1: 'Get a quote',
+    lead: 'Three steps — we’ll come back with options for your budget.',
   },
 }[lang];
 ---
 
 <Base title={T.metaTitle} description={T.description} crumbs={[{ label: T.title }]}>
-  <PageHero title={T.h1} lead={T.lead} crumbs={[{ label: T.title }]} />
-  <section class="section--tight" style="padding-top:0">
+  {/* Шапка компактная: на iPhone SE под ней уже видны первые плитки, на ноутбуке — кнопки шагов. */}
+  <section class="chero stage">
     <div class="shell">
-      <Configurator />
+      <nav class="chero__crumbs caption" aria-label={u.breadcrumbs}>
+        <a href={link('/', lang)}>{u.home}</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{T.title}</span>
+      </nav>
+      <h1 class="chero__h">{T.h1}</h1>
+      <p class="chero__lead">{T.lead}</p>
+    </div>
+  </section>
+  <section class="cpage">
+    <div class="shell">
+      <Configurator page />
     </div>
   </section>
 </Base>
+<style>
+  .chero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: 22px 26px;
+  }
+  /* То же сливовое свечение, что у шапок внутренних страниц, только ниже ростом. */
+  .chero::before {
+    content: '';
+    position: absolute;
+    inset: 20% -10% -120% 40%;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgb(89 51 95 / 0.6), transparent);
+  }
+  .chero__crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chero__crumbs a {
+    color: var(--on-stage-muted);
+  }
+  .chero__crumbs a:hover {
+    color: var(--olive-pastel);
+  }
+  .chero__h {
+    margin-top: 10px;
+    color: #fff;
+    font-size: 38px;
+    line-height: 44px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .chero__lead {
+    margin-top: 6px;
+    color: var(--on-stage-muted);
+    font-size: 17px;
+    line-height: 26px;
+  }
+  .cpage {
+    padding-block: 20px 56px;
+  }
+  @media (max-width: 760px) {
+    .chero {
+      padding-block: 12px 16px;
+    }
+    .chero__h {
+      margin-top: 4px;
+      font-size: 28px;
+      line-height: 34px;
+    }
+    .chero__lead {
+      margin-top: 4px;
+      font-size: 15px;
+      line-height: 22px;
+    }
+    .cpage {
+      padding-block: 12px 40px;
+    }
+  }
+</style>

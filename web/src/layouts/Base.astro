@@ -1,6 +1,5 @@
 ---
-import '@fontsource-variable/montserrat';
-// Caveat (слово от руки) — свой урезанный файл, @font-face ниже в <head>.
+// Шрифты — свои файлы в public/fonts (scripts/fonts.py), @font-face ниже в <head>.
 import '@/styles/global.css';
 import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
@@ -53,13 +52,49 @@ const ogSection = isHome ? 'home' : OG_SECTIONS.find((s) => path === `/${s}` || 
 const ogImage = ogSection ? new URL(link(`/img/og/${ogSection}-${lang}.jpg`), Astro.site).href : ogDefault;
 
 /**
- * Caveat 600 — только латиница и кириллица без расширенных диапазонов
- * (~70 КБ вместо ~95 КБ у двух файлов @fontsource). Собран из файлов
- * @fontsource/caveat через fontTools: pyftsubset с --layout-features
- * calt,liga,kern,mark,mkmk (рукописные варианты букв сохранены), затем
- * fontTools.merge латиницы и кириллицы в один woff2.
+ * Шрифты лежат в public/fonts с постоянными именами (scripts/fonts.py):
+ * так их можно предзагрузить и кешировать навсегда (public/_headers).
+ *
+ * Montserrat Variable — те же файлы и диапазоны, что у @fontsource-variable/montserrat
+ * (без вьетнамского). Латиница и основная кириллица предзагружаются: они нужны
+ * на любой странице, расширенные наборы скачиваются, только если встретится такой символ.
+ *
+ * Caveat 600 — только буквы рукописных слов («под ключ», «turnkey», «работаем»,
+ * «work»), с контекстными вариантами букв (calt). Нужен только на главной —
+ * там и предзагружается.
  */
-const caveatFace = `@font-face{font-family:'Caveat';font-style:normal;font-weight:600;font-display:swap;src:url(${link('/fonts/caveat-600-subset.woff2')}) format('woff2')}`;
+const fontUrl = (f: string) => link(`/fonts/${f}`);
+const MONTSERRAT: [string, string][] = [
+  ['montserrat-cyrillic-ext-wght-normal.woff2', 'U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F'],
+  ['montserrat-cyrillic-wght-normal.woff2', 'U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116'],
+  ['montserrat-latin-ext-wght-normal.woff2', 'U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF'],
+  ['montserrat-latin-wght-normal.woff2', 'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD'],
+];
+const PRELOAD = ['montserrat-latin-wght-normal.woff2', 'montserrat-cyrillic-wght-normal.woff2', ...(isHome ? ['caveat-600-subset.woff2'] : [])];
+
+/**
+ * Запасной шрифт, пока Montserrat грузится: Arial, подогнанный по ширине и высоте
+ * строки под Montserrat, — при подмене текст не переносится иначе и блоки не прыгают.
+ * Семейство названо «Montserrat»: это второе имя в стеке body (global.css) и в стеке
+ * холстов 3D-стенда, поэтому браузер берёт его сразу после 'Montserrat Variable'.
+ * Цифры — из scripts/fonts.py: ширина русского и английского текста Montserrat 400/800
+ * к Arial / Arial Bold ≈ 112,8 %. В браузере русский текст при этом выходил на 1 % шире,
+ * поэтому взято 111,6 % — запасной шрифт не переносит строки раньше настоящего.
+ * Высота строки — typo-метрики Montserrat 968/251 из 1000, делённые на size-adjust.
+ * Liberation Sans — метрический двойник Arial в Linux.
+ */
+const fallbackFace = (weight: string, names: string[]) =>
+  `@font-face{font-family:'Montserrat';font-style:normal;font-weight:${weight};src:${names.map((n) => `local('${n}')`).join(',')};size-adjust:111.6%;ascent-override:86.75%;descent-override:22.5%;line-gap-override:0%}`;
+
+const fontFaces = [
+  ...MONTSERRAT.map(
+    ([f, range]) =>
+      `@font-face{font-family:'Montserrat Variable';font-style:normal;font-display:swap;font-weight:100 900;src:url(${fontUrl(f)}) format('woff2-variations');unicode-range:${range}}`,
+  ),
+  fallbackFace('100 599', ['Arial', 'ArialMT', 'Liberation Sans', 'LiberationSans']),
+  fallbackFace('600 900', ['Arial Bold', 'Arial-BoldMT', 'Liberation Sans Bold', 'LiberationSans-Bold']),
+  `@font-face{font-family:'Caveat';font-style:normal;font-weight:600;font-display:swap;src:url(${fontUrl('caveat-600-subset.woff2')}) format('woff2')}`,
+].join('');
 
 /**
  * Микроразметка. Организация описывается одинаково на всех страницах:
@@ -151,6 +186,8 @@ const ld = {
       setTimeout(function () { if (!window.__motionReady) document.documentElement.classList.remove('js-motion'); }, 2500);
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {PRELOAD.map((f) => <link rel="preload" href={fontUrl(f)} as="font" type="font/woff2" crossorigin />)}
+    <style is:inline set:html={fontFaces} />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={abs(lang)} />
@@ -173,7 +210,6 @@ const ld = {
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:image:alt" content={fullTitle} />
-    <style is:inline set:html={caveatFace} />
     <meta name="theme-color" content="#0F100D" />
     <script type="application/ld+json" set:html={JSON.stringify(ld).replace(/</g, '\\u003c')} />
   </head>

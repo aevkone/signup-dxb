@@ -1,5 +1,8 @@
 import type { Lang } from '@/i18n';
 
+/** Сумма не рвётся по строкам: «от 2 000 AED» целиком. */
+const nb = (s: string) => s.replace(/ /g, '\u00a0');
+
 /** Строки общих компонентов: шапка, подвал, формы, конфигуратор. */
 const UI = {
   ru: {
@@ -11,7 +14,7 @@ const UI = {
     mobileMenu: 'Мобильное меню',
     menu: 'Меню',
     language: 'Язык',
-    calc: 'Получить смету',
+    calc: 'Рассчитать стоимость',
     whatsapp: 'Написать в WhatsApp',
     whatsappShort: 'WhatsApp',
 
@@ -27,7 +30,7 @@ const UI = {
     prices: 'Прайс',
     works: 'Наши работы',
     technologies: 'Материалы и технологии',
-    quickCalc: 'Собрать заявку',
+    quickCalc: 'Рассчитать стоимость',
     contacts: 'Контакты',
     privacy: 'Политика данных',
     licence: 'Лицензия',
@@ -49,6 +52,10 @@ const UI = {
     attachWa: 'Файл не уходит через WhatsApp — прикрепите его в переписке',
     interested: 'Интересует',
     noContact: 'Оставьте телефон или WhatsApp — без него мы не сможем ответить.',
+    shortPhone: 'Проверьте номер — в нём не хватает цифр.',
+    contactPh: '+7 или +971 …',
+    /** Тихая строка доверия под кнопкой отправки. Без номера лицензии — она продлевается. */
+    trust: (reply: string) => `Dubai Design District · ${nb(`отвечаем ${reply}`)}`,
     submit: 'Отправить заявку',
     sending: 'Отправляем…',
     consent: 'Нажимая кнопку, вы соглашаетесь с',
@@ -58,7 +65,7 @@ const UI = {
 
     bandTitle: 'Соберём объём работ под ваш бюджет',
     bandText: (min: string) =>
-      `Опишите задачу — вернёмся с вариантами. Ориентиры по ценам — в открытом прайсе, точную смету соберём под ваш бюджет. Минимальный заказ ${min}.`,
+      `Опишите задачу — вернёмся с вариантами. Ориентиры по ценам — в открытом прайсе, точную смету соберём под ваш бюджет. Минимальный заказ ${nb(min)}.`,
 
     cfg: {
       step: (n: number) => `Шаг ${n} из 3`,
@@ -93,13 +100,13 @@ const UI = {
       next: 'Далее',
       submit: 'Отправить заявку',
       sending: 'Отправляем…',
-      preferWa: 'Лучше напишу в WhatsApp',
+      preferWa: 'Написать в WhatsApp',
       summary: 'Ваша заявка',
       chosen: 'Выбрано',
       /** Ссылка на прайс встраивается между частями: до, текст ссылки, после. */
       notePrices: ['Ориентиры по ценам — в ', 'открытом прайсе', '.'],
       summaryNote: (min: string, reply: string) =>
-        `Точную смету соберём под ваш бюджет, ответим ${reply}. Минимальный заказ ${min}.`,
+        `Точную смету соберём под ваш бюджет, ответим ${reply}. Минимальный заказ ${nb(min)}.`,
       needService: 'Выберите направление, чтобы продолжить',
       needContact: 'Оставьте телефон или WhatsApp, чтобы отправить',
       labels: {
@@ -129,7 +136,7 @@ const UI = {
     menu: 'Menu',
     language: 'Language',
     calc: 'Get a quote',
-    whatsapp: 'Message us on WhatsApp',
+    whatsapp: 'Message on WhatsApp',
     whatsappShort: 'WhatsApp',
 
     footerAbout: 'Turnkey exhibition participation and outdoor advertising made directly with UAE production.',
@@ -144,7 +151,7 @@ const UI = {
     prices: 'Price list',
     works: 'Our work',
     technologies: 'Materials & technologies',
-    quickCalc: 'Request a quote',
+    quickCalc: 'Get a quote',
     contacts: 'Contact',
     privacy: 'Privacy policy',
     licence: 'Licence',
@@ -166,6 +173,10 @@ const UI = {
     attachWa: 'WhatsApp links can’t carry files — please attach it in the chat',
     interested: 'Interested in',
     noContact: 'Please leave a phone or WhatsApp number so we can reply.',
+    shortPhone: 'Please check the number — it looks too short.',
+    contactPh: '+44, +7 or +971 …',
+    /** Тихая строка доверия под кнопкой отправки. Без номера лицензии — она продлевается. */
+    trust: (reply: string) => `Dubai Design District · ${nb(`we reply ${reply}`)}`,
     submit: 'Send request',
     sending: 'Sending…',
     consent: 'By sending this form, you agree to our',
@@ -175,7 +186,7 @@ const UI = {
 
     bandTitle: 'We’ll shape the scope around your budget',
     bandText: (min: string) =>
-      `Tell us what you need and we’ll come back with options. Indicative prices are in our open price list; we’ll build an exact quote around your budget. Orders start ${min}.`,
+      `Tell us what you need and we’ll come back with options. Indicative prices are in our open price list; we’ll build an exact quote around your budget. Orders start ${nb(min)}.`,
 
     cfg: {
       step: (n: number) => `Step ${n} of 3`,
@@ -210,13 +221,13 @@ const UI = {
       next: 'Next',
       submit: 'Send request',
       sending: 'Sending…',
-      preferWa: 'I’d rather use WhatsApp',
+      preferWa: 'Message on WhatsApp',
       summary: 'Your request',
       chosen: 'Selected',
       /** Ссылка на прайс встраивается между частями: до, текст ссылки, после. */
       notePrices: ['Indicative prices are in our ', 'open price list', '.'],
       summaryNote: (min: string, reply: string) =>
-        `We’ll build an exact quote around your budget and reply ${reply}. Orders start ${min}.`,
+        `We’ll build an exact quote around your budget and reply ${reply}. Orders start ${nb(min)}.`,
       needService: 'Choose a service to continue',
       needContact: 'Add a phone or WhatsApp number to send',
       labels: {

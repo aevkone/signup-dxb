@@ -1,14 +1,19 @@
 ---
 /**
  * Нижняя панель действий на телефоне: WhatsApp и заявка.
- * Видна только до 760px. Прячется, пока на экране форма заявки или подвал,
- * и пока открыто мобильное меню. На странице расчёта не выводится —
- * там кнопка вела бы на ту же страницу и закрывала бы её итог.
+ * Видна только до 760px — с загрузки, если главной кнопки первого экрана
+ * не видно (на низком телефоне она ниже сгиба). Прячется, пока на экране
+ * эта кнопка, расчёт на главной, форма заявки или подвал, и пока открыто
+ * мобильное меню. На странице расчёта не выводится — там кнопка вела бы
+ * на ту же страницу и закрывала бы её итог.
+ *
+ * Здесь же — подстановка текста в ссылки WhatsApp по всему сайту
+ * (компонент стоит в подвале, значит, есть на каждой странице).
  */
 import Icon from './Icon.astro';
 import { getLang, link, splitPath } from '@/i18n';
 import { ui } from '@/i18n/ui';
-import { CONTACTS } from '@/consts';
+import { waLink } from '@/consts';
 
 const lang = getLang(Astro.url);
 const t = ui(lang);
@@ -20,7 +25,7 @@ const onConfigurator = path.startsWith('/configurator');
   !onConfigurator && (
     <div class="scta" data-sticky-cta inert>
       <div class="scta__row">
-        <a class="scta__wa" href={CONTACTS.whatsapp} target="_blank" rel="noopener" aria-label={t.whatsapp}>
+        <a class="scta__wa" href={waLink(lang)} data-wa-page target="_blank" rel="noopener" aria-label={t.whatsapp}>
           <Icon name="whatsapp" size={20} />
           <span>WhatsApp</span>
         </a>
@@ -33,28 +38,43 @@ const onConfigurator = path.startsWith('/configurator');
 }
 
 <script>
+  import { waText } from '@/consts';
+
+  /**
+   * Ссылки на WhatsApp без готового текста получают первое сообщение
+   * с названием страницы — так мы сразу видим, откуда человек пишет.
+   * Общие ссылки шапки, подвала и панели (data-wa-page) собраны с текстом
+   * без страницы — им название страницы дописывается здесь же.
+   * На главной заголовок — слоган, поэтому там текст без контекста.
+   */
+  {
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'ru';
+    const h1 = document.querySelector('h1');
+    const context = h1 && !h1.closest('.hero') ? h1.textContent ?? '' : '';
+    document.querySelectorAll<HTMLAnchorElement>('a[href^="https://wa.me/"]').forEach((a) => {
+      const [base, query = ''] = a.href.split('?');
+      const hasText = new URLSearchParams(query).has('text');
+      if (hasText && !(a.hasAttribute('data-wa-page') && context)) return;
+      // Пробелы — как %20, а не «+»: так текст надёжно читается в WhatsApp.
+      a.href = `${base}?text=${encodeURIComponent(waText(lang, context))}`;
+    });
+  }
+
   const bar = document.querySelector<HTMLElement>('[data-sticky-cta]');
   if (bar) {
     const mq = window.matchMedia('(max-width: 760px)');
-    /** Что сейчас на экране из того, что панель не должна закрывать. */
+    /** Что сейчас на экране из того, что панель не должна закрывать или дублировать. */
     const covering = new Set<Element>();
-    let scrolled = false;
+    /** До первого ответа наблюдателя положение неизвестно — панель не дёргаем. */
+    let ready = false;
 
     const update = () => {
+      if (!ready) return;
       const menuOpen = document.documentElement.classList.contains('mnav-open');
-      const show = mq.matches && scrolled && covering.size === 0 && !menuOpen;
+      const show = mq.matches && covering.size === 0 && !menuOpen;
       bar.classList.toggle('is-on', show);
       // Спрятанная панель не должна ловить фокус и касания.
       bar.inert = !show;
-    };
-
-    // Появляется, когда первый экран прокручен на треть — там свои кнопки.
-    const onScroll = () => {
-      const next = window.scrollY > window.innerHeight * 0.33;
-      if (next !== scrolled) {
-        scrolled = next;
-        update();
-      }
     };
 
     const io = new IntersectionObserver(
@@ -63,19 +83,19 @@ const onConfigurator = path.startsWith('/configurator');
           if (e.isIntersecting) covering.add(e.target);
           else covering.delete(e.target);
         }
+        ready = true;
         update();
       },
-      // Уходит, как только форма или подвал показались на экране.
+      // Уходит, как только кнопка первого экрана, расчёт, форма или подвал показались на экране.
       { threshold: 0 },
     );
-    document.querySelectorAll('#lead, [data-lead-form], .ftr').forEach((el) => io.observe(el));
+    document
+      .querySelectorAll('.hero__cta, .phero .btn--primary, #calc, #lead, [data-lead-form], .ftr')
+      .forEach((el) => io.observe(el));
 
     // Меню в шапке ставит на <html> класс mnav-open.
     new MutationObserver(update).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     mq.addEventListener('change', update);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    update();
   }
 </script>
 

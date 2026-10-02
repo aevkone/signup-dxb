@@ -13,6 +13,11 @@
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Шрифты: имена постоянные, содержимое не меняется (scripts/fonts.py).
+# Заменили файл шрифта — меняйте и имя.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
 # Картинки без хеша в имени — месяц.
 /img/*
   Cache-Control: public, max-age=2592000

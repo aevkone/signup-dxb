@@ -3,7 +3,7 @@ import Logo from './Logo.astro';
 import StickyCta from './StickyCta.astro';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
-import { CONTACTS, local } from '@/consts';
+import { CONTACTS, local, waLink } from '@/consts';
 
 const lang = getLang(Astro.url);
 const t = ui(lang);
@@ -19,7 +19,7 @@ const licence = L.licence.replace(/^(№|No\.) /, '$1\u00a0');
   <div class="shell">
     <div class="ftr__grid">
       <div class="ftr__about">
-        <Logo width={92} tone="light" />
+        <Logo width={92} tone="light" loading="lazy" />
         <p>{t.footerAbout}</p>
         <p class="ftr__area">{t.footerExhibitions}: {L.exhibitionsArea}.<br />{t.footerProduction}: {L.productionArea}.</p>
       </div>
@@ -46,7 +46,7 @@ const licence = L.licence.replace(/^(№|No\.) /, '$1\u00a0');
         <div class="ftr__h">{t.footerContact}</div>
         <ul>
           <li><a class="ftr__nowrap" href={CONTACTS.phoneHref}>{CONTACTS.phone}</a></li>
-          <li><a href={CONTACTS.whatsapp} target="_blank" rel="noopener">WhatsApp</a></li>
+          <li><a href={waLink(lang)} data-wa-page target="_blank" rel="noopener">WhatsApp</a></li>
           {CONTACTS.email && <li><a href={`mailto:${CONTACTS.email}`}>{CONTACTS.email}</a></li>}
           <li><a href={CONTACTS.instagram} target="_blank" rel="noopener">Instagram</a></li>
           <li class="ftr__muted">{hours}</li>

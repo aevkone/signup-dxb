@@ -28,7 +28,7 @@ const CATEGORIES_RU: Category[] = [
     title: 'Световая реклама',
     short: 'Вывески, короба, объёмные буквы, гибкий неон',
     icon: 'light',
-    lead: 'В городе, где темнеет рано и резко, а застройка плотная, подсвеченная вывеска работает тогда, когда обычная уже не видна. Это не украшение фасада, а рабочий инструмент: она приводит людей в те часы, когда трафик максимальный.',
+    lead: 'В Дубае улица оживает после заката: когда спадает жара, люди идут в магазины и рестораны. Подсвеченная вывеска работает именно в эти часы, а днём остаётся читаемой под ярким солнцем. Это не украшение фасада, а рабочий инструмент: она приводит людей тогда, когда поток максимальный.',
     advantages: [
       {
         title: 'Видно круглосуточно',
@@ -569,3 +569,147 @@ export const categories = (lang: Lang): Category[] => (lang === 'en' ? CATEGORIE
 export const CATEGORY_SLUGS = CATEGORIES_RU.map((c) => c.slug);
 
 export const TOTAL_ITEMS = CATEGORIES_RU.reduce((n, c) => n + c.items.length, 0);
+
+/* ---------- Ориентиры из прайса ---------- */
+/*
+ * Все цифры берутся из data/prices.ts — здесь только ссылки на строки прайса.
+ * Номер строки — её место в группе: порядок одинаков в русской и английской версии.
+ * Нет подходящей строки — карточка остаётся без цены, ничего не придумываем.
+ */
+import { priceGroups, type Row } from './prices';
+
+/** Строки прайса для карточки. unit — подпись вместо единицы прайса, когда карточка шире строки. */
+type PriceRef = { group: string; rows: number[]; unit?: Record<Lang, string> };
+
+const ref = (group: string, rows: number[], unit?: Record<Lang, string>): PriceRef => ({ group, rows, unit });
+
+/** Карточки «Мы предлагаем» по порядку; null — в прайсе нет такой позиции. */
+const ITEM_PRICES: Record<string, (PriceRef | null)[]> = {
+  'illuminated-signage': [
+    ref('illuminated', [5, 6, 7], { ru: 'за вывеску', en: 'per sign' }), // неоновые вывески до 60, 60–120, от 120 см
+    ref('illuminated', [8], { ru: 'за вывеску под ключ', en: 'per turnkey sign' }), // фасадная вывеска магазина под ключ
+    ref('illuminated', [3]), // лайтбокс односторонний
+    ref('illuminated', [1, 2]), // объёмные буквы с фронтальной подсветкой и halo
+    ref('illuminated', [1, 2]),
+    null,
+    ref('illuminated', [4]), // световая консоль двусторонняя
+    null,
+    null,
+  ],
+  'large-format-print': [
+    ref('print', [0, 1]), // баннер 440 г; баннер с люверсами
+    ref('print', [2, 3]), // самоклеящаяся плёнка; плёнка с ламинацией и монтажом
+    null,
+    null,
+  ],
+  'vehicle-branding': [
+    ref('vehicle', [0, 1, 2, 3]), // логотип на борта … полная оклейка внедорожника
+    null,
+    ref('vehicle', [1, 4]), // частичное брендирование; полная оклейка фургона
+    ref('vehicle', [2, 3, 4]), // полная оклейка седана, внедорожника, фургона
+  ],
+  'signs-and-plates': [
+    ref('signs', [0]), // табличка акриловая
+    ref('signs', [1], { ru: 'за металлическую табличку', en: 'per metal plaque' }), // металл с гравировкой
+    null,
+    ref('signs', [3]), // комплект навигации
+    null,
+    null,
+  ],
+  'interior-print': [
+    null,
+    ref('print', [7]), // интерьерная печать, панно и обои
+    null,
+    null,
+    ref('print', [2]), // самоклеящаяся плёнка
+    null,
+  ],
+  'printing-and-gifts': [
+    ref('gifts', [0, 1], { ru: 'за 1 000 визиток', en: 'per 1,000 business cards' }),
+    ref('gifts', [2], { ru: 'за 1 000 листовок А5', en: 'per 1,000 A5 flyers' }),
+    null,
+    null,
+    ref('gifts', [7], { ru: 'за ежедневник с тиснением', en: 'per embossed planner' }),
+    ref('apparel', [4], { ru: 'за футболку с нанесением', en: 'per printed T-shirt' }),
+    ref('gifts', [5, 8], { ru: 'за кружку или бутылку', en: 'per mug or bottle' }),
+    ref('gifts', [4], { ru: 'за ручку', en: 'per pen' }),
+    null,
+    null,
+  ],
+  'window-branding': [
+    null,
+    ref('print', [3]), // плёнка с ламинацией и монтажом
+    ref('print', [4]), // one-way vision с монтажом
+    ref('print', [5]), // матовая плёнка с монтажом
+    ref('print', [6], { ru: 'за витрину под ключ', en: 'per turnkey window' }), // оформление витрины под ключ
+    ref('illuminated', [3]), // лайтбокс
+  ],
+};
+
+/** Нижняя и верхняя граница строки: «2 900 – 6 500» → [2900, 6500], «от 28 000» → [28000, null]. */
+export const rowBounds = (row: Row): { lo: number; hi: number | null } | null => {
+  const nums = (row.price.match(/\d[\d\s,]*/g) ?? []).map((x) => Number(x.replace(/\D/g, '')));
+  if (!nums.length) return null;
+  return { lo: nums[0]!, hi: nums.length > 1 ? nums[1]! : null };
+};
+
+/** Число с разрядами: «19 200» (неразрывный пробел) или «19,200». */
+export const fmtNum = (n: number, lang: Lang) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'en' ? ',' : ' ');
+
+/** Сумма или диапазон в AED: «4 500 – 10 000 AED», «от 700 AED»; в EN — «AED 4,500 – 10,000». */
+export const fmtMoney = (lo: number, hi: number | null, lang: Lang) => {
+  const a = fmtNum(lo, lang);
+  if (lang === 'en') return hi ? `AED ${a} – ${fmtNum(hi, lang)}` : `from AED ${a}`;
+  return hi ? `${a} – ${fmtNum(hi, 'ru')} AED` : `от ${a} AED`;
+};
+
+/** Единица прайса в подписи: «шт.» → «за шт.», «объект» → «за объект», «each» как есть. */
+export const unitText = (unit: string, lang: Lang) => {
+  // В прайсе между словами бывают неразрывные пробелы — проверяем любой пробельный символ.
+  if (lang === 'en') return unit === 'each' || /^per\s/.test(unit) ? unit : `per ${unit}`;
+  return /^за\s/.test(unit) ? unit : `за ${unit}`;
+};
+
+/** Объединяет несколько строк: от меньшей нижней до большей верхней; «от» — если у строки нет верхней границы. */
+const span = (rows: Row[]) => {
+  const b = rows.map(rowBounds).filter((x): x is { lo: number; hi: number | null } => !!x);
+  if (!b.length) return null;
+  const lo = Math.min(...b.map((x) => x.lo));
+  const hi = b.every((x) => x.hi !== null) ? Math.max(...b.map((x) => x.hi!)) : null;
+  return { lo, hi };
+};
+
+/** Цена для карточки категории: { money, unit } или null, если строки в прайсе нет. */
+export const itemPrice = (lang: Lang, slug: string, index: number) => {
+  const r = ITEM_PRICES[slug]?.[index];
+  if (!r) return null;
+  const group = priceGroups(lang).find((g) => g.slug === r.group);
+  const rows = r.rows.map((i) => group?.rows[i]).filter((x): x is Row => !!x);
+  const s = span(rows);
+  if (!s) return null;
+  const units = new Set(rows.map((x) => x.unit));
+  // Разные единицы в одной цифре не складываем.
+  if (!r.unit && units.size > 1) return null;
+  return { money: fmtMoney(s.lo, s.hi, lang), unit: r.unit?.[lang] ?? unitText(rows[0]!.unit, lang) };
+};
+
+/**
+ * Ставка за м² для стенда — строка «Выставочный стенд, модульная система» (группа expo).
+ * Ищем по единице «за м²»/«per m²» и первой такой строке группы, чтобы не завязываться на текст.
+ */
+export const standRate = (lang: Lang) => {
+  const row = priceGroups(lang).find((g) => g.slug === 'expo')?.rows.find((x) => /м²|m²/.test(x.unit));
+  const b = row ? rowBounds(row) : null;
+  return row && b ? { ...b, unit: unitText(row.unit, lang) } : null;
+};
+
+/** Самая низкая цена группы прайса и единица этой строки — для «от X AED» в конфигураторе. */
+export const groupFrom = (lang: Lang, slug: string) => {
+  const rows = priceGroups(lang).find((g) => g.slug === slug)?.rows ?? [];
+  let best: { lo: number; unit: string } | null = null;
+  for (const row of rows) {
+    const b = rowBounds(row);
+    if (b && (!best || b.lo < best.lo)) best = { lo: b.lo, unit: row.unit };
+  }
+  return best ? { money: fmtMoney(best.lo, null, lang), unit: unitText(best.unit, lang) } : null;
+};

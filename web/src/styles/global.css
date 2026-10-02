@@ -76,6 +76,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* Без серой вспышки тапа на всём сайте: отклик дают :active-состояния. */
+  -webkit-tap-highlight-color: transparent;
 }
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -294,6 +296,15 @@ ol {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
+/* На самых узких экранах (iPhone SE) подписи «Рассчитать стоимость»
+   и «Написать в WhatsApp» помещаются в строку: поля и кегль чуть меньше. */
+@media (max-width: 360px) {
+  .btn {
+    gap: 8px;
+    padding-inline: 14px;
+    font-size: 15px;
+  }
+}
 /* Кнопка «слышит» нажатие: лёгкое сжатие вместо серой вспышки тапа. */
 .btn:active:not([disabled]):not([aria-disabled='true']) {
   transform: scale(0.97);
@@ -497,6 +508,11 @@ ol {
 .sec-head__sub {
   margin-top: 12px;
   color: var(--muted);
+}
+/* Ссылка внутри текста подчёркнута — отличима не только цветом. */
+.sec-head__sub a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .more {
   margin-top: auto;

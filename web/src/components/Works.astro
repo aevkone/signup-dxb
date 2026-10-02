@@ -19,6 +19,8 @@ interface Props {
 const { title, sub, list, more, bare = false } = Astro.props;
 const lang = getLang(Astro.url);
 const img = (id: string, w: number, ext = 'webp') => link(`/img/works/w${id}-${w}.${ext}`);
+/** Ширина плитки по сетке ниже: одна колонка до 560 px, две до 1080 px, три — не шире 384 px. */
+const SIZES = '(max-width: 560px) calc(100vw - 40px), (max-width: 1080px) calc(50vw - 32px), 384px';
 ---
 
 {
@@ -41,7 +43,7 @@ const img = (id: string, w: number, ext = 'webp') => link(`/img/works/w${id}-${w
             <li class="work">
               <a class="work__link" href={img(w.id, 1200)} target="_blank" rel="noopener">
                 <picture>
-                  <source type="image/webp" srcset={`${img(w.id, 600)} 600w, ${img(w.id, 1200)} 1200w`} sizes="(max-width: 640px) 100vw, (max-width: 1080px) 50vw, 400px" />
+                  <source type="image/webp" srcset={`${img(w.id, 600)} 600w, ${img(w.id, 800)} 800w, ${img(w.id, 1200)} 1200w`} sizes={SIZES} />
                   <img
                     src={img(w.id, 600, 'jpg')}
                     width="600"

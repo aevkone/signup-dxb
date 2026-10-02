@@ -3,11 +3,11 @@ import Base from '@/layouts/Base.astro';
 import PageHero from '@/components/PageHero.astro';
 import Icon from '@/components/Icon.astro';
 import LeadForm from '@/components/LeadForm.astro';
-import CtaBand from '@/components/CtaBand.astro';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
 import { blocks } from '@/data/exhibitions';
-import { CONTACTS } from '@/consts';
+import { standRate, fmtMoney } from '@/data/production';
+import { waLink } from '@/consts';
 
 interface Props {
   slug: string;
@@ -21,7 +21,9 @@ const others = BLOCKS.filter((b) => b.slug !== block.slug);
 const T = {
   ru: {
     parent: 'Выставки под ключ',
-    discuss: 'Обсудить задачу',
+    quote: 'Рассчитать стоимость',
+    anchor: (from: string) => `Стенд под ключ — ориентир ${from}/м²`,
+    anchorLink: 'примеры в прайсе',
     of: (i: number, n: number) => `Блок ${i} из ${n} · можно заказать отдельно`,
     incl: 'Что входит',
     know: 'Что важно знать',
@@ -30,7 +32,9 @@ const T = {
   },
   en: {
     parent: 'Turnkey exhibitions',
-    discuss: 'Discuss your project',
+    quote: 'Get a quote',
+    anchor: (from: string) => `Turnkey stand — guide price ${from}/m²`,
+    anchorLink: 'examples in the price list',
     of: (i: number, n: number) => `Block ${i} of ${n} · can be ordered separately`,
     incl: 'What’s included',
     know: 'Good to know',
@@ -62,6 +66,9 @@ const META_TITLE: Record<typeof lang, Record<string, string>> = {
     negotiations: 'Negotiations with exhibition organisers in Dubai',
   },
 };
+/** Ориентир за м² — только у блока про стенд; цифра из прайса (группа expo). */
+const rate = block.slug === 'stand-design' ? standRate(lang) : null;
+
 const metaTitle = META_TITLE[lang][block.slug] ?? `${block.title} ${lang === 'en' ? 'in Dubai' : 'в Дубае'}`;
 
 /**
@@ -87,10 +94,18 @@ const metaDescription = (() => {
   crumbs={[{ href: '/exhibitions/', label: T.parent }, { label: block.title }]}
 >
   <PageHero title={block.title} lead={block.lead} crumbs={[{ href: '/exhibitions/', label: T.parent }, { label: block.title }]}>
+    {
+      rate && (
+        <p class="anchor">
+          {T.anchor(fmtMoney(rate.lo, null, lang))} · <a href={link('/prices/#expo', lang)}>{T.anchorLink}</a>
+        </p>
+      )
+    }
+    {/* Одна просьба на странице: кнопка ведёт к форме внизу, где уже подставлен этот блок. */}
     <div class="hero-actions">
-      <a class="btn btn--primary" href="#lead">{T.discuss}</a>
-      <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
-        <Icon name="whatsapp" size={20} /> {u.whatsappShort}
+      <a class="btn btn--primary" href="#lead">{T.quote}</a>
+      <a class="btn btn--ghost" href={waLink(lang, block.title)} target="_blank" rel="noopener">
+        <Icon name="whatsapp" size={20} /> {u.whatsapp}
       </a>
       <span class="caption">{T.of(index + 1, BLOCKS.length)}</span>
     </div>
@@ -147,20 +162,19 @@ const metaDescription = (() => {
         <h2 class="h2">{T.others}</h2>
         <a class="btn btn--ghost" href={link('/exhibitions/', lang)}>{T.all}</a>
       </div>
-      <div class="grid grid--4 others">
+      {/* Компактные ссылки-пилюли: на телефоне семь карточек занимали больше тысячи пикселей. */}
+      <div class="others">
         {
           others.map((b) => (
-            <a class="card card--link other" href={link(`/exhibitions/${b.slug}/`, lang)}>
-              <Icon name={b.icon} size={24} />
-              <span class="other__t">{b.title}</span>
+            <a class="other" href={link(`/exhibitions/${b.slug}/`, lang)}>
+              <Icon name={b.icon} size={20} />
+              {b.title}
             </a>
           ))
         }
       </div>
     </div>
   </section>
-
-  <CtaBand />
 
   <section class="section" id="lead">
     <div class="shell">
@@ -237,23 +251,43 @@ const metaDescription = (() => {
     line-height: 31px;
     font-weight: 600;
   }
+  .anchor {
+    margin-top: 18px;
+    color: var(--on-stage);
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .anchor a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
   .others {
-    gap: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   .other {
-    gap: 14px;
-    padding: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--pill);
+    background: var(--surface);
     color: var(--ink);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
   }
   .other:hover {
+    border-color: var(--ink);
     color: var(--ink);
   }
   .other :global(svg) {
+    flex: none;
     color: var(--accent);
-  }
-  .other__t {
-    font-weight: 600;
-    line-height: 22px;
   }
   @media (max-width: 860px) {
     .split {

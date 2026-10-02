@@ -7,8 +7,8 @@ import Works from '@/components/Works.astro';
 import { worksFor, workTitle } from '@/data/works';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
-import { categories } from '@/data/production';
-import { CONTACTS, local } from '@/consts';
+import { categories, itemPrice } from '@/data/production';
+import { local, waLink } from '@/consts';
 
 interface Props {
   slug: string;
@@ -23,37 +23,45 @@ const others = CATS.filter((x) => x.slug !== c.slug);
 const WORKS = worksFor(c.slug);
 const HERO_WORKS = WORKS.slice(0, 3);
 const img = (id: string, w: number, ext = 'webp') => link(`/img/works/w${id}-${w}.${ext}`);
+/** Сколько пунктов «+» видно в карточке на телефоне, остальные — под «ещё N». */
+const PLUS_SHOWN = 3;
 /** Первая буква строчная — для вставки в середину фразы («3D» не трогаем). */
 const lower = (s: string) => (/^[A-ZА-ЯЁ][a-zа-яё]/.test(s) ? s[0]!.toLowerCase() + s.slice(1) : s);
 const T = {
   ru: {
-    crumb: 'Производство',
+    crumb: 'Наружная реклама',
     metaTitle: `${c.title} в Дубае`,
     description: `${c.title} в Дубае, Шардже и Аджмане: ${lower(c.short)}. Работаем напрямую с производством, минимальный заказ ${L.minOrder}.`,
-    quote: 'Заказать расчёт',
+    quote: 'Рассчитать стоимость',
     adv: 'Преимущества',
     offer: 'Мы предлагаем',
     terms: `Ориентировочные цены — в прайсе. Минимальный заказ ${L.minOrder}. Замер ${L.survey} — засчитывается в стоимость.`,
     pricesLink: 'Открыть прайс',
     works: 'Примеры работ',
     worksAll: 'Все работы',
-    order: 'Заказать',
-    leadTitle: `Заказать: ${c.title.toLowerCase()}`,
+    order: 'Рассчитать',
+    leadTitle: `Расчёт стоимости: ${c.title.toLowerCase()}`,
+    guide: 'ориентир, без VAT',
+    more: (n: number) => `ещё ${n}`,
+    less: 'свернуть',
     others: 'Другие направления',
   },
   en: {
-    crumb: 'Production',
+    crumb: 'Outdoor advertising',
     metaTitle: `${c.title} in Dubai`,
     description: `${c.title} in Dubai, Sharjah and Ajman: ${lower(c.short)}. We work directly with production, minimum order ${L.minOrder}.`,
-    quote: 'Request a quote',
+    quote: 'Get a quote',
     adv: 'Advantages',
     offer: 'What we offer',
     terms: `Indicative prices are in the price list. Minimum order ${L.minOrder}. Site survey ${L.survey} — credited towards your order.`,
     pricesLink: 'Open the price list',
     works: 'Examples of our work',
     worksAll: 'All work',
-    order: 'Order',
-    leadTitle: `Order: ${c.title.toLowerCase()}`,
+    order: 'Get a price',
+    leadTitle: `Get a quote: ${c.title.toLowerCase()}`,
+    guide: 'guide price, excl. VAT',
+    more: (n: number) => `${n} more`,
+    less: 'show less',
     others: 'Other directions',
   },
 }[lang];
@@ -63,8 +71,8 @@ const T = {
   <PageHero title={c.title} lead={c.lead} crumbs={[{ href: '/production/', label: T.crumb }, { label: c.title }]}>
     <div class="hero-actions">
       <a class="btn btn--primary" href="#lead">{T.quote}</a>
-      <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
-        <Icon name="whatsapp" size={20} /> {u.whatsappShort}
+      <a class="btn btn--ghost" href={waLink(lang, c.title)} target="_blank" rel="noopener">
+        <Icon name="whatsapp" size={20} /> {u.whatsapp}
       </a>
     </div>
     {
@@ -112,28 +120,57 @@ const T = {
             </div>
           </div>
           <div class="grid grid--3 items">
-            {c.items.map((it) => (
-              <article class="card card--edge item">
-                <h3 class="item__t">{it.title}</h3>
-                <p class="item__text">{it.text}</p>
-                <p class="item__use caption">{it.use}</p>
-                <ul class="plus">
-                  {it.plus.map((p) => (
-                    <li>{p}</li>
-                  ))}
-                </ul>
-                <a class="btn btn--order" href="#lead" data-order={`${u.interested}: ${c.title} — ${it.title}`}>
-                  {T.order}
-                </a>
-              </article>
-            ))}
+            {c.items.map((it, i) => {
+              /* Цена — только из строки прайса, привязанной к карточке; нет строки — нет цены. */
+              const price = itemPrice(lang, c.slug, i);
+              const hidden = it.plus.length - PLUS_SHOWN;
+              return (
+                <article class="card card--edge item">
+                  <h3 class="item__t">{it.title}</h3>
+                  <p class="item__text">{it.text}</p>
+                  <p class="item__use caption">{it.use}</p>
+                  <ul class="plus" id={`plus-${i}`}>
+                    {it.plus.map((p, k) => (
+                      <li class:list={[k >= PLUS_SHOWN && 'is-extra']}>{p}</li>
+                    ))}
+                  </ul>
+                  {hidden > 0 && (
+                    <button
+                      type="button"
+                      class="plus__more"
+                      data-plus-more
+                      aria-expanded="false"
+                      aria-controls={`plus-${i}`}
+                      data-more={T.more(hidden)}
+                      data-less={T.less}
+                    >
+                      {T.more(hidden)}
+                    </button>
+                  )}
+                  <div class="item__foot">
+                    {price && (
+                      <p class="item__price">
+                        <strong>{price.money}</strong> {price.unit}
+                        <span class="caption">{T.guide}</span>
+                      </p>
+                    )}
+                    <a class="btn btn--order" href="#lead" data-order={`${u.interested}: ${c.title} — ${it.title}`}>
+                      {T.order}
+                    </a>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
     )
   }
 
-  <Works title={T.works} list={WORKS.slice(3, 9)} more={{ href: '/works/', label: T.worksAll }} />
+  {/* На телефоне примеры — горизонтальная лента с прокруткой, а не столбик из шести фото. */}
+  <div class="pc-works">
+    <Works title={T.works} list={WORKS.slice(3, 9)} more={{ href: '/works/', label: T.worksAll }} />
+  </div>
 
   {
     c.uae && (
@@ -172,7 +209,17 @@ const T = {
 </Base>
 
 <script>
-  // «Заказать» в карточке подставляет позицию в поле задачи формы.
+  // «ещё N» раскрывает остальные пункты карточки (кнопка видна только на телефоне).
+  document.querySelectorAll<HTMLButtonElement>('[data-plus-more]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const open = b.getAttribute('aria-expanded') !== 'true';
+      b.setAttribute('aria-expanded', String(open));
+      b.textContent = (open ? b.dataset.less : b.dataset.more) ?? '';
+      b.closest('.item')?.classList.toggle('is-open', open);
+    });
+  });
+
+  // «Рассчитать» в карточке подставляет позицию в поле задачи формы.
   document.querySelectorAll<HTMLAnchorElement>('[data-order]').forEach((a) => {
     a.addEventListener('click', () => {
       const task = document.querySelector<HTMLTextAreaElement>('#lead textarea[name="task"]');
@@ -292,11 +339,70 @@ const T = {
   .item .plus {
     margin-top: 4px;
   }
-  .item .btn--order {
+  /* Цена и кнопка прижаты к низу карточки — в ряду кнопки стоят на одной линии. */
+  .item__foot {
     margin-top: auto;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
-  .item .plus + .btn--order {
-    margin-top: 18px;
+  .item__price {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--muted);
+  }
+  .item__price strong {
+    color: var(--ink);
+    font-size: 17px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .item__price .caption {
+    display: block;
+    font-size: 13px;
+  }
+  .plus__more {
+    display: none;
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+  @media (max-width: 760px) {
+    .item:not(.is-open) .plus .is-extra {
+      display: none;
+    }
+    .plus__more {
+      display: inline-block;
+      min-height: 32px;
+    }
+    /* Примеры работ — лента со снапом, карточка на ~3/4 экрана, следующая выглядывает. */
+    .pc-works :global(.works) {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      overscroll-behavior-x: contain;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      scroll-padding-inline: var(--gutter);
+      scrollbar-width: none;
+    }
+    .pc-works :global(.works::-webkit-scrollbar) {
+      display: none;
+    }
+    .pc-works :global(.work) {
+      flex: 0 0 76%;
+      scroll-snap-align: start;
+    }
   }
   .uae {
     background: var(--lime);

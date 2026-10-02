@@ -2,7 +2,7 @@
 import Icon from './Icon.astro';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
-import { CONTACTS, local } from '@/consts';
+import { CONTACTS, local, waLink } from '@/consts';
 
 interface Props {
   title?: string;
@@ -13,6 +13,8 @@ const lang = getLang(Astro.url);
 const t = ui(lang);
 const L = local(lang);
 const { title = t.leadTitle, context } = Astro.props;
+/** В сообщение WhatsApp уходит сам раздел, без «Интересует:» из поля задачи. */
+const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
 ---
 
 <div class="lead">
@@ -35,7 +37,7 @@ const { title = t.leadTitle, context } = Astro.props;
         </div>
       </li>
     </ul>
-    <a class="btn btn--ghost" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+    <a class="btn btn--ghost" href={wa} target="_blank" rel="noopener">
       <Icon name="whatsapp" size={20} /> {t.whatsapp}
     </a>
   </div>
@@ -44,6 +46,7 @@ const { title = t.leadTitle, context } = Astro.props;
     class="lead__form card"
     data-lead-form
     data-submit={t.submit}
+    data-short-phone={t.shortPhone}
     data-sending={t.sending}
     data-attach-big={t.attachBig}
     data-attach-wa={t.attachWa}
@@ -57,7 +60,7 @@ const { title = t.leadTitle, context } = Astro.props;
     </label>
     <label class="field">
       <span>{t.contact}</span>
-      <input class="input" name="contact" type="tel" autocomplete="tel" placeholder="+971" required aria-required="true" />
+      <input class="input" name="contact" type="tel" autocomplete="tel" placeholder={t.contactPh} required aria-required="true" />
     </label>
     <label class="field">
       <span>{t.task}</span>
@@ -80,6 +83,7 @@ const { title = t.leadTitle, context } = Astro.props;
     </div>
     <p class="lead__error" data-error role="alert" hidden>{t.noContact}</p>
     <button class="btn btn--primary" type="submit">{t.submit}</button>
+    <p class="lead__trust caption">{t.trust(L.replyTime)}</p>
     <p class="caption">
       {t.consent} <a class="lead__privacy" href={link('/privacy/', lang)}>{t.consentLink}</a>.
     </p>
@@ -152,8 +156,16 @@ const { title = t.leadTitle, context } = Astro.props;
       const file = fileInput?.files?.[0] ?? null;
       fd.delete('file');
       const data = Object.fromEntries(fd) as Record<string, string>;
-      if (!data.contact?.trim()) {
+      const value = data.contact?.trim() ?? '';
+      if (!value) {
         fail(noContactText, contact);
+        contact?.focus();
+        return;
+      }
+      // Похоже на номер (нет букв и @) — в нём должно быть хотя бы 7 цифр.
+      // Почту и ник в Telegram пропускаем как есть.
+      if (!/[@a-zа-яё]/i.test(value) && value.replace(/\D/g, '').length < 7) {
+        fail(form.dataset.shortPhone!, contact);
         contact?.focus();
         return;
       }
@@ -268,6 +280,11 @@ const { title = t.leadTitle, context } = Astro.props;
     flex-direction: column;
     gap: 18px;
     padding: 32px;
+  }
+  /* Строка доверия под кнопкой: тихо, без лишнего веса. */
+  .lead__trust {
+    margin-top: -8px;
+    color: var(--muted);
   }
   .lead__error {
     color: var(--warn);

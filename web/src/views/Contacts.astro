@@ -5,7 +5,7 @@ import Icon from '@/components/Icon.astro';
 import LeadForm from '@/components/LeadForm.astro';
 import { getLang } from '@/i18n';
 import { ui } from '@/i18n/ui';
-import { CONTACTS, local } from '@/consts';
+import { CONTACTS, local, waLink } from '@/consts';
 
 const lang = getLang(Astro.url);
 const u = ui(lang);
@@ -18,7 +18,7 @@ const T = {
     title: 'Контакты',
     metaTitle: 'Контакты в Дубае: Dubai Design District',
     description: `Телефон и WhatsApp ${CONTACTS.phone}. ${L.hours}. Отвечаем ${L.replyTime}. Адрес: ${L.address}.`,
-    lead: `Быстрее всего — WhatsApp. Отвечаем ${L.replyTime}.`,
+    lead: `Быстрее всего — написать в WhatsApp. На заявки с сайта отвечаем ${L.replyTime}.`,
     phone: 'Телефон',
     write: 'Написать',
     call: 'Позвонить',
@@ -32,7 +32,7 @@ const T = {
     title: 'Contacts',
     metaTitle: 'Contacts in Dubai: Dubai Design District',
     description: `Phone and WhatsApp ${CONTACTS.phone}. ${L.hours}. We reply ${L.replyTime}. Address: ${L.address}.`,
-    lead: `WhatsApp is the fastest way to reach us. We reply ${L.replyTime}.`,
+    lead: `The fastest way to reach us is WhatsApp. We reply to website requests ${L.replyTime}.`,
     phone: 'Phone',
     write: 'Send a message',
     call: 'Call',
@@ -50,7 +50,7 @@ const T = {
 
   <section class="section--tight" style="padding-top:0">
     <div class:list={['shell', 'grid', EMAIL ? 'grid--4' : 'grid--3']}>
-      <a class="card card--link c" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
+      <a class="card card--link c" href={waLink(lang)} target="_blank" rel="noopener">
         <Icon name="whatsapp" size={28} />
         <span class="caption">WhatsApp</span>
         <strong>{CONTACTS.phone}</strong>

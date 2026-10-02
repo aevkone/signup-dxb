@@ -6,17 +6,25 @@ import ProcessSteps from '@/components/ProcessSteps.astro';
 import LeadForm from '@/components/LeadForm.astro';
 import { getLang, link } from '@/i18n';
 import { blocks } from '@/data/exhibitions';
-import { local } from '@/consts';
+import { standRate, fmtMoney } from '@/data/production';
+import { ui } from '@/i18n/ui';
+import { local, waLink } from '@/consts';
 
 const lang = getLang(Astro.url);
 const L = local(lang);
+const u = ui(lang);
 const BLOCKS = blocks(lang);
+/** Ориентир за м² — строка «Выставочный стенд, модульная система» из прайса. */
+const rate = standRate(lang);
 const T = {
   ru: {
     title: 'Выставки под ключ',
     metaTitle: 'Организация выставок под ключ в Дубае',
-    description: 'Полный цикл участия в выставке в Дубае — от контракта до демонтажа. Восемь блоков: стенд, печать, персонал, питание, логистика, консьерж, оплата, переговоры.',
-    lead: 'Полный цикл — от контракта с заказчиком до демонтажа после выставки. Восемь блоков: берите весь пакет или только те, что нужны.',
+    description: 'Полный цикл участия в выставке в Дубае — от контракта с организатором до демонтажа. Восемь блоков: стенд, печать, персонал, питание, логистика, консьерж, оплата, переговоры.',
+    lead: 'Полный цикл — от контракта с организатором до демонтажа после выставки. Восемь блоков: берите весь пакет или только те, что нужны.',
+    quote: 'Рассчитать стоимость',
+    anchor: (from: string) => `Стенд под ключ — ориентир ${from}/м²`,
+    anchorLink: 'примеры в прайсе',
     area: 'Работаем на выставках в эмиратах',
     vis: 'Визуализация стенда SIGNUP DXB',
     visTag: 'Визуализация',
@@ -28,8 +36,11 @@ const T = {
   en: {
     title: 'Turnkey exhibitions',
     metaTitle: 'Turnkey exhibition services in Dubai',
-    description: 'The full exhibition cycle in Dubai, from contract to breakdown. Eight blocks: stand, print, staff, catering, logistics, concierge, payment and negotiations.',
-    lead: 'The full cycle — from contract to breakdown after the show. Eight blocks: take the whole package or only the ones you need.',
+    description: 'The full exhibition cycle in Dubai, from the organiser’s contract to breakdown. Eight blocks: stand, print, staff, catering, logistics, concierge, payment and negotiations.',
+    lead: 'The full cycle — from the organiser’s contract to breakdown after the show. Eight blocks: take the whole package or only the ones you need.',
+    quote: 'Get a quote',
+    anchor: (from: string) => `Turnkey stand — guide price ${from}/m²`,
+    anchorLink: 'examples in the price list',
     area: 'We work at exhibitions in',
     vis: 'SIGNUP DXB stand visualisation',
     visTag: 'Visualisation',
@@ -51,6 +62,20 @@ const FEATURE = 4;
 <Base title={T.metaTitle} description={T.description} crumbs={[{ label: T.title }]}>
   <PageHero title={T.title} lead={T.lead} crumbs={[{ label: T.title }]}>
     <p class="caption area">{T.area}: {L.exhibitionsArea}.</p>
+    {
+      rate && (
+        <p class="anchor">
+          {T.anchor(fmtMoney(rate.lo, null, lang))} · <a href={link('/prices/#expo', lang)}>{T.anchorLink}</a>
+        </p>
+      )
+    }
+    {/* Расчёт открывается сразу с выбранной «Выставкой под ключ». */}
+    <div class="hero-actions">
+      <a class="btn btn--primary" href={link('/configurator/?service=turnkey', lang)}>{T.quote}</a>
+      <a class="btn btn--ghost" href={waLink(lang, T.title)} target="_blank" rel="noopener">
+        <Icon name="whatsapp" size={20} /> {u.whatsapp}
+      </a>
+    </div>
 
     <figure class="sband">
       <div class="sband__grid">
@@ -133,6 +158,23 @@ const FEATURE = 4;
   }
   :global(.phero) .area {
     color: var(--on-stage-muted);
+  }
+  .anchor {
+    margin-top: 10px;
+    color: var(--on-stage);
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .anchor a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
   }
 
   /* ---------- Лента кадров стенда в тёмной шапке ---------- */

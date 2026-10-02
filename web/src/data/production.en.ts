@@ -7,7 +7,7 @@ export const CATEGORIES_EN: Category[] = [
     title: 'Illuminated signage',
     short: 'Signs, lightboxes, 3D letters, flexible neon',
     icon: 'light',
-    lead: 'In a city where darkness falls early and fast and buildings stand close together, an illuminated sign keeps working when a regular one disappears. It isn’t decoration — it’s a working tool that brings people in during peak evening hours.',
+    lead: 'In Dubai the street comes alive after sunset: once the heat drops, people head out to shops and restaurants. An illuminated sign works hardest in exactly those hours and stays readable in bright daytime sun. It isn’t decoration — it’s a working tool that brings people in when footfall peaks.',
     advantages: [
       { title: 'Visible around the clock', text: 'Your brand stays noticeable after sunset and in the shadow of neighbouring buildings.' },
       { title: 'Lasts for years', text: 'With proper assembly and quality components, the sign runs without maintenance.' },

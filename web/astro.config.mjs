@@ -19,7 +19,8 @@ export default defineConfig({
     }),
   ],
   trailingSlash: 'always',
-  build: { format: 'directory', inlineStylesheets: 'auto' },
+  // Стили встраиваются в страницу: без отдельных запросов CSS, блокирующих первую отрисовку.
+  build: { format: 'directory', inlineStylesheets: 'always' },
   compressHTML: true,
   prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
 });
