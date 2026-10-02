@@ -208,7 +208,7 @@ const i18n = {
     <div class="cfg__sum-body" id="cfg-sum-body">
       <dl data-summary></dl>
       <p class="caption">
-        {c.notePrices[0]}<a href={link('/prices/', lang)}>{c.notePrices[1]}</a>{c.notePrices[2]}
+        {c.notePrices[0]}<a class="cfg__inline-link" href={link('/prices/', lang)}>{c.notePrices[1]}</a>{c.notePrices[2]}
         {' '}{c.summaryNote(nb(L.minOrder), L.replyTime)}
       </p>
     </div>
@@ -466,6 +466,11 @@ const i18n = {
   });
 </script>
 <style>
+  /* Ссылка внутри текста подчёркнута — одного цвета мало для различия. */
+  .cfg__inline-link {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
   .cfg {
     display: grid;
     /* minmax(0, …): длинная строка «Выбрано: …» не должна раздвигать колонку. */

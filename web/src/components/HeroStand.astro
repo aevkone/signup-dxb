@@ -11,6 +11,7 @@ import { process } from '@/data/process';
 
 const lang = getLang(Astro.url);
 /** Реальные фото работ: слайдшоу на LED-экране стенда; последнее — на печати задней стены. */
+const POSTER = lang === 'en' ? 'stand-en-2' : 'stand-2';
 const PHOTOS = ['27', '17', '24', '36', '50', '20'].map((id) => link(`/img/works/w${id}-600.jpg`));
 const STEPS = process(lang);
 const T = {
@@ -44,6 +45,11 @@ const CAPS: [number, string][] = STEPS.map((s, i) => [i + 1, s.title]);
   data-script={T.script}
   data-photos={JSON.stringify(PHOTOS)}
 >
+  <!-- Кадр стенда, пока 3D готовится: место под сцену не пустует. -->
+  <picture class="hs__poster" aria-hidden="true">
+    <source type="image/webp" srcset={`${link(`/img/stand/${POSTER}-800.webp`)} 800w, ${link(`/img/stand/${POSTER}-1600.webp`)} 1600w`} sizes="(max-width: 1080px) 100vw, 900px" />
+    <img src={link(`/img/stand/${POSTER}-800.jpg`)} width="800" height="600" alt="" decoding="async" fetchpriority="high" />
+  </picture>
   <canvas class="hs__canvas" aria-hidden="true"></canvas>
   <svg class="hs__svg" viewBox="0 0 560 560" width="560" height="560" aria-hidden="true">
 
@@ -86,6 +92,21 @@ const CAPS: [number, string][] = STEPS.map((s, i) => [i + 1, s.title]);
   }
   .hs.is-ready .hs__canvas {
     opacity: 1;
+  }
+  .hs__poster {
+    position: absolute;
+    inset: 12% 4% 14%;
+    transition: opacity 0.6s ease;
+    -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 55%, transparent 100%);
+    mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 55%, transparent 100%);
+  }
+  .hs__poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .hs.is-ready .hs__poster {
+    opacity: 0;
   }
   /* Подписи появляются вместе со сценой, а не над пустым местом. */
   .hs__svg {

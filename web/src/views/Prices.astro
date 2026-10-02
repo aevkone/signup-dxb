@@ -5,7 +5,7 @@ import Icon from '@/components/Icon.astro';
 import CtaBand from '@/components/CtaBand.astro';
 import { getLang } from '@/i18n';
 import { priceGroups, priceTerms, TOTAL_PRICES } from '@/data/prices';
-import { local } from '@/consts';
+import { CONTACTS, local } from '@/consts';
 
 const lang = getLang(Astro.url);
 const L = local(lang);
@@ -13,7 +13,7 @@ const GROUPS = priceGroups(lang);
 const TERMS = priceTerms(lang);
 
 /** Склонение слова «позиция» при числе. */
-const plural = (n: number) => {
+const pluralRu = (n: number) => {
   const d10 = n % 10;
   const d100 = n % 100;
   if (d10 === 1 && d100 !== 11) return 'позиция';
@@ -29,7 +29,7 @@ const T = {
     description:
       'Цены на наружную рекламу и оформление выставок в ОАЭ: световые вывески, печать, стенды, брендирование транспорта, монтаж. Ориентировочно, в AED без VAT.',
     lead: (n: number) =>
-      `${n} ${plural(n)} по восьми направлениям. Цены ориентировочные: точная сумма считается по вашим размерам, материалам и месту монтажа.`,
+      `${n} ${pluralRu(n)} по восьми направлениям. Цены ориентировочные: точная сумма считается по вашим размерам, материалам и месту монтажа.`,
     currency: 'Цены в AED без VAT 5%',
     valid: 'Действуют с 22.09.2026',
     area: 'Производство: Дубай, Шарджа, Аджман',
@@ -38,6 +38,9 @@ const T = {
     colItem: 'Позиция',
     colPrice: 'Цена, AED',
     colUnit: 'Единица',
+    count: (n: number) => `${n} ${pluralRu(n)}`,
+    ask: 'Уточнить цену в WhatsApp',
+    askText: (group: string) => `Здравствуйте! Хочу уточнить цены: ${group}`,
   },
   en: {
     title: 'Price list',
@@ -55,8 +58,18 @@ const T = {
     colItem: 'Item',
     colPrice: 'Price, AED',
     colUnit: 'Unit',
+    count: (n: number) => `${n} ${n === 1 ? 'item' : 'items'}`,
+    ask: 'Ask about prices on WhatsApp',
+    askText: (group: string) => `Hello! I’d like to ask about prices: ${group}`,
   },
 }[lang];
+
+/** Ссылка на WhatsApp с готовым текстом про раздел прайса. */
+const waAsk = (group: string) =>
+  `${CONTACTS.whatsapp}${CONTACTS.whatsapp.includes('?') ? '&' : '?'}text=${encodeURIComponent(T.askText(group))}`;
+
+/** Стрелка раскрытия раздела на телефоне. */
+const CHEVRON = '<path d="M6 9l6 6 6-6"/>';
 ---
 
 <Base title={T.metaTitle} description={T.description} crumbs={[{ label: T.crumb }]}>
@@ -85,39 +98,195 @@ const T = {
     </div>
   </section>
 
-  {
-    GROUPS.map((g) => (
-      <section class="section--tight" id={g.slug}>
-        <div class="shell">
-          <h2 class="h2 grp__title">{g.title}</h2>
-          <table class="price">
-            <thead>
-              <tr>
-                <th scope="col">{T.colItem}</th>
-                <th scope="col">{T.colPrice}</th>
-                <th scope="col">{T.colUnit}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {g.rows.map((r) => (
-                <tr>
-                  <th scope="row">{r.title}</th>
-                  <td class="price__val">{r.price}</td>
-                  <td class="price__unit">{r.unit}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {g.note && <p class="note">{g.note}</p>}
-        </div>
-      </section>
-    ))
-  }
+  {/*
+    Разделы прайса. На компьютере все открыты и выглядят как обычные секции.
+    До 760px каждый раздел складывается в строку «название + число позиций»,
+    сверху липкая лента разделов. Без скрипта всё открыто, лента — обычные якоря.
+  */}
+  <div class="groups" data-groups>
+    <nav class="chips" aria-label={T.contents} data-chips>
+      <ul class="chips__row">
+        {
+          GROUPS.map((g) => (
+            <li>
+              <a class="chip" href={`#${g.slug}`} data-chip={g.slug}>
+                {g.title}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    {
+      GROUPS.map((g) => (
+        <section class="section--tight grp" id={g.slug} aria-labelledby={`${g.slug}-h`} data-grp>
+          <div class="shell">
+            <div class="grp__head">
+              <h2 class="h2 grp__title" id={`${g.slug}-h`}>
+                {g.title}
+              </h2>
+              <span class="grp__count" id={`${g.slug}-n`}>
+                {T.count(g.rows.length)}
+              </span>
+              <button
+                type="button"
+                class="grp__toggle"
+                aria-expanded="true"
+                aria-controls={`${g.slug}-b`}
+                aria-labelledby={`${g.slug}-h ${g.slug}-n`}
+                data-toggle
+              >
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  set:html={CHEVRON}
+                />
+              </button>
+            </div>
+            <div class="grp__body" id={`${g.slug}-b`}>
+              <table class="price">
+                <thead>
+                  <tr>
+                    <th scope="col">{T.colItem}</th>
+                    <th scope="col">{T.colPrice}</th>
+                    <th scope="col">{T.colUnit}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {g.rows.map((r) => (
+                    <tr>
+                      <th scope="row">{r.title}</th>
+                      <td class="price__val">{r.price}</td>
+                      <td class="price__unit">{r.unit}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {g.note && <p class="note">{g.note}</p>}
+              <a class="arrow-link grp__ask" href={waAsk(g.title)} target="_blank" rel="noopener">
+                <Icon name="whatsapp" size={20} />
+                {T.ask}
+                <span class="arrow-link__disc" aria-hidden="true">
+                  <Icon name="arrow" size={16} />
+                </span>
+              </a>
+            </div>
+          </div>
+        </section>
+      ))
+    }
+  </div>
+
+  {/*
+    Начальное состояние на телефоне ставим сразу после разметки, до первой
+    отрисовки: открыт первый раздел (или тот, на который ведёт #якорь).
+  */}
+  <script is:inline>
+    (function () {
+      var root = document.querySelector('[data-groups]');
+      if (!root) return;
+      root.classList.add('is-fold', 'is-init');
+      if (!window.matchMedia('(max-width: 760px)').matches) return;
+      var groups = root.querySelectorAll('[data-grp]');
+      var hash = decodeURIComponent(location.hash.slice(1));
+      var keep = 0;
+      groups.forEach(function (g, i) {
+        if (g.id === hash) keep = i;
+      });
+      groups.forEach(function (g, i) {
+        if (i === keep) return;
+        g.classList.add('is-closed');
+        g.querySelector('[data-toggle]').setAttribute('aria-expanded', 'false');
+      });
+    })();
+  </script>
 
   <section class="section">
     <div class="shell"><CtaBand /></div>
   </section>
 </Base>
+
+<script>
+  /**
+   * Прайс на телефоне: раскрытие разделов, липкая лента разделов
+   * и подсветка раздела, который сейчас на экране.
+   */
+  const root = document.querySelector<HTMLElement>('[data-groups]');
+  if (root) {
+    const mq = window.matchMedia('(max-width: 760px)');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const groups = [...root.querySelectorAll<HTMLElement>('[data-grp]')];
+    const chips = new Map(
+      [...root.querySelectorAll<HTMLAnchorElement>('[data-chip]')].map((a) => [a.dataset.chip!, a]),
+    );
+    const row = root.querySelector<HTMLElement>('.chips__row');
+
+    // Начальное состояние поставлено без анимации — включаем переходы со следующего кадра.
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('is-init')));
+
+    const setOpen = (g: HTMLElement, open: boolean) => {
+      g.classList.toggle('is-closed', !open);
+      g.querySelector('[data-toggle]')?.setAttribute('aria-expanded', String(open));
+    };
+
+    root.addEventListener('click', (e) => {
+      const btn = (e.target as Element).closest('[data-toggle]');
+      if (!btn) return;
+      const g = btn.closest<HTMLElement>('[data-grp]');
+      if (g) setOpen(g, g.classList.contains('is-closed'));
+    });
+
+    // Любая ссылка на раздел (лента, оглавление, #якорь) сначала открывает его.
+    // Верх раздела при раскрытии не сдвигается, поэтому прокрутка браузера попадает точно.
+    const openByHash = (hash: string) => {
+      const g = groups.find((x) => `#${x.id}` === decodeURIComponent(hash));
+      if (g && g.classList.contains('is-closed')) setOpen(g, true);
+    };
+    document.addEventListener('click', (e) => {
+      const a = (e.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
+      if (a) openByHash(a.getAttribute('href')!);
+    });
+    window.addEventListener('hashchange', () => openByHash(location.hash));
+
+    // Текущий раздел — первый, чья часть видна в полосе под шапкой и лентой.
+    let current = '';
+    const visible = new Set<string>();
+    const mark = (slug: string) => {
+      if (slug === current) return;
+      chips.get(current)?.removeAttribute('aria-current');
+      current = slug;
+      const chip = chips.get(slug);
+      if (!chip) return;
+      chip.setAttribute('aria-current', 'true');
+      // Активный чип держим в видимой части ленты, страницу при этом не трогаем.
+      if (mq.matches && row) {
+        const left = chip.offsetLeft - (row.clientWidth - chip.offsetWidth) / 2;
+        row.scrollTo({ left: Math.max(0, left), behavior: reduced.matches ? 'auto' : 'smooth' });
+      }
+    };
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const en of entries) {
+          if (en.isIntersecting) visible.add(en.target.id);
+          else visible.delete(en.target.id);
+        }
+        const first = groups.find((g) => visible.has(g.id));
+        if (first) mark(first.id);
+      },
+      // Шапка 68px + лента 56px сверху, нижние 55% экрана не считаются.
+      { rootMargin: '-125px 0px -55% 0px', threshold: 0 },
+    );
+    groups.forEach((g) => io.observe(g));
+  }
+</script>
 
 <style>
   .terms {
@@ -240,6 +409,23 @@ const T = {
     color: var(--muted);
   }
 
+  /* Вопрос по разделу — ссылка со стрелкой, как и другие вторичные действия. */
+  .grp__ask {
+    margin-top: 20px;
+    gap: 10px;
+    color: var(--ink);
+  }
+  .grp__ask:hover {
+    color: var(--ink);
+  }
+
+  /* Лента разделов, число позиций и кнопка раскрытия — только на телефоне. */
+  .chips,
+  .grp__count,
+  .grp__toggle {
+    display: none;
+  }
+
   @media (max-width: 980px) {
     .price-top {
       grid-template-columns: minmax(0, 1fr);
@@ -261,19 +447,184 @@ const T = {
       border-bottom: 0;
       padding: 0;
     }
+    /* Цена и единица — одной строкой под названием, так раздел вдвое короче. */
     .price tbody tr {
-      display: block;
-      padding-block: 16px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      column-gap: 10px;
+      align-items: baseline;
+      padding-block: 14px;
       border-bottom: 1px solid var(--line);
     }
+    .price tbody th {
+      grid-column: 1 / -1;
+      line-height: 24px;
+    }
     .price__val {
-      margin-top: 6px;
+      margin-top: 4px;
     }
     .price__unit {
-      margin-top: 2px;
+      margin-top: 4px;
     }
     .rules {
       padding: 26px 22px;
+    }
+  }
+
+  @media (max-width: 760px) {
+    /* Оглавление заменяет липкая лента разделов. */
+    .toc {
+      display: none;
+    }
+
+    /* Лента прилипает под шапкой (68px) и уходит вместе с последним разделом. */
+    .chips {
+      display: block;
+      position: sticky;
+      top: 68px;
+      z-index: 30;
+      background: rgb(223 224 219 / 0.94);
+      backdrop-filter: saturate(1.2) blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .chips__row {
+      display: flex;
+      gap: 8px;
+      padding: 6px var(--gutter);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+    .chips__row::-webkit-scrollbar {
+      display: none;
+    }
+    .chips li {
+      flex: none;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--pill);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+      transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        transform 0.12s ease;
+    }
+    .chip:hover {
+      color: var(--ink);
+    }
+    .chip:active {
+      transform: scale(0.97);
+    }
+    /* Текущий раздел — тёмная заливка: это навигация, не действие, поэтому не слива. */
+    .chip[aria-current] {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--surface);
+    }
+
+    /* Раздел — строка «название + число позиций», под ней содержимое. */
+    .grp {
+      padding-block: 0;
+      scroll-margin-top: 124px;
+    }
+    .grp__head {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 22px;
+      column-gap: 16px;
+      align-content: center;
+      min-height: 56px;
+      padding-block: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .grp__title {
+      grid-column: 1;
+      margin: 0;
+      font-size: 19px;
+      line-height: 25px;
+      letter-spacing: -0.2px;
+    }
+    .grp__count {
+      display: block;
+      grid-column: 1;
+      margin-top: 2px;
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--muted);
+    }
+    /* Кнопка накрывает всю строку — зона касания не меньше 56px. */
+    .is-fold .grp__toggle {
+      display: flex;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      cursor: pointer;
+    }
+    .is-fold .grp__toggle:focus-visible {
+      outline-offset: -2px;
+    }
+    .grp__toggle svg {
+      transform: rotate(180deg);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .is-closed .grp__toggle svg {
+      transform: none;
+    }
+
+    /* Высота едет от 0 до auto там, где есть interpolate-size, иначе — сразу. */
+    .grp__body {
+      display: flow-root;
+      overflow: clip;
+      interpolate-size: allow-keywords;
+      /* Запас по бокам, чтобы кольцо фокуса не обрезалось. */
+      margin-inline: -6px;
+      padding-inline: 6px;
+      transition:
+        height 0.32s var(--ease-out),
+        visibility 0s linear 0s;
+    }
+    .grp.is-closed .grp__body {
+      height: 0;
+      visibility: hidden;
+      transition:
+        height 0.32s var(--ease-out),
+        visibility 0s linear 0.32s;
+    }
+    .grp__ask {
+      margin-block: 8px 24px;
+    }
+
+    /* Начальное состояние ставится без анимации. */
+    .is-init .grp__body,
+    .is-init .grp__toggle svg {
+      transition: none;
+    }
+  }
+  @media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+    .grp__body,
+    .grp.is-closed .grp__body,
+    .grp__toggle svg,
+    .chip {
+      transition: none;
     }
   }
   /* Внутри тёмной шапки страницы. */

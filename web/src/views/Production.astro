@@ -5,11 +5,20 @@ import Icon from '@/components/Icon.astro';
 import CtaBand from '@/components/CtaBand.astro';
 import { getLang, link } from '@/i18n';
 import { categories, TOTAL_ITEMS } from '@/data/production';
+import { workById, workTitle, type Work } from '@/data/works';
 import { local } from '@/consts';
 
 const lang = getLang(Astro.url);
 const L = local(lang);
 const CATS = categories(lang);
+/** Склонение по числу: 1 вид, 3 вида, 5 видов. */
+const plural = (n: number, [one, few, many]: [string, string, string]) => {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+};
 const T = {
   ru: {
     title: 'Наружная реклама и производство',
@@ -20,6 +29,7 @@ const T = {
     prices: (min: string) => `Ориентировочные цены — в прайсе · минимальный заказ ${min}`,
     survey: (s: string) => `Замер ${s}, засчитывается в стоимость заказа`,
     more: (n: number) => `и ещё ${n}`,
+    count: (n: number) => `${n} ${plural(n, ['вид работ', 'вида работ', 'видов работ'])}`,
     tech: 'Материалы и технологии',
     open: 'Открыть',
   },
@@ -32,10 +42,33 @@ const T = {
     prices: (min: string) => `Indicative prices in the price list · minimum order ${min}`,
     survey: (s: string) => `Site survey ${s}, credited towards your order`,
     more: (n: number) => `and ${n} more`,
+    count: (n: number) => `${n} ${n === 1 ? 'type' : 'types'} of work`,
     tech: 'Materials & technologies',
     open: 'Open',
   },
 }[lang];
+
+const img = (id: string, w: number, ext = 'webp') => link(`/img/works/w${id}-${w}.${ext}`);
+const pick = (ids: string[]) => ids.map((id) => workById(id)).filter((w): w is Work => !!w);
+
+/** Лента в шапке: четыре разные технологии, ни одна не повторяется в карточках ниже. */
+const BAND = pick(['24', '17', '20', '56']);
+
+/**
+ * Обложка карточки — снимок из data/works.ts той же категории.
+ * «Комплексное управление» — мозаика из четырёх направлений: это и есть «весь объём».
+ * У широкоформатной печати и полиграфии своих снимков нет — вместо фото
+ * тёмная плашка со значком и числом видов работ, без подмены чужим фото.
+ */
+const COVER: Record<string, string[]> = {
+  'illuminated-signage': ['12'],
+  'vehicle-branding': ['67'],
+  rooftop: ['37'],
+  'signs-and-plates': ['48'],
+  'interior-print': ['36'],
+  'window-branding': ['19'],
+  'project-management': ['27', '05', '30', '50'],
+};
 ---
 
 <Base title={T.metaTitle} description={T.description} crumbs={[{ label: T.crumb }]}>
@@ -46,27 +79,76 @@ const T = {
       <li><Icon name="stand" size={18} />{T.survey(L.survey)}</li>
       <li><Icon name="arrow" size={18} /><a href={link('/technologies/', lang)}>{T.tech}</a></li>
     </ul>
+
+    <ul class="pband">
+      {
+        BAND.map((w, i) => (
+          <li class:list={['pframe', i % 2 === 0 && 'taped']}>
+            <picture>
+              <source type="image/webp" srcset={`${img(w.id, 600)} 600w, ${img(w.id, 1200)} 1200w`} sizes="(max-width: 600px) 45vw, (max-width: 1080px) 22vw, 280px" />
+              <img src={img(w.id, 600, 'jpg')} width="600" height="600" alt={workTitle(w, lang)} loading="eager" decoding="async" />
+            </picture>
+            <p class="pframe__cap">{workTitle(w, lang)}</p>
+          </li>
+        ))
+      }
+    </ul>
   </PageHero>
 
   <section class="section--tight">
-    <div class="shell grid grid--3 cats">
+    <div class="shell cats">
       {
-        CATS.map((c) => (
-          <a class="card card--link cat" href={link(`/production/${c.slug}/`, lang)}>
-            <Icon name={c.icon} size={28} class="cat__icon" />
-            <h2 class="h3">{c.title}</h2>
-            <p>{c.short}</p>
-            <ul class="cat__items caption">
-              {c.items.slice(0, 4).map((it) => (
-                <li>{it.title}</li>
-              ))}
-              {c.items.length > 4 && <li>{T.more(c.items.length - 4)}</li>}
-            </ul>
-            <span class="more">
-              {T.open} <Icon name="arrow" size={16} />
-            </span>
-          </a>
-        ))
+        CATS.map((c, i) => {
+          const cover = pick(COVER[c.slug] ?? []);
+          return (
+            <a class:list={['card card--link cat', i === 0 && 'cat--feature']} href={link(`/production/${c.slug}/`, lang)}>
+              {cover.length === 1 && (
+                <picture class="cat__media">
+                  <source type="image/webp" srcset={`${img(cover[0]!.id, 600)} 600w, ${img(cover[0]!.id, 1200)} 1200w`} sizes="(max-width: 720px) calc(100vw - 40px), (max-width: 1080px) 50vw, 400px" />
+                  <img src={img(cover[0]!.id, 600, 'jpg')} width="600" height="600" alt={workTitle(cover[0]!, lang)} loading="lazy" decoding="async" />
+                </picture>
+              )}
+              {cover.length > 1 && (
+                <div class="cat__media cat__media--mosaic">
+                  {cover.map((w) => (
+                    <picture>
+                      <source type="image/webp" srcset={img(w.id, 600)} />
+                      <img src={img(w.id, 600, 'jpg')} width="600" height="600" alt={workTitle(w, lang)} loading="lazy" decoding="async" />
+                    </picture>
+                  ))}
+                </div>
+              )}
+              {cover.length === 0 && (
+                <div class="cat__media cat__media--mark">
+                  <Icon name={c.icon} size={56} stroke={1.25} />
+                  <span class="cat__count">{T.count(c.items.length)}</span>
+                </div>
+              )}
+              <div class="cat__body">
+                <h2 class="cat__t">{c.title}</h2>
+                <p class="cat__short">{c.short}</p>
+                {c.items.length > 0 ? (
+                  <ul class="cat__items caption">
+                    {c.items.slice(0, 4).map((it) => (
+                      <li>{it.title}</li>
+                    ))}
+                    {c.items.length > 4 && <li>{T.more(c.items.length - 4)}</li>}
+                  </ul>
+                ) : (
+                  /* Нет позиций в прайсе (крышные установки) — вместо них преимущества направления. */
+                  <ul class="cat__items caption">
+                    {c.advantages.slice(0, 4).map((a) => (
+                      <li>{a.title}</li>
+                    ))}
+                  </ul>
+                )}
+                <span class="more">
+                  {T.open} <Icon name="arrow" size={16} />
+                </span>
+              </div>
+            </a>
+          );
+        })
       }
     </div>
   </section>
@@ -90,21 +172,163 @@ const T = {
   .terms :global(svg) {
     color: var(--accent);
   }
+  /* Внутри тёмной шапки страницы. */
+  :global(.phero) .terms li {
+    color: var(--on-stage-muted);
+  }
+  :global(.phero) .terms a {
+    color: var(--on-stage);
+  }
+  :global(.phero) .terms :global(svg) {
+    color: var(--olive-pastel);
+  }
+
+  /* ---------- Лента работ: фото в бумажных рамках, разложенные на сцене ---------- */
+  .pband {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 36px;
+    margin-top: 52px;
+    padding-inline: 6px;
+  }
+  .pframe {
+    padding: 10px 10px 0;
+    background: var(--surface);
+    box-shadow: 0 30px 60px rgb(0 0 0 / 0.45);
+    rotate: -3deg;
+  }
+  .pframe:nth-child(2) {
+    rotate: 2.5deg;
+    translate: 0 10px;
+  }
+  .pframe:nth-child(3) {
+    rotate: -1.5deg;
+  }
+  .pframe:nth-child(4) {
+    rotate: 3.5deg;
+    translate: 0 6px;
+  }
+  .pframe picture {
+    display: block;
+  }
+  .pframe img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+  }
+  .pframe__cap {
+    padding: 10px 2px 14px;
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+  }
+  @media (max-width: 1080px) {
+    .pband {
+      gap: 24px;
+    }
+  }
+  @media (max-width: 600px) {
+    .pband {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 30px 18px;
+      margin-top: 36px;
+      padding-inline: 4px;
+    }
+    .pframe {
+      padding: 7px 7px 0;
+    }
+    .pframe__cap {
+      padding: 8px 1px 10px;
+      font-size: 12px;
+      line-height: 16px;
+    }
+  }
+
+  /* ---------- Девять направлений ---------- */
+  /* 3 колонки — ровно три ряда. В 2 колонки первая карточка идёт во всю
+     ширину, остальные восемь — четыре полных ряда: пустой ячейки нет. */
   .cats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 20px;
   }
   .cat {
+    padding: 0;
+    overflow: hidden;
     color: var(--ink);
-    gap: 10px;
   }
   .cat:hover {
     color: var(--ink);
   }
-  :global(.cat__icon) {
-    color: var(--accent);
-    margin-bottom: 6px;
+  .cat__media {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--line-soft);
   }
-  .cat > p {
+  .cat__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cat:hover .cat__media img {
+      transform: scale(1.03);
+    }
+  }
+  .cat__media--mosaic {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 2px;
+    background: var(--surface);
+  }
+  .cat__media--mosaic picture {
+    display: block;
+    min-height: 0;
+    overflow: hidden;
+  }
+  /* Нет своего снимка — тёмная сцена со сливовым свечением снизу. */
+  .cat__media--mark {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    isolation: isolate;
+    background: var(--stage);
+    color: var(--olive-pastel);
+  }
+  .cat__media--mark::before {
+    content: '';
+    position: absolute;
+    inset: 35% -20% -70%;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgb(89 51 95 / 0.75), transparent);
+  }
+  .cat__count {
+    color: var(--on-stage-muted);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .cat__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 8px;
+    padding: 24px 28px 26px;
+  }
+  .cat__t {
+    font-size: 22px;
+    line-height: 28px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .cat__short {
     color: var(--muted);
     font-size: 16px;
     line-height: 25px;
@@ -117,14 +341,42 @@ const T = {
     padding-top: 14px;
     border-top: 1px solid var(--line);
   }
-  /* Внутри тёмной шапки страницы. */
-  :global(.phero) .terms li {
-    color: var(--on-stage-muted);
+  @media (max-width: 1080px) {
+    .cats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .cat--feature {
+      grid-column: 1 / -1;
+      flex-direction: row;
+    }
+    .cat--feature .cat__media {
+      flex: 0 0 50%;
+      aspect-ratio: auto;
+      min-height: 280px;
+    }
+    .cat--feature .cat__media img {
+      position: absolute;
+      inset: 0;
+    }
   }
-  :global(.phero) .terms a {
-    color: var(--on-stage);
-  }
-  :global(.phero) .terms :global(svg) {
-    color: var(--olive-pastel);
+  @media (max-width: 720px) {
+    .cats {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .cat--feature {
+      grid-column: auto;
+      flex-direction: column;
+    }
+    .cat--feature .cat__media {
+      flex: none;
+      aspect-ratio: 16 / 10;
+      min-height: 0;
+    }
+    .cat--feature .cat__media img {
+      position: static;
+    }
+    .cat__body {
+      padding: 22px 24px 24px;
+    }
   }
 </style>

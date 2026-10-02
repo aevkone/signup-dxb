@@ -4,7 +4,7 @@ import PageHero from '@/components/PageHero.astro';
 import Icon from '@/components/Icon.astro';
 import LeadForm from '@/components/LeadForm.astro';
 import Works from '@/components/Works.astro';
-import { worksFor } from '@/data/works';
+import { worksFor, workTitle } from '@/data/works';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
 import { categories } from '@/data/production';
@@ -19,6 +19,10 @@ const L = local(lang);
 const CATS = categories(lang);
 const c = CATS.find((x) => x.slug === Astro.props.slug)!;
 const others = CATS.filter((x) => x.slug !== c.slug);
+/** Снимки категории: до трёх — в шапке, следующие шесть — в «Примерах работ», без повторов. */
+const WORKS = worksFor(c.slug);
+const HERO_WORKS = WORKS.slice(0, 3);
+const img = (id: string, w: number, ext = 'webp') => link(`/img/works/w${id}-${w}.${ext}`);
 /** Первая буква строчная — для вставки в середину фразы («3D» не трогаем). */
 const lower = (s: string) => (/^[A-ZА-ЯЁ][a-zа-яё]/.test(s) ? s[0]!.toLowerCase() + s.slice(1) : s);
 const T = {
@@ -63,6 +67,21 @@ const T = {
         <Icon name="whatsapp" size={20} /> {u.whatsappShort}
       </a>
     </div>
+    {
+      HERO_WORKS.length > 0 && (
+        <ul class="cphotos">
+          {HERO_WORKS.map((w, i) => (
+            <li class:list={['cframe', i === 0 && 'taped']}>
+              <picture>
+                <source type="image/webp" srcset={`${img(w.id, 600)} 600w, ${img(w.id, 1200)} 1200w`} sizes="(max-width: 560px) 45vw, 260px" />
+                <img src={img(w.id, 600, 'jpg')} width="600" height="600" alt={workTitle(w, lang)} loading="eager" decoding="async" />
+              </picture>
+              <p class="cframe__cap">{workTitle(w, lang)}</p>
+            </li>
+          ))}
+        </ul>
+      )
+    }
   </PageHero>
 
   <section class="section section--surface">
@@ -114,7 +133,7 @@ const T = {
     )
   }
 
-  <Works title={T.works} list={worksFor(c.slug).slice(0, 6)} more={{ href: '/works/', label: T.worksAll }} />
+  <Works title={T.works} list={WORKS.slice(3, 9)} more={{ href: '/works/', label: T.worksAll }} />
 
   {
     c.uae && (
@@ -168,6 +187,63 @@ const T = {
     gap: 12px;
     flex-wrap: wrap;
     margin-top: 30px;
+  }
+  /* Снимки категории в шапке — фото в бумажных рамках на сцене, первое на скотче. */
+  .cphotos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 260px));
+    gap: 36px;
+    margin-top: 52px;
+    padding-inline: 6px;
+  }
+  .cframe {
+    padding: 10px 10px 0;
+    background: var(--surface);
+    box-shadow: 0 30px 60px rgb(0 0 0 / 0.45);
+    rotate: -3deg;
+  }
+  .cframe:nth-child(2) {
+    rotate: 2.5deg;
+    translate: 0 10px;
+  }
+  .cframe:nth-child(3) {
+    rotate: -1.5deg;
+  }
+  .cframe picture {
+    display: block;
+  }
+  .cframe img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+  }
+  .cframe__cap {
+    padding: 10px 2px 14px;
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+  }
+  @media (max-width: 560px) {
+    .cphotos {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 36px;
+      padding-inline: 4px;
+    }
+    /* На телефоне два снимка: третий в ряд был бы слишком мелким. */
+    .cframe:nth-child(3) {
+      display: none;
+    }
+    .cframe {
+      padding: 7px 7px 0;
+    }
+    .cframe__cap {
+      padding: 8px 1px 10px;
+      font-size: 12px;
+      line-height: 16px;
+    }
   }
   .adv {
     margin-top: 36px;

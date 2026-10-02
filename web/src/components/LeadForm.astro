@@ -81,7 +81,7 @@ const { title = t.leadTitle, context } = Astro.props;
     <p class="lead__error" data-error role="alert" hidden>{t.noContact}</p>
     <button class="btn btn--primary" type="submit">{t.submit}</button>
     <p class="caption">
-      {t.consent} <a href={link('/privacy/', lang)}>{t.consentLink}</a>.
+      {t.consent} <a class="lead__privacy" href={link('/privacy/', lang)}>{t.consentLink}</a>.
     </p>
     <div class="lead__done" data-done role="status" hidden>
       <Icon name="check" size={28} />
@@ -175,6 +175,11 @@ const { title = t.leadTitle, context } = Astro.props;
   });
 </script>
 <style>
+  /* Ссылка в тексте отличается не только цветом — подчёркиванием (контраст с текстом рядом мал). */
+  .lead__privacy {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
   .attach {
     display: flex;
     align-items: center;

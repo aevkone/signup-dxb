@@ -84,9 +84,19 @@ document.querySelectorAll<HTMLElement>('[data-hero-stand]').forEach((root) => {
   // Шрифты начинают грузиться сразу, а первый кадр ждёт их не дольше 2,5 с.
   // Если придут позже — сцена сама перерисует надписи.
   const fonts = loadFonts(root.dataset.script || '');
+  // На телефоне тяжёлую сцену собираем, когда страница уже загрузилась и отвечает:
+  // до этого на её месте стоит кадр стенда.
+  const settled = () =>
+    window.matchMedia('(max-width: 760px)').matches
+      ? new Promise<void>((done) => {
+          const later = () => setTimeout(done, 2000);
+          if (document.readyState === 'complete') later();
+          else window.addEventListener('load', later, { once: true });
+        })
+      : Promise.resolve();
   const engine = lowEnd()
     ? flat()
-    : Promise.all([idle().then(() => import('./stand3d')), atMost(fonts, FONT_WAIT)])
+    : Promise.all([settled().then(idle).then(() => import('./stand3d')), atMost(fonts, FONT_WAIT)])
         .then(([m]) => m.createStand3D(root, canvas, fonts))
         .then((s) => (s ? mark(s, '3d') : flat()))
         .catch(flat);

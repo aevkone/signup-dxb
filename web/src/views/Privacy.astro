@@ -10,25 +10,57 @@ const T = {
   ru: {
     title: 'Политика обработки данных',
     crumb: 'Политика данных',
-    description: `Какие данные ${SITE_NAME} получает из формы заявки, зачем они нужны, где хранятся и как их удалить. Оператор данных — ${L.legalName}.`,
+    description: `Какие данные ${SITE_NAME} получает из формы заявки, зачем они нужны, сколько хранятся и как их удалить. Оператор данных — ${L.legalName}.`,
     blocks: [
       ['', `Оператор данных — ${L.legalName}, лицензия ${L.licence}, ${L.address}.`],
-      ['Какие данные мы получаем', 'Только то, что вы сами указываете в форме заявки: имя, телефон или WhatsApp, описание задачи и параметры проекта.'],
-      ['Зачем', 'Чтобы связаться с вами по заявке и подготовить предложение. Данные не используются для рассылок и не передаются третьим лицам для рекламы.'],
-      ['Где хранятся', 'Заявка приходит нам на почту и в мессенджер. Отдельной базы данных на сайте нет.'],
-      ['Как удалить данные', `Напишите на номер ${CONTACTS.phone} в WhatsApp — удалим переписку и заявку.`],
+      [
+        'Какие данные мы получаем',
+        'Только то, что вы сами указываете в форме заявки или в расчёте стоимости: имя, контакт для связи (телефон, WhatsApp или email), описание задачи и параметры выбранной услуги. По желанию можно приложить макет — файл до 10 МБ.',
+      ],
+      [
+        'Как заявка доходит до нас',
+        `Форма отправляет заявку через серверную функцию сайта на Cloudflare Pages. Оттуда она приходит нам в Telegram и на почту ${CONTACTS.email}; отдельной базы заявок у сайта нет. Если сервер недоступен, сайт предложит отправить ту же заявку через WhatsApp — сообщение уйдёт, только когда вы сами нажмёте «Отправить» в WhatsApp.`,
+      ],
+      [
+        'Зачем',
+        'Только чтобы ответить вам и подготовить расчёт или предложение. Данные не используются для рассылок и не передаются третьим лицам для рекламы.',
+      ],
+      [
+        'Сколько храним',
+        'Храним заявки не дольше, чем нужно для работы над запросом и требований закона.',
+      ],
+      [
+        'Как удалить данные',
+        `Напишите на ${CONTACTS.email} — удалим вашу заявку и переписку по ней.`,
+      ],
     ],
   },
   en: {
     title: 'Privacy policy',
     crumb: 'Privacy policy',
-    description: `What data ${SITE_NAME} receives from the request form, why, where it is stored and how to delete it. Data controller — ${L.legalName}.`,
+    description: `What data ${SITE_NAME} receives from the request form, why, how long it is kept and how to delete it. Data controller — ${L.legalName}.`,
     blocks: [
       ['', `Data controller — ${L.legalName}, licence ${L.licence}, ${L.address}.`],
-      ['What data we receive', 'Only what you enter in the request form yourself: your name, phone or WhatsApp number, a description of your request and project details.'],
-      ['Why', 'To contact you about your request and prepare a proposal. The data is not used for mailings and is not shared with third parties for advertising.'],
-      ['Where it is stored', 'Requests arrive in our email and messenger. The website has no separate database.'],
-      ['How to delete your data', `Message ${CONTACTS.phone} on WhatsApp and we’ll delete the conversation and your request.`],
+      [
+        'What data we receive',
+        'Only what you enter yourself in the request form or the cost configurator: your name, a way to reach you (phone, WhatsApp or email), a description of your request and the details of the service you chose. You can also attach a design file of up to 10 MB if you wish.',
+      ],
+      [
+        'How your request reaches us',
+        `The form sends your request through the website’s server function on Cloudflare Pages, which delivers it to our Telegram and to ${CONTACTS.email}; the website keeps no separate database of requests. If the server is unavailable, the site offers to send the same request via WhatsApp — the message goes only when you tap Send in WhatsApp yourself.`,
+      ],
+      [
+        'Why',
+        'Only to reply to you and prepare a quote or proposal. The data is not used for mailings and is not shared with third parties for advertising.',
+      ],
+      [
+        'How long we keep it',
+        'We keep requests no longer than needed to work on your enquiry and to meet legal requirements.',
+      ],
+      [
+        'How to delete your data',
+        `Write to ${CONTACTS.email} and we’ll delete your request and the related correspondence.`,
+      ],
     ],
   },
 }[lang];

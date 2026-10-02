@@ -18,6 +18,9 @@ const T = {
     description: 'Полный цикл участия в выставке в Дубае — от контракта до демонтажа. Восемь блоков: стенд, печать, персонал, питание, логистика, консьерж, оплата, переговоры.',
     lead: 'Полный цикл — от контракта с заказчиком до демонтажа после выставки. Восемь блоков: берите весь пакет или только те, что нужны.',
     area: 'Работаем на выставках в эмиратах',
+    vis: 'Визуализация стенда SIGNUP DXB',
+    visTag: 'Визуализация',
+    views: ['вид от входа, на стенде гости и персонал', 'общий план со светом', 'вид сбоку', 'вид с угла'],
     howH: 'Как мы работаем',
     howSub: 'На каждом этапе у вас один ответственный контакт.',
     leadTitle: 'Расскажите о выставке',
@@ -28,37 +31,76 @@ const T = {
     description: 'The full exhibition cycle in Dubai, from contract to breakdown. Eight blocks: stand, print, staff, catering, logistics, concierge, payment and negotiations.',
     lead: 'The full cycle — from contract to breakdown after the show. Eight blocks: take the whole package or only the ones you need.',
     area: 'We work at exhibitions in',
+    vis: 'SIGNUP DXB stand visualisation',
+    visTag: 'Visualisation',
+    views: ['view from the aisle, with visitors and staff', 'overview with lighting', 'side view', 'corner view'],
     howH: 'How we work',
     howSub: 'At every stage you have a single point of contact.',
     leadTitle: 'Tell us about your exhibition',
   },
 }[lang];
+
+/** Кадры 3D-стенда с главной (public/img/stand/): у английской версии на стенде английская надпись. */
+const still = (n: number, w: 800 | 1600, ext = 'webp') => link(`/img/stand/${lang === 'en' ? 'stand-en' : 'stand'}-${n}-${w}.${ext}`);
+const stillAlt = (n: number) => `${T.vis}: ${T.views[n - 1]}`;
+/** Лента вверху: крупный кадр и два поменьше; четвёртый — в карточке «Стенд». */
+const BAND = [1, 2, 3];
+const FEATURE = 4;
 ---
 
 <Base title={T.metaTitle} description={T.description} crumbs={[{ label: T.title }]}>
   <PageHero title={T.title} lead={T.lead} crumbs={[{ label: T.title }]}>
     <p class="caption area">{T.area}: {L.exhibitionsArea}.</p>
+
+    <figure class="sband">
+      <div class="sband__grid">
+        {
+          BAND.map((n, i) => (
+            <picture class:list={['sband__ph', i === 0 && 'sband__ph--main']}>
+              <source
+                type="image/webp"
+                srcset={`${still(n, 800)} 800w, ${still(n, 1600)} 1600w`}
+                sizes={i === 0 ? '(max-width: 760px) calc(100vw - 40px), (max-width: 1080px) 62vw, 800px' : '(max-width: 760px) 50vw, (max-width: 1080px) 32vw, 400px'}
+              />
+              <img src={still(n, 800, 'jpg')} width="800" height="600" alt={stillAlt(n)} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
+            </picture>
+          ))
+        }
+      </div>
+      <figcaption class="caption sband__cap">{T.vis}</figcaption>
+    </figure>
   </PageHero>
 
   <section class="section--tight">
     <div class="shell">
-      <ol class="grid grid--2 blocks">
+      <ol class="blocks">
         {
           BLOCKS.map((b, i) => (
-            <li>
-              <a class="card card--link row" href={link(`/exhibitions/${b.slug}/`, lang)}>
-                <span class="row__num">{String(i + 1).padStart(2, '0')}</span>
-                <Icon name={b.icon} size={28} class="row__icon" />
-                <div class="row__body">
-                  <h2 class="h3">{b.title}</h2>
-                  <p>{b.short}</p>
-                  <ul class="row__inc caption">
+            <li class:list={['blk', i === 0 && 'blk--feature']}>
+              <a class="card card--link blk__card" href={link(`/exhibitions/${b.slug}/`, lang)}>
+                {i === 0 && (
+                  <div class="blk__media">
+                    <picture>
+                      <source type="image/webp" srcset={`${still(FEATURE, 800)} 800w, ${still(FEATURE, 1600)} 1600w`} sizes="(max-width: 720px) calc(100vw - 40px), (max-width: 1080px) 50vw, 420px" />
+                      <img src={still(FEATURE, 800, 'jpg')} width="800" height="600" alt={stillAlt(FEATURE)} loading="lazy" decoding="async" />
+                    </picture>
+                    <span class="blk__tag">{T.visTag}</span>
+                  </div>
+                )}
+                <div class="blk__body">
+                  <div class="blk__top">
+                    <Icon name={b.icon} size={28} class="blk__icon" />
+                    <span class="blk__num">{String(i + 1).padStart(2, '0')}</span>
+                  </div>
+                  <h2 class="blk__t">{b.title}</h2>
+                  <p class="blk__short">{b.short}</p>
+                  <ul class="blk__inc caption">
                     {b.includes.map((x) => (
                       <li>{x.title}</li>
                     ))}
                   </ul>
+                  <Icon name="arrow" size={20} class="blk__arrow" />
                 </div>
-                <Icon name="arrow" size={20} class="row__arrow" />
               </a>
             </li>
           ))
@@ -89,59 +131,205 @@ const T = {
   .area {
     margin-top: 14px;
   }
+  :global(.phero) .area {
+    color: var(--on-stage-muted);
+  }
+
+  /* ---------- Лента кадров стенда в тёмной шапке ---------- */
+  .sband {
+    margin: 40px 0 0;
+  }
+  /* Крупный кадр слева задаёт высоту, два меньших делят её пополам. */
+  .sband__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: 1fr 1fr;
+    gap: 16px;
+  }
+  .sband__ph {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--stage-line);
+    background: #1a1b17;
+  }
+  .sband__ph img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .sband__ph--main {
+    grid-row: 1 / span 2;
+  }
+  .sband__ph--main img {
+    position: static;
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+  .sband__cap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .sband__cap::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--olive-pastel);
+  }
+  @media (max-width: 760px) {
+    .sband {
+      margin: 28px 0 0;
+    }
+    .sband__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: auto;
+      gap: 10px;
+    }
+    .sband__ph--main {
+      grid-row: auto;
+      grid-column: 1 / -1;
+    }
+    .sband__ph:not(.sband__ph--main) {
+      aspect-ratio: 4 / 3;
+    }
+    .sband__ph {
+      border-radius: var(--radius-xs);
+    }
+  }
+
+  /* ---------- Восемь блоков ---------- */
+  /* 3 колонки: «Стенд» занимает две, итого ровно три ряда без пустых ячеек.
+     2 колонки: все карточки по одной ячейке — четыре полных ряда. */
   .blocks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 20px;
   }
-  .row {
+  .blk--feature {
+    grid-column: span 2;
+  }
+  .blk__card {
     position: relative;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 18px;
     height: 100%;
+    padding: 0;
+    overflow: hidden;
     color: var(--ink);
   }
-  .row:hover {
+  .blk__card:hover {
     color: var(--ink);
   }
-  .row__num {
+  .blk--feature .blk__card {
+    flex-direction: row;
+  }
+  .blk__media {
+    position: relative;
+    flex: 0 0 52%;
+    min-height: 300px;
+    background: var(--stage);
+  }
+  .blk__media img {
     position: absolute;
-    top: 24px;
-    right: 28px;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .blk__tag {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    padding: 5px 12px;
+    border-radius: var(--pill);
+    background: rgb(15 16 13 / 0.72);
+    color: var(--on-stage);
     font-size: 13px;
     font-weight: 600;
-    color: var(--disabled-ink);
+    line-height: 18px;
   }
-  :global(.row__icon) {
-    flex-shrink: 0;
-    color: var(--accent);
-    margin-top: 2px;
-  }
-  .row__body {
+  .blk__body {
+    position: relative;
     flex: 1;
-    padding-right: 24px;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 28px 64px;
   }
-  .row__body > p {
-    margin-top: 6px;
+  .blk__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  :global(.blk__icon) {
+    color: var(--accent);
+  }
+  .blk__num {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .blk__t {
+    font-size: 22px;
+    line-height: 28px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .blk__short {
+    margin-top: 8px;
     color: var(--muted);
     font-size: 16px;
     line-height: 25px;
   }
-  .row__inc {
+  .blk__inc {
     display: flex;
     flex-wrap: wrap;
     gap: 6px 14px;
-    margin-top: 14px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
   }
-  .row__inc li::before {
+  .blk__inc li::before {
     content: '· ';
   }
-  :global(.row__arrow) {
+  :global(.blk__arrow) {
     position: absolute;
     right: 26px;
     bottom: 26px;
     color: var(--accent);
+    transition: translate 0.3s var(--ease-out);
   }
-  :global(.phero) .area {
-    color: var(--on-stage-muted);
+  @media (hover: hover) and (pointer: fine) {
+    .blk__card:hover :global(.blk__arrow) {
+      translate: 4px 0;
+    }
+  }
+  @media (max-width: 1080px) {
+    .blocks {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .blk--feature {
+      grid-column: auto;
+    }
+    .blk--feature .blk__card {
+      flex-direction: column;
+    }
+    .blk__media {
+      flex: none;
+      min-height: 0;
+      aspect-ratio: 4 / 3;
+    }
+  }
+  @media (max-width: 720px) {
+    .blocks {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .blk__body {
+      padding: 24px 24px 60px;
+    }
   }
 </style>

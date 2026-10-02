@@ -1,7 +1,6 @@
 ---
 import '@fontsource-variable/montserrat';
-import '@fontsource/caveat/cyrillic-600.css';
-import '@fontsource/caveat/latin-600.css';
+// Caveat (слово от руки) — свой урезанный файл, @font-face ниже в <head>.
 import '@/styles/global.css';
 import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
@@ -40,7 +39,27 @@ const is404 = path.replace(/\/+$/, '') === '/404';
  */
 const IS_PREVIEW = (Astro.site?.host ?? '').endsWith('github.io');
 
-const ogImage = new URL(link('/img/og.jpg'), Astro.site).href;
+/** Общая картинка сайта — для микроразметки организации и страниц без своей. */
+const ogDefault = new URL(link('/img/og.jpg'), Astro.site).href;
+
+/**
+ * Картинка для соцсетей — своя у каждого раздела и языка:
+ * public/img/og/<раздел>-<язык>.jpg, собирается `npm run og`
+ * (scripts/og-images.mjs). Вложенные страницы берут картинку раздела,
+ * остальные (политика, 404) — общую og.jpg.
+ */
+const OG_SECTIONS = ['exhibitions', 'production', 'prices', 'works', 'technologies', 'contacts', 'configurator'];
+const ogSection = isHome ? 'home' : OG_SECTIONS.find((s) => path === `/${s}` || path.startsWith(`/${s}/`));
+const ogImage = ogSection ? new URL(link(`/img/og/${ogSection}-${lang}.jpg`), Astro.site).href : ogDefault;
+
+/**
+ * Caveat 600 — только латиница и кириллица без расширенных диапазонов
+ * (~70 КБ вместо ~95 КБ у двух файлов @fontsource). Собран из файлов
+ * @fontsource/caveat через fontTools: pyftsubset с --layout-features
+ * calt,liga,kern,mark,mkmk (рукописные варианты букв сохранены), затем
+ * fontTools.merge латиницы и кириллицы в один woff2.
+ */
+const caveatFace = `@font-face{font-family:'Caveat';font-style:normal;font-weight:600;font-display:swap;src:url(${link('/fonts/caveat-600-subset.woff2')}) format('woff2')}`;
 
 /**
  * Микроразметка. Организация описывается одинаково на всех страницах:
@@ -67,7 +86,7 @@ const orgLd = {
   name: SITE_NAME,
   url: homeUrl,
   logo: new URL(link('/img/logo.png'), Astro.site).href,
-  image: ogImage,
+  image: ogDefault,
   description: L.siteDescription,
   telephone: CONTACTS.phone,
   email: CONTACTS.email,
@@ -147,10 +166,14 @@ const ld = {
     <meta property="og:locale" content={lang === 'en' ? 'en_AE' : 'ru_RU'} />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={fullTitle} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={fullTitle} />
+    <style is:inline set:html={caveatFace} />
     <meta name="theme-color" content="#0F100D" />
     <script type="application/ld+json" set:html={JSON.stringify(ld).replace(/</g, '\\u003c')} />
   </head>

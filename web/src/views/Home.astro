@@ -1142,6 +1142,13 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     .hero__facts {
       order: 2;
     }
+    /* На телефоне сцена во всю ширину экрана: края всё равно растворяются в фоне. */
+    .hero__grid > :global(.hs) {
+      width: calc(100% + var(--gutter) * 2);
+      max-width: none;
+      margin-inline: calc(var(--gutter) * -1);
+      margin-top: 24px;
+    }
     .entries__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }

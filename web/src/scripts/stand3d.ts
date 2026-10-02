@@ -18,6 +18,9 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { BEAT, DROP, FAST, SNAP, SOFT, clamp, ease, lerp, track, win, wrap } from './spring';
 import type { Spring, Key } from './spring';
 
+/** Отдать управление браузеру между кусками работы. */
+const breathe = () => new Promise<void>((done) => setTimeout(done, 0));
+
 const LB = 40;
 const LOOPT = LB * BEAT;
 const tr = (v0: number, keys: Key[], s: Spring) => track(v0, keys, s, LOOPT);
@@ -475,7 +478,7 @@ function makePerson(look: Look): Person {
 
 /* ---------- Сцена ---------- */
 /** `fonts` — загрузка шрифтов текстур (без ограничения по времени): когда придёт, текст перерисуем. */
-export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, fonts: Promise<unknown> = Promise.resolve()) {
+export async function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, fonts: Promise<unknown> = Promise.resolve()) {
   let renderer: THREE.WebGLRenderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
@@ -526,6 +529,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, font
   rim.position.set(12, -6, 6);
   scene.add(rim);
 
+  await breathe(); // короткая пауза: сборка сцены не блокирует страницу одной длинной задачей
   /* Пол павильона: тёмный полированный бетон с сеткой */
   const hall = mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: '#0e0f0c', roughness: 0.92, metalness: 0, envMapIntensity: 0.12, map: noiseTex(256, [60, 60, 56], 30, 18) }), false);
   hall.position.set(4, 3, -0.002);
@@ -582,6 +586,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, font
   scene.add(plot);
   const labels = [area, dw, dd];
 
+  await breathe(); // короткая пауза: сборка сцены не блокирует страницу одной длинной задачей
   /* Логистика: деревянные ящики */
   const wood = new THREE.MeshStandardMaterial({ map: woodTex(), roughness: 0.85 });
   const CRATES: [number, number, number, number, number, number][] = [
@@ -611,6 +616,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, font
   }
   scene.add(floorG);
 
+  await breathe(); // короткая пауза: сборка сцены не блокирует страницу одной длинной задачей
   /* Стены из модульных панелей */
   const paint = new THREE.MeshStandardMaterial({ color: '#efefea', roughness: 0.9 });
   const paintSide = new THREE.MeshStandardMaterial({ color: '#e4e5df', roughness: 0.9 });
@@ -681,6 +687,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, font
   print.position.set(8, 0.003, F + 1.4);
   scene.add(print);
 
+  await breathe(); // короткая пауза: сборка сцены не блокирует страницу одной длинной задачей
   /* LED-экран на боковой стене: слайдшоу реальных работ */
   const imgs: (HTMLImageElement | null)[] = [];
   let ledShown = -1;
@@ -735,6 +742,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, font
   ledGlow.position.set(0.02, 1.4, 0.45);
   scene.add(ledGlow);
 
+  await breathe(); // короткая пауза: сборка сцены не блокирует страницу одной длинной задачей
   /* Ферма и прожекторы */
   const chrome = new THREE.MeshStandardMaterial({ color: '#d9dbd4', metalness: 1, roughness: 0.22 });
   const TOP = 3.75;
@@ -798,6 +806,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, font
     return { g, light, cone, pool, body };
   });
 
+  await breathe(); // короткая пауза: сборка сцены не блокирует страницу одной длинной задачей
   /* Баннер-кольцо на тросах. Висит низко над фермой — иначе на крупных
      планах уходит за верхний край сцены. */
   const banner = new THREE.Group();
@@ -847,6 +856,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, font
   );
   scene.add(banner);
 
+  await breathe(); // короткая пауза: сборка сцены не блокирует страницу одной длинной задачей
   /* Мебель */
   const lacquer = new THREE.MeshPhysicalMaterial({ color: '#59335f', roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.12 });
   const corian = new THREE.MeshPhysicalMaterial({ color: '#f4f4f0', roughness: 0.3, clearcoat: 0.6 });
@@ -1008,6 +1018,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, font
   rollup.position.set(0.3, 5.3, F);
   scene.add(rollup);
 
+  await breathe(); // короткая пауза: сборка сцены не блокирует страницу одной длинной задачей
   /* Люди */
   const staffLook = (skin: number, hair: number, long: boolean, height: number): Look => ({ skin: SKIN[skin], hair: HAIR[hair], outfit: 'staff', top: '#59335f', bottom: '#1c1e1f', long, height, female: long });
   const STAFF = [
@@ -1047,6 +1058,7 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, font
     return [lerp(a[0], c[0], r), lerp(a[1], c[1], r), c[0] - a[0], c[1] - a[1]];
   };
 
+  await breathe(); // короткая пауза: сборка сцены не блокирует страницу одной длинной задачей
   /* ---------- Сценарий (те же доли, что у 2D-версии) ---------- */
   // Ближе всего и ниже всего камера, пока висит баннер (доли 14–27): дистанцию и
   // угол подобрали так, чтобы баннер сверху и угол подиума снизу оставались в кадре.
@@ -1166,7 +1178,8 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, font
     /* Камера */
     const az = ((-40 + (360 * b) / LB + camDev(t)) * Math.PI) / 180;
     const el = (camEl(t) * Math.PI) / 180;
-    const d = camDist(t);
+    // На узком экране камера ближе: стенд крупнее, а края кадра всё равно растворяются.
+    const d = camDist(t) * (narrow() ? 0.84 : 1);
     camera.position.set(TARGET.x + d * Math.cos(el) * Math.cos(az), TARGET.y + d * Math.cos(el) * Math.sin(az), TARGET.z + d * Math.sin(el));
     camera.lookAt(TARGET);
 
@@ -1340,18 +1353,28 @@ export function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement, font
   }
 
   /* Прогрев: все шейдеры и текстуры готовим заранее, пока все предметы видимы.
-     Иначе каждый новый материал компилируется в момент появления — отсюда рывки. */
-  camera.position.set(4 + 16, 3 + 16, 12);
-  camera.lookAt(TARGET);
-  for (const s of spots) s.light.intensity = 1;
-  scene.traverse((o) => {
-    const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
-    if (m && 'map' in m && m.map) renderer.initTexture(m.map);
-  });
-  renderer.compile(scene, camera);
-  renderer.setSize(Math.max(64, root.clientWidth), Math.max(64, root.clientWidth), false);
-  renderer.render(scene, camera);
-  for (const s of spots) s.light.intensity = 0;
-
-  return { seek, fit };
+     Иначе каждый новый материал компилируется в момент появления — отсюда рывки.
+     Работа порезана на части с паузами, а шейдеры компилируются параллельно (compileAsync),
+     чтобы страница не замирала на секунду, пока готовится сцена. */
+  return (async () => {
+    camera.position.set(4 + 16, 3 + 16, 12);
+    camera.lookAt(TARGET);
+    for (const s of spots) s.light.intensity = 1;
+    const maps: THREE.Texture[] = [];
+    scene.traverse((o) => {
+      const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+      if (m && 'map' in m && m.map && !maps.includes(m.map)) maps.push(m.map);
+    });
+    for (let i = 0; i < maps.length; i++) {
+      renderer.initTexture(maps[i]);
+      if (i % 4 === 3) await breathe();
+    }
+    await breathe();
+    await renderer.compileAsync(scene, camera);
+    await breathe();
+    renderer.setSize(Math.max(64, root.clientWidth), Math.max(64, root.clientWidth), false);
+    renderer.render(scene, camera);
+    for (const s of spots) s.light.intensity = 0;
+    return { seek, fit };
+  })();
 }
