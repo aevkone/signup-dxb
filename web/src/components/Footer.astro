@@ -46,16 +46,16 @@ const licence = L.licence.replace(/^(№|No\.) /, '$1\u00a0');
         <div class="ftr__h">{t.footerContact}</div>
         <ul>
           <li><a class="ftr__nowrap" href={CONTACTS.phoneHref}>{CONTACTS.phone}</a></li>
-          <li><a href={waLink(lang)} data-wa-page target="_blank" rel="noopener">WhatsApp</a></li>
+          <li><a href={waLink(lang)} data-wa-page target="_blank" rel="noopener" translate="no">WhatsApp</a></li>
           {CONTACTS.email && <li><a href={`mailto:${CONTACTS.email}`}>{CONTACTS.email}</a></li>}
-          <li><a href={CONTACTS.instagram} target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href={CONTACTS.instagram} target="_blank" rel="noopener" translate="no">Instagram</a></li>
           <li class="ftr__muted">{hours}</li>
         </ul>
       </div>
     </div>
     <div class="ftr__legal">
       <span>{L.legalName} · {t.licence} {licence} · {L.address}</span>
-      <span>© {year} SIGNUP DXB</span>
+      <span>© {year} <span translate="no">SIGNUP DXB</span></span>
     </div>
   </div>
 </footer>

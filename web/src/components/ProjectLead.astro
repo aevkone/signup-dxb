@@ -1,0 +1,207 @@
+---
+/**
+ * «Руководитель проекта»: Кристина Дякина.
+ * Факты — из книги смыслов и ответов Кристины (переписка проекта, сентябрь 2026).
+ * Ограничения книги соблюдены: без «собственного производства», без своих монтажных бригад,
+ * без цифр, которые не подтверждены.
+ * Фото — аватар из её профиля; заменить на портрет в хорошем разрешении, когда пришлёт.
+ */
+import Icon from '@/components/Icon.astro';
+import { getLang, link } from '@/i18n';
+import { waLink } from '@/consts';
+
+const lang = getLang(Astro.url);
+
+const T = {
+  ru: {
+    eyebrow: 'Руководитель проекта',
+    name: 'Кристина Дякина',
+    role: 'Основатель SIGNUP DXB. Ведёт каждый проект лично — от первого расчёта до демонтажа.',
+    alt: 'Кристина Дякина, руководитель проекта SIGNUP DXB',
+    about: [
+      'Архитектор по образованию, работала в проектировании и дизайне интерьеров. Читает чертежи, понимает, как устроена конструкция, и говорит с технологами на одном языке.',
+      'Живёт в ОАЭ, переехала из Москвы. Выставку знает и со стороны участника: сама готовила свой стенд в московском Гостином дворе. Поэтому помнит главные вопросы экспонента — кто соберёт, кто разберёт, кто ответит, если что-то пошло не так.',
+    ],
+    points: [
+      'Отвечает сама, на русском и английском',
+      'Приезжает на площадку и присылает фото- и видеоотчёт — особенно важно, если вы не в Дубае',
+      'Считает прозрачно: материалы отдельно, работа отдельно',
+      'Если сроки нереальны или задача не наш профиль — говорит сразу и подсказывает, к кому обратиться',
+    ],
+    quote: 'Зачем вам мой офис? Важнее посмотреть ваш объект.',
+    wa: 'Написать Кристине в WhatsApp',
+    waCtx: 'вопрос Кристине',
+    more: 'Как мы работаем',
+  },
+  en: {
+    eyebrow: 'Project lead',
+    name: 'Kristina Diakina',
+    role: 'Founder of SIGNUP DXB. Runs every project personally, from the first quote to breakdown.',
+    alt: 'Kristina Diakina, project lead at SIGNUP DXB',
+    about: [
+      'An architect by training, she worked in architectural design and interiors. She reads drawings, understands how a structure works and speaks the same language as the technologists.',
+      'She lives in the UAE after moving from Moscow, and knows exhibitions from the exhibitor’s side too: she prepared her own stand at Gostiny Dvor in Moscow. So she remembers the questions every exhibitor has — who builds it, who takes it down, who picks up the phone when something goes wrong.',
+    ],
+    points: [
+      'Answers herself, in Russian and English',
+      'Comes to the venue and sends photo and video reports — especially useful if you are not in Dubai',
+      'Prices transparently: materials and labour are listed separately',
+      'If a deadline is unrealistic or a job is outside our profile, she says so straight away and suggests who to ask',
+    ],
+    quote: 'Why look at my office? It’s more useful to see your site.',
+    wa: 'Message Kristina on WhatsApp',
+    waCtx: 'question for Kristina',
+    more: 'How we work',
+  },
+}[lang];
+---
+
+<section class="section plead" aria-labelledby="plead-h">
+  <div class="shell plead__grid">
+    <div class="plead__who" data-reveal>
+      <picture>
+        <source type="image/webp" srcset={`${link('/img/team/kristina-160.webp')} 160w, ${link('/img/team/kristina-320.webp')} 320w`} sizes="128px" />
+        <img class="plead__photo" src={link('/img/team/kristina-320.jpg')} width="128" height="128" alt={T.alt} loading="lazy" decoding="async" />
+      </picture>
+      <div>
+        <p class="eyebrow">{T.eyebrow}</p>
+        <h2 class="h2 plead__name" id="plead-h">{T.name}</h2>
+        <p class="plead__role">{T.role}</p>
+      </div>
+    </div>
+
+    <div class="plead__body" data-reveal style="--d:80ms">
+      {T.about.map((p) => <p class="body plead__p">{p}</p>)}
+      <ul class="plead__points">
+        {
+          T.points.map((p) => (
+            <li>
+              <span class="plead__tick" aria-hidden="true"><Icon name="check" size={14} /></span>
+              {p}
+            </li>
+          ))
+        }
+      </ul>
+      <blockquote class="plead__quote">
+        <p>«{T.quote}»</p>
+      </blockquote>
+      <div class="plead__actions">
+        <a class="btn btn--primary" href={waLink(lang, T.waCtx)} target="_blank" rel="noopener">{T.wa}</a>
+        <a class="arrow-link" href={`${link('/', lang)}#process`}>
+          {T.more}
+          <span class="arrow-link__disc" aria-hidden="true"><Icon name="arrow" size={16} /></span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .plead {
+    background: var(--surface);
+  }
+  .plead__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 64px;
+    align-items: start;
+  }
+  .plead__who {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .plead__photo {
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow:
+      0 0 0 4px var(--surface),
+      0 0 0 5px var(--line);
+  }
+  .plead__name {
+    margin-top: 8px;
+  }
+  .plead__role {
+    margin-top: 12px;
+    max-width: 34ch;
+    font-size: 19px;
+    line-height: 29px;
+    color: var(--muted);
+  }
+  .plead__p + .plead__p {
+    margin-top: 16px;
+  }
+  .plead__p {
+    max-width: 62ch;
+  }
+  .plead__points {
+    display: grid;
+    gap: 12px;
+    margin-top: 28px;
+  }
+  .plead__points li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 17px;
+    line-height: 26px;
+  }
+  .plead__tick {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    margin-top: 1px;
+    border-radius: 50%;
+    background: var(--lime);
+    color: var(--olive-ink);
+  }
+  .plead__quote {
+    margin-top: 32px;
+    padding-left: 20px;
+    border-left: 3px solid var(--accent);
+    font-size: 21px;
+    line-height: 31px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+  .plead__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 28px;
+    margin-top: 32px;
+  }
+  @media (max-width: 960px) {
+    .plead__grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    .plead__who {
+      flex-direction: row;
+      align-items: center;
+      gap: 20px;
+    }
+    .plead__photo {
+      width: 96px;
+      height: 96px;
+    }
+    .plead__role {
+      font-size: 16px;
+      line-height: 24px;
+    }
+  }
+  @media (max-width: 420px) {
+    .plead__who {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .plead__quote {
+      font-size: 18px;
+      line-height: 27px;
+    }
+  }
+</style>

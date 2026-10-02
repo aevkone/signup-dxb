@@ -108,6 +108,10 @@ const img = (id: string, w: number, ext = 'webp') => link(`/img/works/w${id}-${w
   .toc a:hover {
     border-color: var(--ink);
   }
+  /* Переход из оглавления: заголовок раздела не уходит под липкую шапку (84px). */
+  .tech {
+    scroll-margin-top: 84px;
+  }
   .tech--alt {
     background: var(--surface);
   }

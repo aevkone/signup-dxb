@@ -553,6 +553,17 @@ html {
 .stage .card :focus-visible {
   outline-color: var(--accent);
 }
+/* Тёмные поверхности — тёмные полосы прокрутки и системные элементы;
+   светлая карточка на сцене (форма заявки) остаётся светлой. */
+.stage,
+.hdr,
+.ftr,
+.scta {
+  color-scheme: dark;
+}
+.stage .card {
+  color-scheme: light;
+}
 
 /* Одно рукописное слово на заголовок — акцент образца. */
 .script {
@@ -729,10 +740,12 @@ html {
   color: var(--olive-pastel);
 }
 
-/* Тап по ссылкам и кнопкам без серой вспышки: отклик даёт :active-состояние. */
+/* Тап по ссылкам и кнопкам без серой вспышки: отклик даёт :active-состояние.
+   manipulation — без задержки двойного тапа, прокрутка и масштаб щипком остаются. */
 a,
 button,
 summary,
 label {
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }

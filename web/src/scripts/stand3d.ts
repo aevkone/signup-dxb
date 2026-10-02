@@ -618,7 +618,8 @@ export async function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement
   }
   const L = root.dataset;
   const photos: string[] = JSON.parse(L.photos || '[]');
-  const narrow = () => root.clientWidth < 600;
+  // Ширина из fit(): в каждом кадре не читаем раскладку; до первого fit — замер.
+  const narrow = () => (lastWidth || root.clientWidth) < 600;
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;

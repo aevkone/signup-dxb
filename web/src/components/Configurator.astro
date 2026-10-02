@@ -141,7 +141,7 @@ const i18n = {
       {/* Поля показываются по ветке услуги; скрытые отключаются и не попадают в заявку. */}
       <label class="field" data-for="expo staff">
         <span>{c.expo}</span>
-        <input class="input" name="expo" placeholder={LOCAL.expoPh} />
+        <input class="input" name="expo" autocomplete="off" placeholder={LOCAL.expoPh} />
       </label>
       <div class="field" data-for="expo" role="radiogroup" aria-labelledby="cfg-area">
         <span id="cfg-area">{c.area}</span>
@@ -159,28 +159,28 @@ const i18n = {
       <div class="cfg__pair" data-for="prod">
         <label class="field">
           <span>{c.size}</span>
-          <input class="input" name="size" placeholder={LOCAL.sizePh} />
+          <input class="input" name="size" autocomplete="off" placeholder={LOCAL.sizePh} />
         </label>
         <label class="field">
           <span>{c.qty}</span>
-          <input class="input" name="qty" inputmode="numeric" placeholder={LOCAL.qtyPh} />
+          <input class="input" name="qty" inputmode="numeric" autocomplete="off" placeholder={LOCAL.qtyPh} />
         </label>
       </div>
       <label class="field" data-for="staff">
         <span>{c.people}</span>
-        <input class="input" name="people" inputmode="numeric" placeholder={c.countPh} />
+        <input class="input" name="people" inputmode="numeric" autocomplete="off" placeholder={c.countPh} />
       </label>
       <label class="field" data-for="concierge">
         <span>{c.guests}</span>
-        <input class="input" name="guests" inputmode="numeric" placeholder={c.countPh} />
+        <input class="input" name="guests" inputmode="numeric" autocomplete="off" placeholder={c.countPh} />
       </label>
       <label class="field" data-for="expo staff concierge">
         <span>{c.dates}</span>
-        <input class="input" name="dates" placeholder={LOCAL.datesPh} />
+        <input class="input" name="dates" autocomplete="off" placeholder={LOCAL.datesPh} />
       </label>
       <label class="field" data-for="prod">
         <span>{c.deadline}</span>
-        <input class="input" name="deadline" placeholder={c.deadlinePh} />
+        <input class="input" name="deadline" autocomplete="off" placeholder={c.deadlinePh} />
       </label>
       {/* Макет — те же правила, что в форме заявки: до 10 МБ, тот же список форматов. */}
       <div class="field" data-for="prod">
@@ -194,7 +194,7 @@ const i18n = {
             accept=".pdf,.png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.psd,.cdr,.zip,.rar,image/*,application/pdf"
           />
           <span class="attach__btn">{t.attachPick}</span>
-          <span class="attach__name caption" data-file-name>{t.attachHint}</span>
+          <span class="attach__name caption" data-file-name aria-live="polite">{t.attachHint}</span>
         </label>
         <button type="button" class="attach__drop caption" data-file-drop hidden>{t.attachDrop}</button>
       </div>
@@ -763,6 +763,9 @@ const i18n = {
     white-space: nowrap;
     cursor: pointer;
   }
+  .pill:hover {
+    border-color: #cfcbc3;
+  }
   .pill:has(input:checked) {
     border-color: var(--accent);
     background: #f4f5f8;
@@ -908,6 +911,7 @@ const i18n = {
     overflow-wrap: anywhere;
   }
   .cfg__summary :global(dd.is-money) {
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
     overflow-wrap: normal;
   }
@@ -937,6 +941,7 @@ const i18n = {
     font-size: 18px;
     line-height: 26px;
     font-weight: 800;
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
   @media (max-width: 960px) {

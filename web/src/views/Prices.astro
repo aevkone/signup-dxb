@@ -365,6 +365,10 @@ const CHEVRON = '<path d="M6 9l6 6 6-6"/>';
     background: currentColor;
   }
 
+  /* Переход к разделу по якорю: заголовок не уходит под липкую шапку (84px). */
+  .grp {
+    scroll-margin-top: 84px;
+  }
   .grp__title {
     margin-bottom: 24px;
   }
@@ -398,6 +402,7 @@ const CHEVRON = '<path d="M6 9l6 6 6-6"/>';
     width: 26%;
     font-size: 17px;
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
     color: var(--olive-ink);
     white-space: nowrap;
   }

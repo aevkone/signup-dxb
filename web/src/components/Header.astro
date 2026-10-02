@@ -16,6 +16,8 @@ const isActive = (href: string) =>
   href === '/exhibitions/'
     ? path.startsWith('/exhibitions/') && !path.startsWith('/exhibitions/concierge/')
     : path.startsWith(href);
+/** Для читалок: «page» — это и есть текущая страница, «true» — текущий раздел. */
+const current = (href: string) => (isActive(href) ? (path === href ? 'page' : 'true') : undefined);
 ---
 
 <header class="hdr">
@@ -27,7 +29,7 @@ const isActive = (href: string) =>
     <nav class="hdr__nav" aria-label={t.mainMenu}>
       {
         items.map((item) => (
-          <a href={link(item.href, lang)} class:list={['hdr__link', { 'is-active': isActive(item.href) }]}>
+          <a href={link(item.href, lang)} aria-current={current(item.href)} class:list={['hdr__link', { 'is-active': isActive(item.href) }]}>
             {item.label}
           </a>
         ))
@@ -59,7 +61,7 @@ const isActive = (href: string) =>
         <nav aria-label={t.mobileMenu}>
           {
             mItems.map((item) => (
-              <a href={link(item.href, lang)} class:list={['mnav__link', { 'is-active': isActive(item.href) }]}>
+              <a href={link(item.href, lang)} aria-current={current(item.href)} class:list={['mnav__link', { 'is-active': isActive(item.href) }]}>
                 {item.label}
               </a>
             ))

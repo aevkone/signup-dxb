@@ -64,7 +64,7 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
     </label>
     <label class="field">
       <span>{t.task}</span>
-      <textarea class="textarea" name="task" rows="3" placeholder={t.taskPh}>{context}</textarea>
+      <textarea class="textarea" name="task" rows="3" autocomplete="off" placeholder={t.taskPh}>{context}</textarea>
     </label>
     <div class="field">
       <span>{t.attach}</span>

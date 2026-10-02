@@ -63,18 +63,20 @@ document.querySelectorAll('[data-count]').forEach((el) => countIO.observe(el));
 document.querySelectorAll<HTMLElement>('[data-process]').forEach((root) => {
   const steps = [...root.querySelectorAll<HTMLElement>('[data-step]')];
   let raf = 0;
+  const dots = steps.map((s) => s.querySelector<HTMLElement>('[data-dot]') ?? s);
   const update = () => {
     raf = 0;
+    // Сначала все замеры, потом все записи — без лишних пересчётов раскладки за кадр.
     const r = root.getBoundingClientRect();
     const vh = window.innerHeight;
+    const lit = dots.map((dot) => {
+      const d = dot.getBoundingClientRect();
+      return d.top + d.height / 2 < vh * 0.6;
+    });
     // Линия доходит до точки, которая сейчас на 60% высоты экрана.
     const p = Math.min(1, Math.max(0, (vh * 0.6 - r.top) / r.height));
     root.style.setProperty('--p', p.toFixed(4));
-    for (const s of steps) {
-      const dot = s.querySelector<HTMLElement>('[data-dot]') ?? s;
-      const d = dot.getBoundingClientRect();
-      s.classList.toggle('is-lit', d.top + d.height / 2 < vh * 0.6);
-    }
+    steps.forEach((s, i) => s.classList.toggle('is-lit', lit[i]!));
   };
   const onScroll = () => {
     if (!raf) raf = requestAnimationFrame(update);
