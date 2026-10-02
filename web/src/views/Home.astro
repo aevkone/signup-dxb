@@ -186,7 +186,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
       <div class="collage">
         {
           COLLAGE.map((wk, i) => (
-            <picture class:list={['collage__ph', 'taped', `collage__ph--${i + 1}`]} data-reveal style={`--d:${i * 140}ms`}>
+            <picture class:list={['collage__ph', 'taped', `collage__ph--${i + 1}`]} data-reveal style={`--d:${i * 80}ms`}>
               <source type="image/webp" srcset={w(wk.id, 600)} />
               <img src={w(wk.id, 600, 'jpg')} width="600" height="600" alt={workTitle(wk, lang)} loading="lazy" />
             </picture>
@@ -198,7 +198,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
         <p class="intro__text">{T.introText}</p>
         <ul class="promises">
           {T.promises.map(([h, t], i) => (
-            <li data-reveal style={`--d:${i * 90}ms`}>
+            <li data-reveal style={`--d:${i * 60}ms`}>
               <span class="promises__tick" aria-hidden="true"><Icon name="check" size={16} /></span>
               <div><strong>{h}</strong><span>{t}</span></div>
             </li>
@@ -229,7 +229,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
       <div class="entries__grid">
         {
           T.entries.map(([href, h, p, m], i) => (
-            <a class="entry" href={link(href, lang)} data-reveal style={`--d:${i * 120}ms`}>
+            <a class="entry" href={link(href, lang)} data-reveal style={`--d:${i * 70}ms`}>
               <div class="entry__media" data-drift>
                 <picture>
                   <source type="image/webp" srcset={entrySet(i, 'webp')} sizes="(max-width: 760px) 92vw, (max-width: 1080px) 46vw, 400px" />
@@ -345,7 +345,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
       <ul class="terms__row">
         {
           T.terms.map(([n, unit, label, order], i) => (
-            <li data-reveal style={`--d:${i * 100}ms`}>
+            <li data-reveal style={`--d:${i * 60}ms`}>
               <span class:list={['terms__v', order === 'before' && 'terms__v--rev']}>
                 <span class="terms__n">{n}</span>
                 {unit && <span class="terms__u">{unit}</span>}
@@ -701,8 +701,10 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     transform: scale(1.08) translate(calc(var(--mx) * -14px), calc(var(--my) * -14px));
     transition: transform 0.6s var(--ease-out), filter 0.4s ease;
   }
-  .entry:hover .entry__media img {
-    transform: scale(1.12) translate(calc(var(--mx) * -18px), calc(var(--my) * -18px));
+  @media (hover: hover) and (pointer: fine) {
+    .entry:hover .entry__media img {
+      transform: scale(1.12) translate(calc(var(--mx) * -18px), calc(var(--my) * -18px));
+    }
   }
   .entry__title {
     margin-top: 24px;
@@ -749,8 +751,10 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
   .incl__row :global(.incl__arrow) {
     transition: translate 0.3s var(--ease-out);
   }
-  .incl__row:hover :global(.incl__arrow) {
-    translate: 6px 0;
+  @media (hover: hover) and (pointer: fine) {
+    .incl__row:hover :global(.incl__arrow) {
+      translate: 6px 0;
+    }
   }
   .incl__row :global(.incl__icon) {
     grid-row: span 2;
@@ -837,7 +841,11 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     font-size: 20px;
     font-weight: 800;
     color: var(--on-stage-muted);
-    transition: all 0.5s var(--ease-out);
+    transition:
+      background-color 0.4s var(--ease-out),
+      border-color 0.4s var(--ease-out),
+      color 0.4s var(--ease-out),
+      box-shadow 0.4s var(--ease-out);
     position: relative;
     z-index: 1;
   }
@@ -908,7 +916,7 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     flex: 0 0 min(560px, 78vw);
     margin: 0;
     scroll-snap-align: center;
-    transition: transform 0.6s var(--ease-out), filter 0.6s ease, opacity 0.6s ease;
+    transition: transform 0.45s var(--ease-out), filter 0.45s var(--ease-out), opacity 0.45s var(--ease-out);
     transform: scale(0.86);
     filter: grayscale(1) brightness(0.9);
     opacity: 0.7;
@@ -951,11 +959,14 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     background: var(--accent);
     color: #fff;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.25s var(--ease-out);
+    transition: background-color 0.2s ease, transform 0.16s var(--ease-out);
+    touch-action: manipulation;
   }
   .car__btn:hover {
     background: var(--accent-hover);
-    transform: scale(1.06);
+  }
+  .car__btn:active {
+    transform: scale(0.94);
   }
   .car__btn[data-prev] :global(svg) {
     rotate: 180deg;
@@ -1075,10 +1086,31 @@ const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${
     border-bottom: 2px solid var(--accent);
     translate: 0 -70%;
     rotate: 45deg;
-    transition: rotate 0.3s var(--ease-out);
+    transition: rotate 0.25s var(--ease-out);
   }
   .faq__item[open] summary::after {
     rotate: 225deg;
+  }
+  /* Ответ раскрывается плавно там, где браузер умеет анимировать высоту до auto; иначе — мгновенно. */
+  @supports (interpolate-size: allow-keywords) {
+    .faq__item {
+      interpolate-size: allow-keywords;
+    }
+    .faq__item::details-content {
+      height: 0;
+      overflow: clip;
+      transition:
+        height 0.25s var(--ease-out),
+        content-visibility 0.25s allow-discrete;
+    }
+    .faq__item[open]::details-content {
+      height: auto;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .faq__item::details-content {
+      transition: none;
+    }
   }
   .faq__item p {
     padding-bottom: 22px;

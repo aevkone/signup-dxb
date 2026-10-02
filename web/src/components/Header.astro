@@ -241,11 +241,15 @@ const isActive = (href: string) =>
     border: 1px solid var(--stage-line);
     border-radius: 50%;
     color: var(--on-stage);
-    transition: border-color 0.2s ease, color 0.2s ease;
+    transition: border-color 0.2s ease, color 0.2s ease, transform 0.16s var(--ease-out);
   }
   .hdr__wa:hover {
     border-color: var(--olive-pastel);
     color: var(--olive-pastel);
+  }
+  .hdr__wa:active,
+  .mnav__toggle:active {
+    transform: scale(0.94);
   }
   .hdr__cta {
     height: 44px;
@@ -256,6 +260,17 @@ const isActive = (href: string) =>
 
   .mnav {
     display: none;
+  }
+  @keyframes mnav-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mnav[open] .mnav__panel {
+      animation: none;
+    }
   }
 
   @media (max-width: 1100px) {
@@ -310,6 +325,14 @@ const isActive = (href: string) =>
       display: flex;
       flex-direction: column;
       gap: 12px;
+    }
+    /* Меню выезжает коротко и сверху — от кнопки, которая его открыла; закрывается мгновенно. */
+    .mnav[open] .mnav__panel {
+      animation: mnav-in 0.22s var(--ease-out);
+    }
+    .mnav__toggle {
+      transition: transform 0.16s var(--ease-out);
+      touch-action: manipulation;
     }
     .mnav__panel nav {
       display: flex;

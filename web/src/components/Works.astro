@@ -78,10 +78,12 @@ const img = (id: string, w: number, ext = 'webp') => link(`/img/works/w${id}-${w
     height: auto;
     aspect-ratio: 1 / 1;
     object-fit: cover;
-    transition: transform 0.4s ease;
+    transition: transform 0.3s var(--ease-out);
   }
-  .work__link:hover img {
-    transform: scale(1.03);
+  @media (hover: hover) and (pointer: fine) {
+    .work__link:hover img {
+      transform: scale(1.03);
+    }
   }
   .work__cap {
     margin-top: 12px;

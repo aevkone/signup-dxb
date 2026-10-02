@@ -332,7 +332,7 @@ const i18n = {
       next.textContent = step === 3 ? S.submit : S.next;
       next.setAttribute('aria-disabled', String(Boolean(problem(v))));
       label.textContent = step === 4 ? S.done : stepText(step);
-      bar.style.width = `${(Math.min(step, 3) / 3) * 100}%`;
+      bar.style.transform = `scaleX(${Math.min(step, 3) / 3})`;
       const rows = ORDER[b];
       summary.innerHTML = rows
         .map((k) => {
@@ -497,8 +497,11 @@ const i18n = {
   .cfg__bar span {
     display: block;
     height: 100%;
+    width: 100%;
     background: var(--olive);
-    transition: width 0.3s ease;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.3s var(--ease-out);
   }
   .cfg__step {
     border: 0;
@@ -539,10 +542,15 @@ const i18n = {
     font-weight: 600;
     cursor: pointer;
     color: var(--accent);
-    transition: border-color 0.18s ease, background-color 0.18s ease;
+    transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.16s var(--ease-out);
+    touch-action: manipulation;
   }
   .tile span {
     color: var(--ink);
+  }
+  /* Плитка отвечает на нажатие — выбор чувствуется сразу, ещё до перехода к шагу 2. */
+  .tile:active {
+    transform: scale(0.98);
   }
   .tile:hover {
     border-color: #cfcbc3;
