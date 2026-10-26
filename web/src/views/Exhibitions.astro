@@ -4,6 +4,7 @@ import PageHero from '@/components/PageHero.astro';
 import Icon from '@/components/Icon.astro';
 import ProcessSteps from '@/components/ProcessSteps.astro';
 import LeadForm from '@/components/LeadForm.astro';
+import ExpoCase from '@/components/ExpoCase.astro';
 import { getLang, link } from '@/i18n';
 import { blocks } from '@/data/exhibitions';
 import { standRate, fmtMoney } from '@/data/production';
@@ -133,6 +134,8 @@ const FEATURE = 4;
       </ol>
     </div>
   </section>
+
+  <ExpoCase />
 
   <section class="section section--surface">
     <div class="shell">

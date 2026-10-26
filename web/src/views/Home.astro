@@ -8,6 +8,7 @@ import HeroNeon from '@/components/HeroNeon.astro';
 import { featuredWorks } from '@/data/works';
 import LeadForm from '@/components/LeadForm.astro';
 import ProjectLead from '@/components/ProjectLead.astro';
+import ExpoCase from '@/components/ExpoCase.astro';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
 import { blocks } from '@/data/exhibitions';
@@ -297,6 +298,9 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
       </ul>
     </div>
   </section>
+
+  <!-- 4а. Наш проект на выставке: фото стенда -->
+  <ExpoCase />
 
   <!-- 5. Схема работы -->
   <section class="section stage how" id="process">

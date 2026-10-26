@@ -1,0 +1,105 @@
+---
+/**
+ * Первый проект SIGNUP DXB в ОАЭ: стенд PARIMIR на Beautyworld Middle East,
+ * октябрь 2026. Фото — от Кристины из группы проекта (23.10.2026), без людей
+ * в кадре и без бейджа с QR-кодом. Лежат в public/img/expo/: eN-600 (webp, jpg)
+ * и eN-1200 (webp), кадр 3:4, метаданные съёмки вырезаны при конвертации.
+ * Подробности проекта (что входило в работу) — после согласования с Кристиной.
+ */
+import { getLang, link } from '@/i18n';
+
+interface Props {
+  /** Обернуть в section с отступами (по умолчанию да). */
+  bare?: boolean;
+}
+const { bare = false } = Astro.props;
+const lang = getLang(Astro.url);
+
+const T = {
+  ru: {
+    eyebrow: 'Наш проект',
+    title: 'Стенд на выставке Beautyworld Middle East',
+    sub: 'Дубай, октябрь 2026. Стенд бренда профессиональных инструментов PARIMIR — первый проект SIGNUP DXB в ОАЭ.',
+    alts: ['Стенд PARIMIR, вид от прохода с номером стенда', 'Стенд PARIMIR, вид спереди', 'Стенд PARIMIR, витрины и полки с продукцией', 'Стенд PARIMIR, общий план'],
+  },
+  en: {
+    eyebrow: 'Our project',
+    title: 'A stand at Beautyworld Middle East',
+    sub: 'Dubai, October 2026. The stand of PARIMIR, a brand of professional tools for beauty experts — the first SIGNUP DXB project in the UAE.',
+    alts: ['PARIMIR stand, view from the aisle with the stand number', 'PARIMIR stand, front view', 'PARIMIR stand, display cases and product shelves', 'PARIMIR stand, overview'],
+  },
+}[lang];
+
+const img = (n: number, w: number, ext = 'webp') => link(`/img/expo/e${n}-${w}.${ext}`);
+/** Четыре кадра в ряд, на телефоне — два. */
+const SIZES = '(max-width: 760px) calc(50vw - 26px), (max-width: 1080px) 24vw, 290px';
+---
+
+<section class:list={['expo', !bare && 'section']} aria-labelledby="expo-h">
+  <div class:list={[!bare && 'shell']}>
+    <div class="sec-head">
+      <div>
+        <span class="eyebrow">{T.eyebrow}</span>
+        <h2 class="h2 expo__h" id="expo-h">{T.title}</h2>
+        <p class="measure sec-head__sub">{T.sub}</p>
+      </div>
+    </div>
+    <ul class="expo__grid">
+      {
+        T.alts.map((alt, i) => (
+          <li class="expo__ph">
+            <a href={img(i + 1, 1200)} target="_blank" rel="noopener">
+              <picture>
+                <source type="image/webp" srcset={`${img(i + 1, 600)} 600w, ${img(i + 1, 1200)} 1200w`} sizes={SIZES} />
+                <img src={img(i + 1, 600, 'jpg')} width="600" height="800" alt={alt} loading="lazy" decoding="async" />
+              </picture>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .expo__h {
+    margin-top: 10px;
+  }
+  .expo__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .expo__ph {
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--base-soft);
+  }
+  .expo__ph a,
+  .expo__ph picture {
+    display: block;
+    height: 100%;
+  }
+  .expo__ph img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    transition: transform 0.5s var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .expo__ph a:hover img {
+      transform: scale(1.03);
+    }
+  }
+  .expo__ph a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  @media (max-width: 760px) {
+    .expo__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+  }
+</style>
