@@ -42,7 +42,7 @@ function loadFonts(script: string) {
   if (!fonts?.load) return Promise.resolve();
   return Promise.all([
     fonts.load('600 190px Caveat', `${script} под ключ turnkey`),
-    fonts.load('800 74px "Montserrat Variable"', 'SIGNUP DXB 48 м² 8 м'),
+    fonts.load('800 74px "Montserrat Variable"', 'SIGNED DXB 48 м² 8 м'),
   ]).then(
     () => undefined,
     () => undefined,

@@ -28,9 +28,9 @@ CAV = ROOT / 'node_modules' / '@fontsource' / 'caveat' / 'files'
 
 # Всё, что рисуется Caveat: «под ключ» / «Turnkey» в заголовке главной,
 # «работаем» / «work» в «Как мы работаем», «под ключ» / «turnkey» на текстурах
-# 3D-стенда, «signup» на неоновой вывеске запасного варианта первого экрана.
+# 3D-стенда, «signed» на неоновой вывеске запасного варианта первого экрана.
 # Обе регистра букв, пробел и простая пунктуация.
-WORDS = 'под ключ turnkey работаем work signup'
+WORDS = 'под ключ turnkey работаем work signed'
 CAVEAT_TEXT = ''.join(sorted(set(WORDS.lower() + WORDS.upper()))) + ' .,!?-–—’\'"«»:;()'
 
 MONT_SUBSETS = ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext']

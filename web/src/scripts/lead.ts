@@ -16,7 +16,7 @@ export const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 const TEXT = {
   ru: {
-    head: 'Заявка с сайта SIGNUP DXB',
+    head: 'Заявка с сайта SIGNED DXB',
     labels: {
       name: 'Имя',
       contact: 'Контакт',
@@ -29,7 +29,7 @@ const TEXT = {
     } as Record<string, string>,
   },
   en: {
-    head: 'Request from the SIGNUP DXB website',
+    head: 'Request from the SIGNED DXB website',
     labels: {
       name: 'Name',
       contact: 'Contact',

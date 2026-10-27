@@ -804,7 +804,7 @@ export async function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement
     c.fillText(L.script!, 470, 262);
     c.fillStyle = 'rgba(242,242,236,0.85)';
     c.font = `800 54px ${FONT}`;
-    c.fillText('SIGNUP DXB', 492, 360);
+    c.fillText('SIGNED DXB', 492, 360);
     if (printImg) {
       cover(c, printImg, 1130, 30, 360, 350);
       c.strokeStyle = '#f2f2ec';
@@ -855,7 +855,7 @@ export async function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement
     c.fillRect(0, 300, 768, 135);
     c.fillStyle = '#fff';
     c.font = `800 44px ${FONT}`;
-    c.fillText('SIGNUP DXB', 34, 404);
+    c.fillText('SIGNED DXB', 34, 404);
     c.fillStyle = '#d2d8a8';
     c.font = `600 60px ${SCRIPT}`;
     c.fillText(L.script!, 340, 408);
@@ -955,7 +955,7 @@ export async function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement
     c.font = `800 120px ${FONT}`;
     c.textAlign = 'center';
     c.textBaseline = 'middle';
-    c.fillText('SIGNUP DXB', 512, 136);
+    c.fillText('SIGNED DXB', 512, 136);
   });
   const bannerFace = new THREE.MeshStandardMaterial({ map: bannerTex.tex, roughness: 0.9 });
   const ringParts: [number, number, number, number, FaceDir, number, number][] = [
@@ -1004,7 +1004,7 @@ export async function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement
     c.font = `800 74px ${FONT}`;
     c.textAlign = 'center';
     c.textBaseline = 'middle';
-    c.fillText('SIGNUP DXB', 512, 68);
+    c.fillText('SIGNED DXB', 512, 68);
   });
   const stripMat = new THREE.MeshBasicMaterial({ map: stripTex.tex, toneMapped: false, color: 0x2a2b26 });
   const strip = new THREE.Mesh(decalGeo(1.8, 0.24, '+y'), stripMat);
@@ -1137,7 +1137,7 @@ export async function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement
     c.fillStyle = '#59335f';
     c.font = `800 34px ${FONT}`;
     c.textAlign = 'center';
-    c.fillText('SIGNUP DXB', 128, 290);
+    c.fillText('SIGNED DXB', 128, 290);
     c.fillStyle = '#879152';
     c.font = `600 52px ${SCRIPT}`;
     c.fillText(L.script!, 128, 350);

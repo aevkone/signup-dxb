@@ -8,7 +8,7 @@ const UI = {
   ru: {
     skip: 'К содержанию',
     home: 'Главная',
-    homeAria: 'SIGNUP DXB — на главную',
+    homeAria: 'SIGNED DXB — на главную',
     breadcrumbs: 'Навигационная цепочка',
     mainMenu: 'Основное меню',
     mobileMenu: 'Мобильное меню',
@@ -129,7 +129,7 @@ const UI = {
   en: {
     skip: 'Skip to content',
     home: 'Home',
-    homeAria: 'SIGNUP DXB — home',
+    homeAria: 'SIGNED DXB — home',
     breadcrumbs: 'Breadcrumb',
     mainMenu: 'Main menu',
     mobileMenu: 'Mobile menu',

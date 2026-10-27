@@ -4,7 +4,7 @@
  * Ночной город в три слоя глубины, набережная с потоком машин и вода с аброй.
  * Вывески загораются по одной — у каждой подпись технологии или позиции прайса.
  * В финале город светится целиком, гаснет, и петля начинается заново.
- * На вывесках только SIGNUP DXB — никаких чужих брендов.
+ * На вывесках только SIGNED DXB — никаких чужих брендов.
  */
 import { getLang } from '@/i18n';
 
@@ -54,7 +54,7 @@ const windows = (x: number, w: number, h: number, step = 12, p = 0.22) => {
 const FAR_WIN = FAR.flatMap(([x, w, h]) => windows(x, w, h, 14, 0.12));
 const NEAR_WIN = Object.values(NEAR).flatMap(([x, w, h]) => windows(x, w, h, 12, 0.16));
 const STARS = Array.from({ length: 34 }, () => [Math.round(rnd() * 560), Math.round(rnd() * 120) + 6, +(0.6 + rnd() * 0.9).toFixed(2)]);
-const ROOF = 'SIGNUP'.split('');
+const ROOF = 'SIGNED'.split('');
 const [n1x, n1w] = NEAR.n1;
 const [n2x, n2w, n2h] = NEAR.n2;
 const [n3x, n3w, n3h] = NEAR.n3;
@@ -138,8 +138,8 @@ const LABELS: [number, number][] = [
 
         <!-- 1. Гибкий неон во всю стену -->
         <g>
-          <text class="hn__neon hn__neon--glow" data-neon-glow x={n1x + n1w / 2} y="262" text-anchor="middle" filter="url(#hn-glow)">signup</text>
-          <text class="hn__neon hn__neon--tube" data-neon-tube x={n1x + n1w / 2} y="262" text-anchor="middle">signup</text>
+          <text class="hn__neon hn__neon--glow" data-neon-glow x={n1x + n1w / 2} y="262" text-anchor="middle" filter="url(#hn-glow)">signed</text>
+          <text class="hn__neon hn__neon--tube" data-neon-tube x={n1x + n1w / 2} y="262" text-anchor="middle">signed</text>
         </g>
 
         <!-- 2. Контражур -->
@@ -156,8 +156,8 @@ const LABELS: [number, number][] = [
           ].map(([x, w]) => (
             <g>
               <rect class="hn__box" x={x} y="368" width={w} height="26" rx="2"></rect>
-              <text class="hn__boxt hn__boxt--glow" data-box-glow x={x + w / 2} y="386" text-anchor="middle" filter="url(#hn-glow)">SIGNUP DXB</text>
-              <text class="hn__boxt" data-box-text x={x + w / 2} y="386" text-anchor="middle">SIGNUP DXB</text>
+              <text class="hn__boxt hn__boxt--glow" data-box-glow x={x + w / 2} y="386" text-anchor="middle" filter="url(#hn-glow)">SIGNED DXB</text>
+              <text class="hn__boxt" data-box-text x={x + w / 2} y="386" text-anchor="middle">SIGNED DXB</text>
             </g>
           ))
         }
@@ -166,7 +166,7 @@ const LABELS: [number, number][] = [
         <g>
           <rect x={n3x + 14} y="138" width={n3w - 28} height="88" rx="3" fill="#0b0c0a" stroke="rgb(255 255 255 / 0.25)"></rect>
           <rect data-led x={n3x + 18} y="142" width={n3w - 36} height="80" fill="url(#hn-pixels)" opacity="0"></rect>
-          <text data-led-a class="hn__led-a" x={n3x + n3w / 2} y="190" text-anchor="middle" opacity="0">SIGNUP DXB</text>
+          <text data-led-a class="hn__led-a" x={n3x + n3w / 2} y="190" text-anchor="middle" opacity="0">SIGNED DXB</text>
           <text data-led-b class="hn__led-b" x={n3x + n3w / 2} y="198" text-anchor="middle" opacity="0">{T.script}</text>
         </g>
 

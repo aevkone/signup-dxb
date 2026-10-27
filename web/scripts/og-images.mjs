@@ -4,7 +4,7 @@
  *
  * Карточка в стиле сайта (DESIGN.md): тёмная сцена #0f100d, сливовое свечение
  * снизу, светлый логотип, заголовок Montserrat 800 с одним словом от руки
- * (Caveat, пастельная олива), строка «signupdxb.com» и настоящее фото работы
+ * (Caveat, пастельная олива), строка «signeddxb.com» и настоящее фото работы
  * в бумажной рамке со скотчем.
  *
  * Текст рисует headless Chrome со шрифтами из node_modules (@fontsource):
@@ -29,7 +29,7 @@ const OUT = join(PUB, 'img', 'og');
 const W = 1200;
 const H = 630;
 const QUALITY = 82;
-const SITE = 'signupdxb.com';
+const SITE = 'signeddxb.com';
 
 const C = {
   stage: '#0f100d',

@@ -295,7 +295,7 @@ function build(root: HTMLElement) {
         c.globalAlpha = a0 * ledVis * ledOn * ledAlt;
         c.fillStyle = '#fff';
         c.font = `800 40px ${FONT}`;
-        c.fillText('SIGNUP DXB', 150, 100);
+        c.fillText('SIGNED DXB', 150, 100);
         c.globalAlpha = a0 * ledVis * ledOn * (1 - ledAlt);
         c.fillStyle = '#d2d8a8';
         c.font = `600 64px ${SCRIPT}`;
@@ -374,7 +374,7 @@ function build(root: HTMLElement) {
     c.fillStyle = '#fff';
     c.font = `800 40px ${FONT}`;
     c.textAlign = 'center';
-    c.fillText('SIGNUP DXB', w / 2, h / 2 + 14);
+    c.fillText('SIGNED DXB', w / 2, h / 2 + 14);
   };
   const ring = (['-y', '+y', '-x', '+x'] as Face[]).map((f) => {
     const b = new Box('#59335f', 'rgba(193,144,200,0.7)');
@@ -393,7 +393,7 @@ function build(root: HTMLElement) {
     c.fillStyle = stripOn > 0.5 ? '#0f100d' : '#4a4b45';
     c.font = `800 17px ${FONT}`;
     c.textAlign = 'center';
-    c.fillText('SIGNUP DXB', w / 2, 31);
+    c.fillText('SIGNED DXB', w / 2, 31);
   };
   const counterH = tr(0, [[14.6, 1], [27.0, 0]], DROP);
   const stripT = wn(15.2, 26.8);

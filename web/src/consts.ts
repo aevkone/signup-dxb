@@ -10,7 +10,7 @@ export const CONTACTS = {
   phoneHref: 'tel:+971502457669',
   whatsapp: 'https://wa.me/971502457669',
   email: 'info@signupdxb.com',
-  /** Instagram основателя: в шапке профиля — «Основатель SIGNUP DXB». */
+  /** Instagram основателя: в шапке профиля — «Основатель SIGNED DXB». */
   instagram: 'https://www.instagram.com/kris_dkf/',
 } as const;
 
@@ -19,8 +19,8 @@ export const CONTACTS = {
  * с чего начать, а мы сразу видим, что человек пришёл с сайта и откуда.
  */
 const WA_TEXT = {
-  ru: (ctx?: string) => `Здравствуйте! Пишу с сайта SIGNUP DXB${ctx ? `: ${ctx}` : ''}.`,
-  en: (ctx?: string) => `Hello! I’m writing from the SIGNUP DXB website${ctx ? `: ${ctx}` : ''}.`,
+  ru: (ctx?: string) => `Здравствуйте! Пишу с сайта SIGNED DXB${ctx ? `: ${ctx}` : ''}.`,
+  en: (ctx?: string) => `Hello! I’m writing from the SIGNED DXB website${ctx ? `: ${ctx}` : ''}.`,
 } as const;
 
 /** Текст первого сообщения. Контекст — раздел или страница; точка в конце не задваивается. */
@@ -48,7 +48,7 @@ const L = {
     /** Для производства порог другой: минимальный заказ — от 2 000 AED. */
     budgetsProduction: ['до 10 000 AED', '10 000–30 000 AED', '30 000–50 000 AED', 'больше 50 000 AED', 'пока не знаю'],
     areas: ['до 12 м²', '12–36 м²', '36–100 м²', 'больше 100 м²', 'пока не знаю'],
-    siteTitle: 'SIGNUP DXB — выставки в Дубае под ключ',
+    siteTitle: 'SIGNED DXB — выставки в Дубае под ключ',
     siteDescription:
       'Организуем участие в выставках в Дубае и Абу-Даби под ключ: стенд, печать, персонал, питание, логистика, консьерж-сервис. Производство наружной рекламы напрямую, без посредников.',
     nav: ['Выставки под ключ', 'Наружная реклама', 'Прайс', 'Консьерж-сервис', 'Контакты'],
@@ -67,7 +67,7 @@ const L = {
     budgets: ['AED 10,000–30,000', 'AED 30,000–50,000', 'AED 50,000–100,000', 'over AED 100,000', 'not sure yet'],
     budgetsProduction: ['under AED 10,000', 'AED 10,000–30,000', 'AED 30,000–50,000', 'over AED 50,000', 'not sure yet'],
     areas: ['up to 12 m²', '12–36 m²', '36–100 m²', 'over 100 m²', 'not sure yet'],
-    siteTitle: 'SIGNUP DXB — turnkey exhibitions in Dubai',
+    siteTitle: 'SIGNED DXB — turnkey exhibitions in Dubai',
     siteDescription:
       'Turnkey exhibition participation in Dubai and Abu Dhabi: stand, print, staff, catering, logistics and concierge. Outdoor advertising made directly with UAE production, no middlemen.',
     nav: ['Turnkey exhibitions', 'Outdoor advertising', 'Price list', 'Concierge', 'Contact'],
@@ -77,7 +77,7 @@ const L = {
 export type Local = (typeof L)[Lang];
 export const local = (lang: Lang) => L[lang];
 
-export const SITE_NAME = 'SIGNUP DXB';
+export const SITE_NAME = 'SIGNED DXB';
 
 /**
  * Лицензия Sole Professional № 107257 (DDA), выдана 29.09.2025.

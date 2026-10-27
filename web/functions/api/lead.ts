@@ -83,7 +83,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (!lead.contact) return json({ ok: false, error: 'no_contact' }, 422);
   if (file) lead.file = `${file.name} (${Math.round(file.size / 1024)} КБ)`;
 
-  const text = ['Заявка с сайта SIGNUP DXB', ...Object.entries(lead).map(([k, v]) => `${LABELS[k]}: ${v}`)].join('\n');
+  const text = ['Заявка с сайта SIGNED DXB', ...Object.entries(lead).map(([k, v]) => `${LABELS[k]}: ${v}`)].join('\n');
 
   const jobs: Promise<boolean>[] = [];
 
