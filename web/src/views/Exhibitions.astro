@@ -5,6 +5,8 @@ import Icon from '@/components/Icon.astro';
 import ProcessSteps from '@/components/ProcessSteps.astro';
 import LeadForm from '@/components/LeadForm.astro';
 import ExpoCase from '@/components/ExpoCase.astro';
+import ExpoGuide from '@/components/ExpoGuide.astro';
+import CtaBand from '@/components/CtaBand.astro';
 import { getLang, link } from '@/i18n';
 import { blocks } from '@/data/exhibitions';
 import { standRate, fmtMoney } from '@/data/production';
@@ -33,6 +35,8 @@ const T = {
     howH: 'Как мы работаем',
     howSub: 'На каждом этапе у вас один ответственный контакт.',
     leadTitle: 'Расскажите о выставке',
+    bandTitle: 'Не знаете, какая выставка вам подойдёт?',
+    bandText: 'Созвонимся: назовите сферу — подберём выставки в Дубае и разберём, в каком формате участвовать под ваш бюджет.',
   },
   en: {
     title: 'Turnkey exhibitions',
@@ -49,6 +53,8 @@ const T = {
     howH: 'How we work',
     howSub: 'At every stage you have a single point of contact.',
     leadTitle: 'Tell us about your exhibition',
+    bandTitle: 'Not sure which exhibition is right for you?',
+    bandText: 'Let’s have a call: tell us your industry and we’ll pick shows in Dubai and work out how to take part within your budget.',
   },
 }[lang];
 
@@ -136,6 +142,10 @@ const FEATURE = 4;
   </section>
 
   <ExpoCase />
+
+  <ExpoGuide />
+
+  <CtaBand title={T.bandTitle} text={T.bandText} />
 
   <section class="section section--surface">
     <div class="shell">

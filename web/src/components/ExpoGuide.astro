@@ -1,0 +1,205 @@
+---
+/**
+ * «Зачем участвовать» и «Что важно знать до выставки» — для страницы выставок.
+ * Источник — встреча с Кристиной 27.10.2026 (запись в Телемосте): её опыт на
+ * Beautyworld Middle East и в московском Гостином дворе. Цифры (2 месяца, 3 дня,
+ * неделя/месяц на компанию, 3 человека на 9 м², до 15:00) — её слова, не выдумывать новые.
+ */
+import { getLang } from '@/i18n';
+
+const lang = getLang(Astro.url);
+
+type Item = { t: string; d: string };
+const T: Record<typeof lang, { whyH: string; whySub: string; why: Item[]; knowH: string; knowSub: string; know: Item[] }> = {
+  ru: {
+    whyH: 'Зачем участвовать, даже если на стенде нельзя продавать',
+    whySub: 'Выставка в Дубае — это выход сразу на весь Ближний Восток.',
+    why: [
+      { t: 'Проверить спрос', d: 'Понять до вложений, нужен ли ваш продукт в ОАЭ и соседних странах.' },
+      { t: 'Найти дистрибьюторов', d: 'Они закупают у вас и продают на своём рынке. Открывать компанию в Дубае для этого не нужно.' },
+      { t: 'Выйти на тех, кто решает', d: 'На стенды приезжают владельцы и руководители компаний — в обычной жизни до них не дозвониться.' },
+      { t: 'Аудитория шире Дубая', d: 'Приезжают из Саудовской Аравии, Турции и других стран региона, выставляются компании со всего мира.' },
+      { t: 'Выступить и провести переговоры', d: 'Можно выступить на конференции выставки с заранее согласованной темой и забронировать переговорную.' },
+      { t: 'Статус бренда', d: 'Участие в международной выставке — весомая строка в портфолио и узнаваемость на новом рынке.' },
+    ],
+    knowH: 'Что важно знать до выставки',
+    knowSub: 'То, о чём участник обычно узнаёт уже на площадке.',
+    know: [
+      {
+        t: 'Начинайте за два месяца',
+        d: 'Этого хватает даже на большой стенд: согласовать проект, отправить конструкцию в производство, успеть с мебелью и печатью.',
+      },
+      {
+        t: 'Монтаж — за три дня до открытия',
+        d: 'Продукцию выставляем утром перед открытием или накрываем плёнкой: ночью в павильоне уборка и много пыли.',
+      },
+      {
+        t: 'Продавать можно только с компанией в ОАЭ',
+        d: 'Без неё продукцию можно только показывать. Регистрация обычно занимает около недели, но закладывайте месяц. Поможем открыть компанию.',
+      },
+      {
+        t: 'Нет лицензии в ОАЭ — участвуйте под нашей',
+        d: 'Без торговой лицензии участником не зарегистрироваться. Оформляем стенд на нашу компанию, а на стенде — ваше имя и бренд.',
+      },
+      {
+        t: 'Три человека на стенд',
+        d: 'Для стенда около 9 м² двоих мало в часы наплыва, четверо уже мешают друг другу; на большом — до пяти. Нужен кто-то из руководства, кто ответит на сложный вопрос.',
+      },
+      {
+        t: 'Английский обязателен, арабский — плюс',
+        d: 'На выставках говорят по-английски. Стендистов, которые знают продукт и говорят по-арабски, подберём под запрос.',
+      },
+      {
+        t: 'Первый день решает',
+        d: 'Особенно до 15:00: приходят самые заинтересованные посетители и официальные гости. Владелец должен быть на стенде в ресурсе, а не после ночного монтажа.',
+      },
+      {
+        t: 'Мелочи, о которых забывают',
+        d: 'Удлинитель, салфетки, стулья для команды — восемь часов на ногах тяжело. Если мебели нет в пакете площадки, арендуем: у прокатных компаний уже есть допуск.',
+      },
+      {
+        t: 'После выставки работа продолжается',
+        d: 'Сводим визитки в таблицу — кто есть кто и как связаться — и передаём вашим менеджерам. Демонтаж, вывоз и сдачу площадки берём на себя.',
+      },
+    ],
+  },
+  en: {
+    whyH: 'Why exhibit, even if you can’t sell on the stand',
+    whySub: 'An exhibition in Dubai opens the door to the whole Middle East.',
+    why: [
+      { t: 'Test demand', d: 'Find out whether your product is needed in the UAE and neighbouring countries before you invest.' },
+      { t: 'Find distributors', d: 'They buy from you and sell in their own market — you don’t need a company in Dubai for that.' },
+      { t: 'Meet the decision-makers', d: 'Owners and senior managers come to the stands themselves — people you would never reach by phone.' },
+      { t: 'An audience beyond Dubai', d: 'Visitors come from Saudi Arabia, Turkey and across the region; exhibitors come from all over the world.' },
+      { t: 'Speak and hold meetings', d: 'You can speak at the show’s conference on a pre-agreed topic and book a meeting room.' },
+      { t: 'Brand status', d: 'An international exhibition is a strong line in your portfolio and builds recognition in a new market.' },
+    ],
+    knowH: 'Good to know before the show',
+    knowSub: 'Things exhibitors usually only find out at the venue.',
+    know: [
+      {
+        t: 'Start two months ahead',
+        d: 'That is enough even for a large stand: approve the design, send the structure into production, and sort out furniture and print.',
+      },
+      {
+        t: 'Build-up starts three days before opening',
+        d: 'Products go on display the morning of opening, or stay covered: the hall is cleaned overnight and it gets dusty.',
+      },
+      {
+        t: 'Selling requires a UAE company',
+        d: 'Without one you can only display your products. Registration usually takes about a week, but allow a month. We can help set up the company.',
+      },
+      {
+        t: 'No UAE licence? Exhibit under ours',
+        d: 'You can’t register as an exhibitor without a trade licence. We register the stand under our company, while the stand carries your name and brand.',
+      },
+      {
+        t: 'Three people per stand',
+        d: 'For a stand of about 9 m², two is too few at peak times and four get in each other’s way; a large stand needs up to five. Someone senior should be there to answer the tough questions.',
+      },
+      {
+        t: 'English is a must, Arabic is a plus',
+        d: 'Exhibitions run in English. We can find stand staff who know your product and speak Arabic on request.',
+      },
+      {
+        t: 'Day one matters most',
+        d: 'Especially until 3 pm, when the most interested visitors and official guests come. The owner should be on the stand fresh, not after an all-night build.',
+      },
+      {
+        t: 'The small things people forget',
+        d: 'An extension lead, tissues, chairs for the team — eight hours on your feet is hard. If furniture isn’t in the venue package, we rent it: rental companies already have venue access.',
+      },
+      {
+        t: 'The work continues after the show',
+        d: 'We turn the business cards into a spreadsheet — who is who and how to reach them — and hand it to your managers. Breakdown, removal and handing back the space are on us.',
+      },
+    ],
+  },
+};
+const t = T[lang];
+---
+
+<section class="section section--surface guide" aria-labelledby="why-h">
+  <div class="shell">
+    <div class="sec-head">
+      <div>
+        <h2 class="h2" id="why-h">{t.whyH}</h2>
+        <p class="measure sec-head__sub">{t.whySub}</p>
+      </div>
+    </div>
+    <ul class="grid grid--3 why">
+      {
+        t.why.map((x) => (
+          <li class="why__item">
+            <h3 class="why__t">{x.t}</h3>
+            <p>{x.d}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<section class="section guide" aria-labelledby="know-h">
+  <div class="shell">
+    <div class="sec-head">
+      <div>
+        <h2 class="h2" id="know-h">{t.knowH}</h2>
+        <p class="measure sec-head__sub">{t.knowSub}</p>
+      </div>
+    </div>
+    <ol class="grid grid--3 know">
+      {
+        t.know.map((x, i) => (
+          <li class="card know__item">
+            <span class="know__n">{String(i + 1).padStart(2, '0')}</span>
+            <h3 class="know__t">{x.t}</h3>
+            <p>{x.d}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .why {
+    gap: 32px 40px;
+  }
+  .why__item {
+    padding-top: 18px;
+    border-top: 2px solid var(--accent);
+  }
+  .why__t,
+  .know__t {
+    font-size: 20px;
+    line-height: 27px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .why__item p,
+  .know__item p {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 25px;
+  }
+  .know__item {
+    display: flex;
+    flex-direction: column;
+  }
+  .know__n {
+    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  @media (max-width: 720px) {
+    .why {
+      gap: 24px;
+    }
+    .know__item {
+      padding: 22px;
+    }
+  }
+</style>

@@ -27,11 +27,16 @@ export const BLOCKS_EN: Block[] = [
       },
     ],
     points: [
-      'Modular system or custom build — we’ll compare the costs',
+      'Venue all-inclusive stand or a custom build — we’ll compare the costs',
+      'A venue stand only needs your artwork — the organiser puts up the banners, carpet and counter',
       'Inline, corner, peninsula, island or double-deck',
       'The design is checked against organiser rules before production',
       'We’ll shape the scope around your budget',
     ],
+    note: {
+      title: 'Timing',
+      text: 'Allow at least two months: approve the design, build the structure, sort out furniture and print. Build-up at the venue starts three days before opening.',
+    },
   },
   {
     slug: 'print',
@@ -46,7 +51,7 @@ export const BLOCKS_EN: Block[] = [
       },
       {
         title: 'Printed materials',
-        text: 'Flyers, brochures, catalogues, business cards and staff badges.',
+        text: 'Flyers, brochures, catalogues, handouts, business cards and staff badges.',
       },
       {
         title: 'Merchandise',
@@ -59,6 +64,7 @@ export const BLOCKS_EN: Block[] = [
     ],
     points: [
       'We work directly with production in the UAE',
+      'Artwork collected by the organiser’s deadline',
       'Ready artwork adapted to the print areas',
       'Matte, gloss or satin finish to suit lighting and filming',
     ],
@@ -72,7 +78,7 @@ export const BLOCKS_EN: Block[] = [
     includes: [
       {
         title: 'Hostesses & promoters',
-        text: 'English and Arabic speakers who greet visitors, handle typical questions and collect contacts.',
+        text: 'English speakers who know your industry — they greet visitors, present the product and collect contacts. Arabic speakers on request.',
       },
       {
         title: 'Photographer',
@@ -89,6 +95,8 @@ export const BLOCKS_EN: Block[] = [
     ],
     points: [
       'Languages matched to the show’s audience',
+      'Staff live in the UAE — no flights or hotels to pay for',
+      'We’ll advise on headcount: three people for a stand of about 9 m²',
       'Branded apparel for the team',
       'Staff briefed on your product before opening',
     ],
@@ -132,7 +140,11 @@ export const BLOCKS_EN: Block[] = [
       },
       {
         title: 'Removal after the show',
-        text: 'Breakdown, loading and removal. If you buy the structures, we deliver them to your warehouse.',
+        text: 'Breakdown, loading, removal and disposal, and handing the space back to the organiser. If you buy the structures, we deliver them to your warehouse.',
+      },
+      {
+        title: 'Furniture & display rental',
+        text: 'Tables, chairs and glass display cases from Dubai rental companies that already have venue access.',
       },
       {
         title: 'Storage between shows',
@@ -169,8 +181,8 @@ export const BLOCKS_EN: Block[] = [
   },
   {
     slug: 'payment',
-    title: 'Participation payment support',
-    short: 'Agency agreement to pay for the exhibition',
+    title: 'Payment & registration',
+    short: 'Agency agreement and exhibiting under our licence',
     icon: 'payment',
     lead: 'Paying for participation from abroad is where many foreign companies get stuck. We handle this payment for you under an agency agreement.',
     includes: [
@@ -181,6 +193,14 @@ export const BLOCKS_EN: Block[] = [
       {
         title: 'Supporting documents',
         text: 'You receive the full set of documents for the payment.',
+      },
+      {
+        title: 'Exhibiting under our licence',
+        text: 'You can’t register as an exhibitor without a UAE trade licence. We register the stand under our company, while the stand carries your name and brand.',
+      },
+      {
+        title: 'A company in the UAE',
+        text: 'Selling on the stand requires a company registered in the UAE. We can help set one up — allow about a month.',
       },
     ],
     points: ['Solves the cross-border payment issue', 'Available on its own, without other blocks'],
@@ -208,10 +228,19 @@ export const BLOCKS_EN: Block[] = [
         title: 'Build-up rules',
         text: 'We request the venue rules and check that your stand design complies with them.',
       },
+      {
+        title: 'Application forms',
+        text: 'We fill in the organiser’s paperwork and make sure artwork and details go in on time.',
+      },
+      {
+        title: 'Stand inspection',
+        text: 'We check the stand before opening. If the build has defects, we get the organiser to fix them.',
+      },
     ],
     points: [
       'Direct contacts instead of the organiser’s general inbox',
       'Venue restrictions checked before you approve the design',
+      'We arrange a speaking slot at the show’s conference and a meeting room',
     ],
     note: {
       title: 'Organiser not answering?',

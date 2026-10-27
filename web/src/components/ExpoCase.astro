@@ -4,7 +4,8 @@
  * октябрь 2026. Фото — от Кристины из группы проекта (23.10.2026), без людей
  * в кадре и без бейджа с QR-кодом. Лежат в public/img/expo/: eN-600 (webp, jpg)
  * и eN-1200 (webp), кадр 3:4, метаданные съёмки вырезаны при конвертации.
- * Подробности проекта (что входило в работу) — после согласования с Кристиной.
+ * Что входило в работу — со встречи с Кристиной 27.10.2026 (запись в Телемосте).
+ * Слова «первый проект» на сайте не используем — так договорились на встрече.
  */
 import { getLang, link } from '@/i18n';
 
@@ -19,13 +20,31 @@ const T = {
   ru: {
     eyebrow: 'Наш проект',
     title: 'Стенд на выставке Beautyworld Middle East',
-    sub: 'Дубай, октябрь 2026. Стенд бренда профессиональных инструментов PARIMIR — первый проект SIGNUP DXB в ОАЭ.',
+    sub: 'Дубай, октябрь 2026. Стенд бренда профессиональных инструментов PARIMIR: 9 м², формат «всё включено» от организатора.',
+    doneH: 'Что сделали',
+    done: [
+      'Вели переписку с организатором и заполнили заявочные формы',
+      'Собрали макеты к сроку печати и выпустили раздаточные материалы',
+      'Арендовали две стеклянные витрины, когда у площадки они закончились',
+      'Пригласили англоязычную стендистку из бьюти-сферы, которая живёт в Дубае',
+      'Приняли стенд перед открытием: недочёты монтажа организатор исправил ко второму дню',
+    ],
+    team: 'На стенде работали трое — для 9 м² этого достаточно.',
     alts: ['Стенд PARIMIR, вид от прохода с номером стенда', 'Стенд PARIMIR, вид спереди', 'Стенд PARIMIR, витрины и полки с продукцией', 'Стенд PARIMIR, общий план'],
   },
   en: {
     eyebrow: 'Our project',
     title: 'A stand at Beautyworld Middle East',
-    sub: 'Dubai, October 2026. The stand of PARIMIR, a brand of professional tools for beauty experts — the first SIGNUP DXB project in the UAE.',
+    sub: 'Dubai, October 2026. The stand of PARIMIR, a brand of professional tools for beauty experts: 9 m², an all-inclusive package from the organiser.',
+    doneH: 'What we did',
+    done: [
+      'Handled the correspondence with the organiser and filled in the application forms',
+      'Collected the artwork in time for printing and produced the handouts',
+      'Rented two glass display cases when the venue had run out',
+      'Brought in an English-speaking stand assistant from the beauty industry who lives in Dubai',
+      'Inspected the stand before opening: the organiser fixed the build-up defects by day two',
+    ],
+    team: 'Three people worked the stand — enough for 9 m².',
     alts: ['PARIMIR stand, view from the aisle with the stand number', 'PARIMIR stand, front view', 'PARIMIR stand, display cases and product shelves', 'PARIMIR stand, overview'],
   },
 }[lang];
@@ -58,6 +77,13 @@ const SIZES = '(max-width: 760px) calc(50vw - 26px), (max-width: 1080px) 24vw, 2
         ))
       }
     </ul>
+    <div class="expo__done">
+      <h3 class="expo__done-h">{T.doneH}</h3>
+      <ul class="expo__list">
+        {T.done.map((x) => <li>{x}</li>)}
+      </ul>
+      <p class="expo__team caption">{T.team}</p>
+    </div>
   </div>
 </section>
 
@@ -96,7 +122,42 @@ const SIZES = '(max-width: 760px) calc(50vw - 26px), (max-width: 1080px) 24vw, 2
     outline: 2px solid var(--accent);
     outline-offset: 3px;
   }
+  .expo__done {
+    margin-top: 32px;
+    max-width: 760px;
+  }
+  .expo__done-h {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 700;
+  }
+  .expo__list {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .expo__list li {
+    position: relative;
+    padding-left: 22px;
+  }
+  .expo__list li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.65em;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .expo__team {
+    margin-top: 14px;
+  }
   @media (max-width: 760px) {
+    .expo__done {
+      margin-top: 24px;
+    }
     .expo__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
