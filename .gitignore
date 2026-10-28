@@ -12,9 +12,12 @@ design/
 *.pdf
 docs/*
 !docs/DEPLOY.md
+!docs/SKILLS.md
 
 # Служебное
-.claude/
+# Навыки проекта — общие для всех разработчиков, остальное в .claude — личное
+.claude/*
+!.claude/skills/
 .DS_Store
 Thumbs.db
 

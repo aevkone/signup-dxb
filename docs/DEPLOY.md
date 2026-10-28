@@ -1,41 +1,46 @@
 # Выкладка сайта
 
-## Сейчас: GitHub Pages — версия на согласование
+Боевой адрес — **https://signeddxb.com** (Cloudflare Pages). Обновлено 28.10.2026.
 
-Каждый push в ветку `main` собирает сайт и выкладывает его автоматически
-(`.github/workflows/pages.yml`). Адрес: https://aevkone.github.io/signup-dxb/
+## Боевой сайт: Cloudflare Pages
 
-Ограничения тестовой версии:
+Cloudflare → Workers & Pages → проект сайта:
 
-- **Индексация закрыта автоматически.** Сборка видит, что домен оканчивается
-  на `github.io`, и добавляет `<meta name="robots" content="noindex">`,
-  а `robots.txt` отдаёт `Disallow: /`. Ничего руками выключать не нужно.
-  Мета-тег здесь обязателен: на адресе вида `аккаунт.github.io/репозиторий/`
-  файл `robots.txt` не работает — поисковики читают его только из корня
-  домена, а корень нам не принадлежит.
-- **Заявки не уходят** в Telegram и на почту: GitHub Pages не выполняет
-  серверный код. Форма открывает WhatsApp с заполненной заявкой.
-- **Реквизиты-заглушки допускаются.** Сборка предупредит, но не упадёт.
+- Build command: `npm ci && npm run build`
+- Root directory: `web`
+- Output directory: `dist`
+- Переменная `SITE_URL=https://signeddxb.com` (`BASE_PATH` не задавать)
 
-## После утверждения: боевой домен
+Если проект подключён к репозиторию `aevkone/signup-dxb`, каждый push в `main`
+выкладывается сам. Если сайт выкладывали вручную (Direct Upload / wrangler),
+после push нужно выложить заново — иначе на signeddxb.com останется старая версия.
 
-Хостинг — Cloudflare Pages: там работает приём заявок
-(`web/functions/api/lead.ts`).
+`SITE_URL` не адрес `github.io` → `noindex` не выводится, `robots.txt`
+открывает индексацию и указывает на карту сайта.
 
-1. Аккаунт на https://dash.cloudflare.com (бесплатно).
-2. Cloudflare → Workers & Pages → Create → Pages → подключить репозиторий
-   `aevkone/signup-dxb`.
-   - Build command: `npm ci && npm run build`
-   - Root directory: `web`
-   - Output directory: `dist`
-   - Переменная `SITE_URL=https://<домен>` (`BASE_PATH` не задавать)
-3. Custom domains → добавить купленный домен.
+### Один адрес сайта
 
-Ничего больше отключать не нужно: как только `SITE_URL` перестаёт быть
-адресом `github.io`, `noindex` не выводится, `robots.txt` открывает
-индексацию и указывает на карту сайта.
+`web/functions/_middleware.ts` отвечает 301 на ту же страницу
+`https://signeddxb.com` для любого другого домена, подключённого к проекту:
+`www.signeddxb.com`, старый `signupdxb.com` и т.д. Чтобы это заработало:
 
-### Сборка не даст выложить незаполненный сайт
+1. Cloudflare → проект → **Custom domains** → добавить `www.signeddxb.com`
+   (и `signupdxb.com` с `www`, когда его DNS переедет в Cloudflare).
+2. Превью `*.pages.dev` и локальный запуск не переадресуются.
+
+### Заявки
+
+Сервера заявок нет: форма и расчёт стоимости открывают WhatsApp Кристины
+(`CONTACTS.whatsapp` в `web/src/consts.ts`) с уже заполненной заявкой.
+Ничего настраивать в Cloudflare не нужно.
+
+### Почта
+
+На сайте указана `info@signeddxb.com` (`CONTACTS.email`). Чтобы она работала,
+у домена должны быть MX-записи почтового сервиса (например, Google Workspace)
+и SPF — добавляются в DNS домена в Cloudflare.
+
+## Сборка не даст выложить незаполненный сайт
 
 `npm run build` состоит из трёх шагов:
 
@@ -46,48 +51,28 @@ node scripts/check-links.mjs → проверка внутренних ссыл�
 ```
 
 `preflight` на боевом домене **прерывает сборку**, если в `web/src/consts.ts`
-остались заглушки в квадратных скобках — юр. название, номер лицензии,
-адрес. На превью он только предупреждает. Это защита от публикации сайта
-с `[ЮР. НАЗВАНИЕ КОМПАНИИ]` в подвале и в политике обработки данных.
+остались заглушки в квадратных скобках или нет почты. Истёкшую лицензию он
+только отмечает предупреждением: её номер сайт сам не показывает
+(`LICENCE_VALID` в `consts.ts`).
 
 `check-links` падает, если в собранном сайте появилась ссылка в никуда.
 
 Проверить готовность, ничего не собирая:
 
 ```bash
-cd web && SITE_URL=https://<домен> npm run preflight
+cd web && SITE_URL=https://signeddxb.com npm run preflight
 ```
 
-### Что заполнить перед переездом
+### Новая лицензия
 
-В `web/src/consts.ts`, в обоих языковых блоках:
+В `web/src/consts.ts`, в обоих языковых блоках: `legalName`, `licence`,
+`licenceActivity`, `address` — как в документе; дата окончания —
+в `LICENCE_EXPIRES`. Значения выводятся в подвале, на странице контактов
+и в юридических документах (`web/src/data/legal.ts`).
 
-| Поле | Что вписать |
-|---|---|
-| `legalName` | Юр. название компании как в лицензии |
-| `licence` | Номер лицензии (DED или свободной зоны) |
-| `address` | Адрес из лицензии |
+## GitHub Pages: тестовая копия закрыта
 
-Эти значения выводятся в подвале, на странице контактов и в политике
-обработки данных, где определяют оператора персональных данных.
-
-### Заявки в Telegram и на почту
-
-Cloudflare → Pages → проект → Settings → Variables and Secrets:
-
-| Переменная | Откуда взять |
-|---|---|
-| `TELEGRAM_BOT_TOKEN` | Создать бота у @BotFather |
-| `TELEGRAM_CHAT_ID` | Написать боту, открыть `https://api.telegram.org/bot<токен>/getUpdates` — поле `chat.id` |
-| `RESEND_API_KEY` | resend.com → API Keys (нужен домен) |
-| `LEAD_EMAIL_TO` | Почта, куда слать заявки |
-| `LEAD_EMAIL_FROM` | Адрес отправителя на подтверждённом в Resend домене |
-
-Пока ни один канал не настроен, форма продолжит открывать WhatsApp —
-заявка не потеряется.
-
-### После переезда: закрыть старый адрес
-
-Версия на GitHub Pages останется доступной и будет конкурировать с боевым
-доменом в выдаче. `noindex` там выводится автоматически, но надёжнее
-выключить Pages совсем: Settings → Pages → Source → None.
+С 28.10.2026 `.github/workflows/pages.yml` выкладывает на
+https://aevkone.github.io/signup-dxb/ только переадресацию
+(`.github/pages-redirect/`): любая старая ссылка ведёт на ту же страницу
+signeddxb.com. Чтобы выключить адрес совсем — Settings → Pages → Source → None.
