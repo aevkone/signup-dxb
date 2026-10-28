@@ -79,13 +79,8 @@ const i18n = {
   done: c.done,
   next: c.next,
   submit: c.submit,
-  sending: c.sending,
   needService: c.needService,
   needContact: c.needContact,
-  attachHint: t.attachHint,
-  attachBig: t.attachBig,
-  attachWa: t.attachWa,
-  mb: lang === 'en' ? 'MB' : 'МБ',
   lang,
   slugs: SERVICE_SLUGS,
   /** WhatsApp с готовым первым сообщением: общий и под каждую услугу. */
@@ -182,22 +177,6 @@ const i18n = {
         <span>{c.deadline}</span>
         <input class="input" name="deadline" autocomplete="off" placeholder={c.deadlinePh} />
       </label>
-      {/* Макет — те же правила, что в форме заявки: до 10 МБ, тот же список форматов. */}
-      <div class="field" data-for="prod">
-        <span>{t.attach}</span>
-        <label class="attach">
-          <input
-            type="file"
-            name="file"
-            class="visually-hidden"
-            data-file
-            accept=".pdf,.png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.psd,.cdr,.zip,.rar,image/*,application/pdf"
-          />
-          <span class="attach__btn">{t.attachPick}</span>
-          <span class="attach__name caption" data-file-name aria-live="polite">{t.attachHint}</span>
-        </label>
-        <button type="button" class="attach__drop caption" data-file-drop hidden>{t.attachDrop}</button>
-      </div>
     </fieldset>
 
     <fieldset class="cfg__step" data-step="3" aria-labelledby="cfg-t3" hidden>
@@ -240,6 +219,9 @@ const i18n = {
           }
         </div>
       </div>
+      <p class="caption cfg__consent">
+        {t.consent} <a class="cfg__inline-link" href={link('/consent/', lang)}>{t.consentLink}</a>.
+      </p>
     </fieldset>
 
     <div class="cfg__step cfg__done" data-step="4" hidden>
@@ -283,7 +265,7 @@ const i18n = {
 </div>
 
 <script>
-  import { MAX_FILE_BYTES, sendLead } from '@/scripts/lead';
+  import { sendLead } from '@/scripts/lead';
 
   type Strings = {
     standServices: string[];
@@ -292,13 +274,8 @@ const i18n = {
     done: string;
     next: string;
     submit: string;
-    sending: string;
     needService: string;
     needContact: string;
-    attachHint: string;
-    attachBig: string;
-    attachWa: string;
-    mb: string;
     lang: 'ru' | 'en';
     slugs: string[];
     wa: string;
@@ -322,7 +299,7 @@ const i18n = {
   /** Порядок строк сводки для каждой ветки. */
   const ORDER: Record<Branch, string[]> = {
     expo: ['service', 'expo', 'area', 'dates', 'budget', 'name', 'contact'],
-    prod: ['service', 'size', 'qty', 'deadline', 'file', 'budget', 'name', 'contact'],
+    prod: ['service', 'size', 'qty', 'deadline', 'budget', 'name', 'contact'],
     staff: ['service', 'expo', 'people', 'dates', 'budget', 'name', 'contact'],
     concierge: ['service', 'guests', 'dates', 'budget', 'name', 'contact'],
   };
@@ -358,9 +335,6 @@ const i18n = {
     const briefToggle = root.querySelector<HTMLButtonElement>('[data-brief-toggle]')!;
     const tiles = root.querySelector<HTMLElement>('[data-tiles]')!;
     const groups = root.querySelectorAll<HTMLElement>('[data-for]');
-    const fileInput = root.querySelector<HTMLInputElement>('[data-file]')!;
-    const fileName = root.querySelector<HTMLElement>('[data-file-name]')!;
-    const fileDrop = root.querySelector<HTMLButtonElement>('[data-file-drop]')!;
     const est = root.querySelector<HTMLElement>('[data-est]')!;
     const wa = root.querySelector<HTMLAnchorElement>('[data-wa]')!;
     const E = S.est;
@@ -372,12 +346,11 @@ const i18n = {
     const values = () => {
       const out: Record<string, string> = {};
       root.querySelectorAll<HTMLInputElement>('input').forEach((el) => {
-        if (el.disabled || el.type === 'file') return;
+        if (el.disabled) return;
         if ((el.type === 'radio' && el.checked) || (el.type !== 'radio' && el.value.trim())) out[el.name] = el.value.trim();
       });
       return out;
     };
-    const file = () => (fileInput.disabled ? null : (fileInput.files?.[0] ?? null));
 
     /** Телефон — не меньше 7 цифр; почта или @ник проходят как есть. */
     const badContact = (x: string) => !x.includes('@') && x.replace(/\D/g, '').length < 7;
@@ -476,8 +449,6 @@ const i18n = {
       syncFields(b);
       const v = values();
       syncBudgets(v.service);
-      const f = file();
-      if (f) v.file = f.name;
       steps.forEach((el) => (el.hidden = Number(el.dataset.step) !== step));
       back.hidden = step === 1 || step === 4;
       nav.hidden = step === 4;
@@ -494,13 +465,13 @@ const i18n = {
         })
         .join('');
       const picked = rows
-        .filter((k) => k !== 'name' && k !== 'contact' && k !== 'file' && v[k])
+        .filter((k) => k !== 'name' && k !== 'contact' && v[k])
         .map((k) => nb(EXTRA.includes(k) && k !== 'size' ? `${S.labels[k]}: ${v[k]}` : v[k]));
       brief.textContent = picked.length ? picked.join(' · ') : '—';
       renderEstimate();
       // В WhatsApp сразу уходит выбранная услуга.
       wa.href = S.waBy[idx('service')] ?? S.wa;
-      if (!problem(v) && hint.dataset.kind !== 'file') hint.hidden = true;
+      if (!problem(v)) hint.hidden = true;
     };
 
     /** Переход на шаг: фокус на заголовок нового шага, карточка — в поле зрения. */
@@ -539,35 +510,11 @@ const i18n = {
     // Enter в текстовом поле — как «Далее».
     root.addEventListener('keydown', (e) => {
       const el = e.target as HTMLInputElement;
-      if (e.key === 'Enter' && el.tagName === 'INPUT' && el.type !== 'radio' && el.type !== 'file') {
+      if (e.key === 'Enter' && el.tagName === 'INPUT' && el.type !== 'radio') {
         e.preventDefault();
         next.click();
       }
     });
-
-    const clearFile = () => {
-      fileInput.value = '';
-      fileName.textContent = S.attachHint;
-      fileDrop.hidden = true;
-      render();
-    };
-    fileInput.addEventListener('change', () => {
-      const f = fileInput.files?.[0];
-      if (!f) return clearFile();
-      if (f.size > MAX_FILE_BYTES) {
-        clearFile();
-        hint.dataset.kind = 'file';
-        say(S.attachBig);
-        return;
-      }
-      if (hint.dataset.kind === 'file') {
-        hint.hidden = true;
-        delete hint.dataset.kind;
-      }
-      fileName.textContent = `${f.name} · ${(f.size / 1024 / 1024).toFixed(1)} ${S.mb}`;
-      fileDrop.hidden = false;
-    });
-    fileDrop.addEventListener('click', clearFile);
 
     briefToggle.addEventListener('click', () => {
       const open = briefToggle.getAttribute('aria-expanded') !== 'true';
@@ -577,12 +524,11 @@ const i18n = {
 
     back.addEventListener('click', () => goTo(Math.max(1, step - 1)));
 
-    next.addEventListener('click', async () => {
+    next.addEventListener('click', () => {
       if (next.disabled) return;
       const v = values();
       const p = problem(v);
       if (p) {
-        delete hint.dataset.kind;
         say(p);
         const contact = step === 3 ? root.querySelector<HTMLInputElement>('input[name="contact"]') : null;
         if (contact) {
@@ -604,21 +550,8 @@ const i18n = {
       if (guide) extra.push(guide);
       if (extra.length) lead.task = extra.join(' · ');
 
-      const f = file();
-      next.disabled = true;
-      next.textContent = S.sending;
-      const how = await sendLead(lead, f);
-      next.disabled = false;
-      if (how === 'sent') {
-        goTo(4);
-        return;
-      }
-      render();
-      // WhatsApp открывается ссылкой — файл туда не уедет, просим приложить.
-      if (f) {
-        hint.dataset.kind = 'file';
-        say(S.attachWa);
-      }
+      sendLead(lead);
+      goTo(4);
     });
 
     // Ссылка вида /configurator/?service=stand сразу выбирает услугу и открывает шаг 2.
@@ -770,48 +703,8 @@ const i18n = {
     border-color: var(--accent);
     background: #f4f5f8;
   }
-  /* Макет — как в форме заявки. */
-  .attach {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    cursor: pointer;
-  }
-  .attach__btn {
-    display: inline-flex;
-    align-items: center;
-    height: 44px;
-    padding-inline: 22px;
-    border: 1px solid var(--line);
-    border-radius: var(--pill);
-    color: var(--ink);
-    font-size: 15px;
-    font-weight: 600;
-    white-space: nowrap;
-    transition: border-color 0.18s ease;
-  }
-  .attach:hover .attach__btn {
-    border-color: var(--ink);
-  }
-  .attach input:focus-visible + .attach__btn {
-    outline: 2px solid var(--accent);
-    outline-offset: 3px;
-  }
-  .attach__name {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-  .attach__drop {
-    align-self: flex-start;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--accent);
-    font: inherit;
-    font-size: 14px;
-    text-decoration: underline;
-    cursor: pointer;
+  .cfg__consent {
+    margin-top: 4px;
   }
   .cfg__pair {
     display: grid;

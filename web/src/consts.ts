@@ -9,7 +9,7 @@ export const CONTACTS = {
   phone: '+971 50 245 7669',
   phoneHref: 'tel:+971502457669',
   whatsapp: 'https://wa.me/971502457669',
-  email: 'info@signupdxb.com',
+  email: 'info@signeddxb.com',
   /** Instagram основателя: в шапке профиля — «Основатель SIGNED DXB». */
   instagram: 'https://www.instagram.com/kris_dkf/',
 } as const;
@@ -81,10 +81,16 @@ export const SITE_NAME = 'SIGNED DXB';
 
 /**
  * Лицензия Sole Professional № 107257 (DDA), выдана 29.09.2025.
- * Срок проверяет preflight: с истёкшей лицензией сборка боевого домена
- * останавливается. После продления — обновить дату здесь.
+ * Срок проверяет preflight и предупреждает. После продления — обновить
+ * номер в L.licence (оба языка) и дату здесь.
  */
 export const LICENCE_EXPIRES = '2026-09-28';
+
+/**
+ * Лицензия действует на день сборки. Номер истёкшей лицензии сайт не показывает:
+ * в подвале и документах вместо него — только имя, адрес и контакты.
+ */
+export const LICENCE_VALID = Date.parse(`${LICENCE_EXPIRES}T23:59:59+04:00`) >= Date.now();
 
 export type NavItem = { href: string; label: string };
 

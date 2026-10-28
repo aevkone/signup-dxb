@@ -1,11 +1,21 @@
 ---
-/** Прототипы первого экрана для сравнения. В сборку для сайта не попадают. */
+/** Прототипы первого экрана для сравнения и съёмка кадров стенда. В сборку для сайта не попадают. */
 import View from '@/views/Home.astro';
+import Base from '@/layouts/Base.astro';
+import StandStills from '@/components/StandStills.astro';
 
 export function getStaticPaths() {
-  return import.meta.env.DEV ? [{ params: { v: 'stand' } }, { params: { v: 'neon' } }] : [];
+  return import.meta.env.DEV ? [{ params: { v: 'stand' } }, { params: { v: 'neon' } }, { params: { v: 'stills' } }] : [];
 }
-const v = Astro.params.v as 'stand' | 'neon';
+const v = Astro.params.v as 'stand' | 'neon' | 'stills';
 ---
 
-<View hero={v} />
+{
+  v === 'stills' ? (
+    <Base title="Кадры стенда">
+      <StandStills />
+    </Base>
+  ) : (
+    <View hero={v} />
+  )
+}

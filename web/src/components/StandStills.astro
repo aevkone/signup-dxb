@@ -1,0 +1,64 @@
+---
+/**
+ * Только для разработки: кадры 3D-стенда для public/img/stand/ (scripts/stand-stills.mjs).
+ * Параметры в адресе: t — моменты сцены через запятую (с), size — сторона сцены (px),
+ * crop — x,y,w,h кадра внутри сцены. Результат — PNG в data-URL в <pre id="out">.
+ */
+import HeroStand from './HeroStand.astro';
+---
+
+<div class="still-stage" data-still-stage><HeroStand /></div>
+<pre id="out"></pre>
+<script>
+  const q = new URLSearchParams(location.search);
+  const times = (q.get('t') ?? '10').split(',').map(Number);
+  const size = Number(q.get('size') ?? 1200);
+  const [cx, cy, cw, ch] = (q.get('crop') ?? `0,0,${size},${size}`).split(',').map(Number);
+  const stage = document.querySelector<HTMLElement>('[data-still-stage]')!;
+  const root = stage.querySelector<HTMLElement & { seekAt?: (t: number) => void }>('[data-hero-stand]')!;
+  stage.style.width = `${size}px`;
+  const wait = (ms: number) => new Promise((done) => setTimeout(done, ms));
+  window.dispatchEvent(new Event('pointerdown'));
+  (async () => {
+    while (!root.classList.contains('is-ready')) await wait(100);
+    await wait(500);
+    const gl = root.querySelector('canvas')!;
+    const out: string[] = [];
+    for (const t of times) {
+      root.seekAt!(t);
+      await wait(400);
+      root.seekAt!(t);
+      const c = document.createElement('canvas');
+      c.width = cw;
+      c.height = ch;
+      const x = c.getContext('2d')!;
+      x.fillStyle = q.get('bg') ?? '#121314';
+      x.fillRect(0, 0, cw, ch);
+      const k = gl.width / size;
+      x.drawImage(gl, cx * k, cy * k, cw * k, ch * k, 0, 0, cw, ch);
+      out.push(c.toDataURL('image/png'));
+    }
+    document.getElementById('out')!.textContent = out.join('\n');
+  })();
+</script>
+<style>
+  .still-stage {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    background: #121314;
+  }
+  .still-stage :global(.hs) {
+    max-width: none;
+  }
+  .still-stage :global(.hs__svg),
+  .still-stage :global(.hs__poster),
+  .still-stage :global(button) {
+    display: none;
+  }
+  .still-stage :global(.hs__canvas) {
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+  }
+</style>

@@ -1,0 +1,110 @@
+---
+/** Юридический документ: текст — в data/legal.ts, здесь только вёрстка. */
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import { getLang, link } from '@/i18n';
+import { ui } from '@/i18n/ui';
+import { LEGAL_SLUGS, LEGAL_UPDATED, legalDoc, type LegalSlug } from '@/data/legal';
+
+interface Props {
+  slug: LegalSlug;
+}
+const lang = getLang(Astro.url);
+const t = ui(lang);
+const doc = legalDoc(lang, Astro.props.slug);
+const others = LEGAL_SLUGS.filter((s) => s !== Astro.props.slug);
+const NAME: Record<LegalSlug, string> = { privacy: t.privacy, consent: t.consentDoc, terms: t.terms, offer: t.offer };
+const updated = new Date(`${LEGAL_UPDATED}T12:00:00`).toLocaleDateString(lang === 'en' ? 'en-GB' : 'ru-RU', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+---
+
+<Base title={doc.title} description={doc.description} crumbs={[{ label: doc.title }]}>
+  <PageHero title={doc.title} crumbs={[{ label: doc.title }]}>
+    <p class="caption legal__date">{lang === 'en' ? 'Last updated' : 'Редакция от'} {updated}</p>
+  </PageHero>
+  <section class="section--tight legal">
+    <div class="shell legal__grid">
+      <article class="prose measure">
+        {
+          doc.sections.map((s) => (
+            <>
+              {s.h && <h2 class="h3">{s.h}</h2>}
+              {s.p.map((p) => (
+                <p>{p}</p>
+              ))}
+            </>
+          ))
+        }
+      </article>
+      <nav class="legal__nav" aria-label={lang === 'en' ? 'Other documents' : 'Другие документы'}>
+        <span class="eyebrow">{lang === 'en' ? 'Other documents' : 'Другие документы'}</span>
+        <ul>
+          {
+            others.map((s) => (
+              <li>
+                <a href={link(`/${s}/`, lang)}>{NAME[s]}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .legal {
+    padding-top: 56px;
+  }
+  .legal__date {
+    margin-top: 14px;
+    color: var(--on-stage);
+  }
+  .legal__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 64px;
+    align-items: start;
+  }
+  .prose {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .prose h2 {
+    margin-top: 18px;
+  }
+  .legal__nav {
+    position: sticky;
+    top: 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .legal__nav ul {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .legal__nav a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  @media (max-width: 860px) {
+    .legal {
+      padding-top: 36px;
+    }
+    .legal__grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .legal__nav {
+      position: static;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+  }
+</style>

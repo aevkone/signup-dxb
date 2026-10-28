@@ -3,7 +3,7 @@ import Logo from './Logo.astro';
 import StickyCta from './StickyCta.astro';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
-import { CONTACTS, local, waLink } from '@/consts';
+import { CONTACTS, LICENCE_VALID, local, waLink } from '@/consts';
 
 const lang = getLang(Astro.url);
 const t = ui(lang);
@@ -40,6 +40,9 @@ const licence = L.licence.replace(/^(№|No\.) /, '$1\u00a0');
         <ul>
           <li><a href={link('/contacts/', lang)}>{t.contacts}</a></li>
           <li><a href={link('/privacy/', lang)}>{t.privacy}</a></li>
+          <li><a href={link('/consent/', lang)}>{t.consentDoc}</a></li>
+          <li><a href={link('/terms/', lang)}>{t.terms}</a></li>
+          <li><a href={link('/offer/', lang)}>{t.offer}</a></li>
         </ul>
       </div>
       <div>
@@ -54,7 +57,7 @@ const licence = L.licence.replace(/^(№|No\.) /, '$1\u00a0');
       </div>
     </div>
     <div class="ftr__legal">
-      <span>{L.legalName} · {t.licence} {licence} · {L.address}</span>
+      <span>{L.legalName}{LICENCE_VALID && <> · {t.licence} {licence}</>} · {L.address}</span>
       <span>© {year} <span translate="no">SIGNED DXB</span></span>
     </div>
   </div>

@@ -45,13 +45,7 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
   <form
     class="lead__form card"
     data-lead-form
-    data-submit={t.submit}
     data-short-phone={t.shortPhone}
-    data-sending={t.sending}
-    data-attach-big={t.attachBig}
-    data-attach-wa={t.attachWa}
-    data-attach-hint={t.attachHint}
-    data-mb={lang === 'en' ? 'MB' : 'МБ'}
     novalidate
   >
     <label class="field">
@@ -66,26 +60,11 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
       <span>{t.task}</span>
       <textarea class="textarea" name="task" rows="3" autocomplete="off" placeholder={t.taskPh}>{context}</textarea>
     </label>
-    <div class="field">
-      <span>{t.attach}</span>
-      <label class="attach" data-attach>
-        <input
-          type="file"
-          name="file"
-          class="visually-hidden"
-          data-file
-          accept=".pdf,.png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.psd,.cdr,.zip,.rar,image/*,application/pdf"
-        />
-        <span class="attach__btn">{t.attachPick}</span>
-        <span class="attach__name caption" data-file-name aria-live="polite">{t.attachHint}</span>
-      </label>
-      <button type="button" class="attach__drop caption" data-file-drop hidden>{t.attachDrop}</button>
-    </div>
     <p class="lead__error" data-error role="alert" hidden>{t.noContact}</p>
     <button class="btn btn--primary" type="submit">{t.submit}</button>
     <p class="lead__trust caption">{t.trust(L.replyTime)}</p>
     <p class="caption">
-      {t.consent} <a class="lead__privacy" href={link('/privacy/', lang)}>{t.consentLink}</a>.
+      {t.consent} <a class="lead__privacy" href={link('/consent/', lang)}>{t.consentLink}</a>.
     </p>
     <div class="lead__done" data-done role="status" hidden>
       <Icon name="check" size={28} />
@@ -98,7 +77,7 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
 </div>
 
 <script>
-  import { MAX_FILE_BYTES, sendLead } from '@/scripts/lead';
+  import { sendLead } from '@/scripts/lead';
 
   document.querySelectorAll<HTMLFormElement>('[data-lead-form]').forEach((form, i) => {
     const error = form.querySelector<HTMLElement>('[data-error]')!;
@@ -107,11 +86,6 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
     error.id ||= `lead-error-${i + 1}`;
     contact?.setAttribute('aria-describedby', error.id);
     const done = form.querySelector<HTMLElement>('[data-done]')!;
-    const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-    const fileInput = form.querySelector<HTMLInputElement>('[data-file]');
-    const fileName = form.querySelector<HTMLElement>('[data-file-name]');
-    const fileDrop = form.querySelector<HTMLButtonElement>('[data-file-drop]');
-    /** Исходный текст ошибки про контакт — его затирают сообщения о файле. */
     const noContactText = error.textContent ?? '';
     const fail = (text: string, field?: HTMLInputElement | null) => {
       error.textContent = text;
@@ -126,36 +100,9 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
       if (contact.value.trim() && contact.hasAttribute('aria-invalid')) ok();
     });
 
-    const clearFile = () => {
-      if (!fileInput) return;
-      fileInput.value = '';
-      if (fileName) fileName.textContent = form.dataset.attachHint!;
-      if (fileDrop) fileDrop.hidden = true;
-    };
-
-    fileInput?.addEventListener('change', () => {
-      const f = fileInput.files?.[0];
-      if (!f) return clearFile();
-      if (f.size > MAX_FILE_BYTES) {
-        fail(form.dataset.attachBig!);
-        clearFile();
-        return;
-      }
-      ok();
-      const mb = (f.size / 1024 / 1024).toFixed(1);
-      // Неразрывный пробел: «2.4 МБ» не разъезжается по строкам.
-      if (fileName) fileName.textContent = `${f.name} · ${mb}\u00a0${form.dataset.mb}`;
-      if (fileDrop) fileDrop.hidden = false;
-    });
-
-    fileDrop?.addEventListener('click', clearFile);
-
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const fd = new FormData(form);
-      const file = fileInput?.files?.[0] ?? null;
-      fd.delete('file');
-      const data = Object.fromEntries(fd) as Record<string, string>;
+      const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
       const value = data.contact?.trim() ?? '';
       if (!value) {
         fail(noContactText, contact);
@@ -170,19 +117,8 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
         return;
       }
       ok();
-      btn.disabled = true;
-      btn.textContent = form.dataset.sending!;
-      const how = await sendLead(data, file);
-      btn.disabled = false;
-      btn.textContent = form.dataset.submit!;
-      if (how === 'sent') {
-        form.reset();
-        clearFile();
-        done.hidden = false;
-      } else if (file) {
-        // WhatsApp открывается ссылкой — файл туда не уедет, просим приложить.
-        fail(form.dataset.attachWa!);
-      }
+      sendLead(data);
+      done.hidden = false;
     });
   });
 </script>
@@ -191,48 +127,6 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
   .lead__privacy {
     text-decoration: underline;
     text-underline-offset: 2px;
-  }
-  .attach {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    cursor: pointer;
-  }
-  .attach__btn {
-    display: inline-flex;
-    align-items: center;
-    height: 44px;
-    padding-inline: 22px;
-    border: 1px solid var(--line);
-    border-radius: var(--pill);
-    font-size: 15px;
-    font-weight: 600;
-    white-space: nowrap;
-    transition: border-color 0.18s ease;
-  }
-  .attach:hover .attach__btn {
-    border-color: var(--ink);
-  }
-  .attach input:focus-visible + .attach__btn {
-    outline: 2px solid var(--accent);
-    outline-offset: 3px;
-  }
-  .attach__name {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-  .attach__drop {
-    align-self: flex-start;
-    margin-top: 8px;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--accent);
-    font: inherit;
-    font-size: 14px;
-    text-decoration: underline;
-    cursor: pointer;
   }
   .lead {
     display: grid;

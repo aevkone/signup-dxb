@@ -1,4 +1,7 @@
-name: Выкладка на GitHub Pages
+# Тестовая копия сайта на GitHub Pages закрыта 28.10.2026: боевой сайт — signeddxb.com.
+# На GitHub Pages теперь лежит только переадресация (.github/pages-redirect):
+# любая старая ссылка aevkone.github.io/signup-dxb/... ведёт на ту же страницу signeddxb.com.
+name: Переадресация GitHub Pages на signeddxb.com
 
 on:
   push:
@@ -19,22 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-      - name: Сборка
-        working-directory: web
-        env:
-          SITE_URL: https://${{ github.repository_owner }}.github.io
-          BASE_PATH: /${{ github.event.repository.name }}
-        run: |
-          npm ci
-          npm run build
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: web/dist
+          path: .github/pages-redirect
 
   deploy:
     needs: build

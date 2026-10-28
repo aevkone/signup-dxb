@@ -24,11 +24,12 @@ if (!/email:\s*'[^']+'/.test(consts)) {
   problems.push("не заполнено в consts.ts: email (адрес почты для контактов)");
 }
 
-// 3. Срок лицензии: на сайте не должен стоять номер истёкшей лицензии.
+// 3. Срок лицензии.
 const exp = consts.match(/LICENCE_EXPIRES = '(\d{4}-\d{2}-\d{2})'/)?.[1];
 if (exp) {
   const days = Math.floor((Date.parse(`${exp}T23:59:59+04:00`) - Date.now()) / 86400000);
-  if (days < 0) problems.push(`лицензия истекла ${exp} — продлите и обновите LICENCE_EXPIRES в consts.ts`);
+  // Номер истёкшей лицензии сайт сам скрывает (LICENCE_VALID в consts.ts), поэтому сборку не останавливаем.
+  if (days < 0) console.warn(`preflight: лицензия истекла ${exp} — номер на сайте скрыт; пришлите новую и обновите consts.ts`);
   else if (days <= 14) console.warn(`preflight: лицензия истекает ${exp}, осталось дней: ${days}`);
 }
 

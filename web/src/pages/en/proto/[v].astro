@@ -1,0 +1,13 @@
+---
+/** Съёмка кадров стенда с английскими надписями. Только в разработке. */
+import Base from '@/layouts/Base.astro';
+import StandStills from '@/components/StandStills.astro';
+
+export function getStaticPaths() {
+  return import.meta.env.DEV ? [{ params: { v: 'stills' } }] : [];
+}
+---
+
+<Base title="Stand stills">
+  <StandStills />
+</Base>
