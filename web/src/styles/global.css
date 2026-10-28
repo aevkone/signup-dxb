@@ -24,8 +24,9 @@
   --muted: #5d5f5b;
   --line: #c9cbc2;
   --line-soft: #e2e3dd;
+  /* Неактивная кнопка: тёплый серый, подпись читается — 4,8:1 к фону. */
   --disabled-bg: #e8e9e3;
-  --disabled-ink: #a5a8a0;
+  --disabled-ink: #63665e;
   --ok: #3f7a5e;
   --warn: #a8544f;
 
@@ -35,6 +36,8 @@
   --stage-line: rgb(255 255 255 / 0.14);
   --on-stage: #f2f2ec;
   --on-stage-muted: #b3b6ab;
+  /* Самый тихий текст на сцене (подвал: районы, часы, реквизиты): 5,9:1 к --stage. */
+  --on-stage-faint: #8b8f96;
   /* Слива светлее — для ссылок и кантов на чёрном (контраст ≥ 4.5). */
   --plum-bright: #c190c8;
   /* Пастельная олива — рукописный акцент и «скотч» на фото. */
@@ -185,15 +188,22 @@ ol {
 }
 
 @media (max-width: 860px) {
+  /* Длинные заголовки внутренних страниц («Пользовательское соглашение»,
+     «Широкоформатная печать») на 320–375 px не вылезают за край: кегль
+     плавно ужимается, длинное слово переносится по слогам. */
   .h1 {
-    font-size: 40px;
-    line-height: 46px;
+    font-size: clamp(28px, 8.4vw, 40px);
+    line-height: 1.12;
     letter-spacing: -1px;
+    hyphens: auto;
+    overflow-wrap: break-word;
   }
   .h2 {
     font-size: 31px;
     line-height: 38px;
     letter-spacing: -0.5px;
+    hyphens: auto;
+    overflow-wrap: break-word;
   }
   .h3 {
     font-size: 22px;
@@ -203,6 +213,11 @@ ol {
     font-size: 18px;
     line-height: 29px;
   }
+}
+
+/* Интервал или номер не рвётся по строкам: «9:00–20:00», «+971 50 245 7669». */
+.nowrap {
+  white-space: nowrap;
 }
 
 /* Колонка текста не шире 68 символов — правило с артборда 1. */
@@ -296,7 +311,7 @@ ol {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-/* На самых узких экранах (iPhone SE) подписи «Рассчитать стоимость»
+/* На самых узких экранах (iPhone SE) подписи «Получить расчёт»
    и «Написать в WhatsApp» помещаются в строку: поля и кегль чуть меньше. */
 @media (max-width: 360px) {
   .btn {
@@ -738,6 +753,36 @@ html {
 .stage .btn--ghost:hover {
   border-color: var(--olive-pastel);
   color: var(--olive-pastel);
+}
+
+/* Метка на кадре: «3D-визуализация» — рендер, «Наш проект» — настоящее фото.
+   Тёмная плашка — рендер, пастельная олива — фото с выставки: отличаются не только словом. */
+.vis-tag {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 2;
+  padding: 5px 12px;
+  border-radius: var(--pill);
+  background: rgb(15 16 13 / 0.72);
+  color: var(--on-stage);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  pointer-events: none;
+}
+.vis-tag--photo {
+  background: var(--olive-pastel);
+  color: var(--stage);
+}
+@media (max-width: 760px) {
+  .vis-tag {
+    left: 8px;
+    bottom: 8px;
+    padding: 3px 9px;
+    font-size: 12px;
+    line-height: 16px;
+  }
 }
 
 /* Тап по ссылкам и кнопкам без серой вспышки: отклик даёт :active-состояние.

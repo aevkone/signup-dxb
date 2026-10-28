@@ -616,6 +616,8 @@ export async function createStand3D(root: HTMLElement, canvas: HTMLCanvasElement
   } catch {
     return null;
   }
+  // Проверка шейдеров — только в разработке: в собранном сайте она тормозит компиляцию и шумит в консоли.
+  renderer.debug.checkShaderErrors = import.meta.env.DEV;
   const L = root.dataset;
   const photos: string[] = JSON.parse(L.photos || '[]');
   // Ширина из fit(): в каждом кадре не читаем раскладку; до первого fit — замер.

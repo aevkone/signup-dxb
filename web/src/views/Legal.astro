@@ -87,9 +87,13 @@ const updated = new Date(`${LEGAL_UPDATED}T12:00:00`).toLocaleDateString(lang ==
   .legal__nav ul {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0;
   }
+  /* Зона касания 44px; промежутки между ссылками забирает высота. */
   .legal__nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     text-decoration: underline;
     text-underline-offset: 3px;
   }

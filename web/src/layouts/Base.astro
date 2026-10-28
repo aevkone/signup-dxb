@@ -107,7 +107,7 @@ const orgId = `${homeUrl}#organization`;
 /** «Dubai Design District, Building 3, Floor 3, Dubai, UAE» → улица без города и страны. */
 const streetAddress = local('en').address.split(',').slice(0, -2).join(',').trim();
 
-/** «Ежедневно, 9:00–20:00» → «Mo-Su 09:00-20:00». Непонятный формат — не выводим. */
+/** «Ежедневно, 9:00–20:00 по Дубаю (GMT+4)» → «Mo-Su 09:00-20:00»: берётся первый интервал. Непонятный формат — не выводим. */
 const openingHours = (() => {
   const m = local('ru').hours.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);
   if (!m || !/ежедневно/i.test(local('ru').hours)) return undefined;
@@ -124,7 +124,7 @@ const orgLd = {
   image: ogDefault,
   description: L.siteDescription,
   telephone: CONTACTS.phone,
-  email: CONTACTS.email,
+  ...(CONTACTS.email && { email: CONTACTS.email }),
   address: {
     '@type': 'PostalAddress',
     streetAddress,
@@ -137,7 +137,7 @@ const orgLd = {
   contactPoint: {
     '@type': 'ContactPoint',
     telephone: CONTACTS.phone,
-    email: CONTACTS.email,
+    ...(CONTACTS.email && { email: CONTACTS.email }),
     contactType: 'sales',
     availableLanguage: ['ru', 'en'],
   },

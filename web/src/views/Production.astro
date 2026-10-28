@@ -27,21 +27,24 @@ const T = {
     metaTitle: 'Производство наружной рекламы в Дубае',
     crumb: 'Наружная реклама',
     description: 'Производство наружной рекламы в Дубае, Шардже и Аджмане: световые вывески, печать, брендирование транспорта, таблички, витрины и сувениры.',
-    lead: (n: number) => `Девять направлений и ${n} видов работ — делаем напрямую с производством в ОАЭ. Заказывается отдельно от выставки — или вместе с ней.`,
+    // Без числительного «девять»: в прайсе групп другое число — «все направления» не спорят с ним.
+    lead: (n: number) =>
+      `${n} ${plural(n, ['вид работ', 'вида работ', 'видов работ'])} по всем направлениям наружной рекламы — делаем напрямую с производством в ОАЭ. Заказывается отдельно от выставки — или вместе с ней.`,
     prices: (min: string) => `Ориентировочные цены — в прайсе · минимальный заказ ${min}`,
     survey: (s: string) => `Замер ${s}, засчитывается в стоимость заказа`,
     more: (n: number) => `и ещё ${n}`,
     count: (n: number) => `${n} ${plural(n, ['вид работ', 'вида работ', 'видов работ'])}`,
     tech: 'Материалы и технологии',
     open: 'Открыть',
-    quote: 'Рассчитать стоимость',
+    quote: 'Получить расчёт',
   },
   en: {
     title: 'Outdoor advertising & production',
     metaTitle: 'Outdoor advertising production in Dubai',
     crumb: 'Outdoor advertising',
     description: 'Outdoor advertising production in Dubai, Sharjah and Ajman: illuminated signs, large-format print, vehicle branding, plaques, shop windows and gifts.',
-    lead: (n: number) => `Nine service lines and ${n} types of work, made directly with production in the UAE. Order separately from an exhibition — or together with it.`,
+    lead: (n: number) =>
+      `${n} ${n === 1 ? 'type' : 'types'} of work across all our outdoor advertising lines, made directly with production in the UAE. Order separately from an exhibition — or together with it.`,
     prices: (min: string) => `Indicative prices in the price list · minimum order ${min}`,
     survey: (s: string) => `Site survey ${s}, credited towards your order`,
     more: (n: number) => `and ${n} more`,
@@ -189,6 +192,13 @@ const COVER: Record<string, string[]> = {
   .terms :global(svg) {
     color: var(--accent);
   }
+  /* Ссылки в строке условий — зона касания 44px; промежуток ряда компенсирован. */
+  .terms a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-block: -10px;
+  }
   /* Внутри тёмной шапки страницы. */
   :global(.phero) .terms li {
     color: var(--on-stage-muted);
@@ -237,8 +247,8 @@ const COVER: Record<string, string[]> = {
   .pframe__cap {
     padding: 10px 2px 14px;
     color: var(--ink);
-    font-size: 13px;
-    line-height: 18px;
+    font-size: 14px;
+    line-height: 19px;
     font-weight: 600;
   }
   @media (max-width: 1080px) {
@@ -258,8 +268,8 @@ const COVER: Record<string, string[]> = {
     }
     .pframe__cap {
       padding: 8px 1px 10px;
-      font-size: 12px;
-      line-height: 16px;
+      font-size: 14px;
+      line-height: 18px;
     }
   }
 

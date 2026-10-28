@@ -54,7 +54,14 @@ const t = ui(lang);
     color: var(--on-stage-muted);
   }
   .crumbs a {
+    position: relative;
     color: var(--on-stage-muted);
+  }
+  /* Зона касания крошки — по 12px сверху и снизу, без сдвига строки. */
+  .crumbs a::after {
+    content: '';
+    position: absolute;
+    inset: -12px 0;
   }
   .crumbs a:hover {
     color: var(--olive-pastel);

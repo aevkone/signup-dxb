@@ -6,10 +6,12 @@
  * неделя/месяц на компанию, 3 человека на 9 м², до 15:00) — её слова, не выдумывать новые.
  */
 import { getLang } from '@/i18n';
+import { LICENCE_VALID } from '@/consts';
 
 const lang = getLang(Astro.url);
 
-type Item = { t: string; d: string };
+/** licence — пункт держится на действующей лицензии: при истёкшей не показываем. */
+type Item = { t: string; d: string; licence?: boolean };
 const T: Record<typeof lang, { whyH: string; whySub: string; why: Item[]; knowH: string; knowSub: string; know: Item[] }> = {
   ru: {
     whyH: 'Зачем участвовать, даже если на стенде нельзя продавать',
@@ -38,8 +40,10 @@ const T: Record<typeof lang, { whyH: string; whySub: string; why: Item[]; knowH:
         d: 'Без неё продукцию можно только показывать. Регистрация обычно занимает около недели, но закладывайте месяц. Поможем открыть компанию.',
       },
       {
+        // вернуть после продления лицензии
         t: 'Нет лицензии в ОАЭ — участвуйте под нашей',
         d: 'Без торговой лицензии участником не зарегистрироваться. Оформляем стенд на нашу компанию, а на стенде — ваше имя и бренд.',
+        licence: true,
       },
       {
         t: 'Три человека на стенд',
@@ -90,8 +94,10 @@ const T: Record<typeof lang, { whyH: string; whySub: string; why: Item[]; knowH:
         d: 'Without one you can only display your products. Registration usually takes about a week, but allow a month. We can help set up the company.',
       },
       {
+        // вернуть после продления лицензии
         t: 'No UAE licence? Exhibit under ours',
         d: 'You can’t register as an exhibitor without a trade licence. We register the stand under our company, while the stand carries your name and brand.',
+        licence: true,
       },
       {
         t: 'Three people per stand',
@@ -117,6 +123,8 @@ const T: Record<typeof lang, { whyH: string; whySub: string; why: Item[]; knowH:
   },
 };
 const t = T[lang];
+/** Пункты про участие под нашей лицензией — только пока она действует. */
+const know = t.know.filter((x) => LICENCE_VALID || !x.licence);
 ---
 
 <section class="section section--surface guide" aria-labelledby="why-h">
@@ -150,7 +158,7 @@ const t = T[lang];
     </div>
     <ol class="grid grid--3 know">
       {
-        t.know.map((x, i) => (
+        know.map((x, i) => (
           <li class="card know__item">
             <span class="know__n">{String(i + 1).padStart(2, '0')}</span>
             <h3 class="know__t">{x.t}</h3>

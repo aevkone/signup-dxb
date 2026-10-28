@@ -31,7 +31,6 @@ const T = {
     quote: 'Зачем вам мой офис? Важнее посмотреть ваш объект.',
     wa: 'Написать Кристине в WhatsApp',
     waCtx: 'вопрос Кристине',
-    more: 'Как мы работаем',
   },
   en: {
     eyebrow: 'Project lead',
@@ -51,7 +50,6 @@ const T = {
     quote: 'Why look at my office? It’s more useful to see your site.',
     wa: 'Message Kristina on WhatsApp',
     waCtx: 'question for Kristina',
-    more: 'How we work',
   },
 }[lang];
 ---
@@ -87,10 +85,6 @@ const T = {
       </blockquote>
       <div class="plead__actions">
         <a class="btn btn--primary" href={waLink(lang, T.waCtx)} target="_blank" rel="noopener">{T.wa}</a>
-        <a class="arrow-link" href={`${link('/', lang)}#process`}>
-          {T.more}
-          <span class="arrow-link__disc" aria-hidden="true"><Icon name="arrow" size={16} /></span>
-        </a>
       </div>
     </div>
   </div>

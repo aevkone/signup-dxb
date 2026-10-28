@@ -25,18 +25,23 @@ const T = {
     metaTitle: 'Организация выставок под ключ в Дубае',
     description: 'Полный цикл участия в выставке в Дубае — от контракта с организатором до демонтажа. Восемь блоков: стенд, печать, персонал, питание, логистика, консьерж, оплата, переговоры.',
     lead: 'Полный цикл — от контракта с организатором до демонтажа после выставки. Восемь блоков: берите весь пакет или только те, что нужны.',
-    quote: 'Рассчитать стоимость',
-    anchor: (from: string) => `Стенд под ключ — ориентир ${from}/м²`,
-    anchorLink: 'примеры в прайсе',
+    quote: 'Получить расчёт',
+    anchor: (from: string) => `Модульный стенд — ориентир ${from}/м²`,
+    /** Пояснение — по п. 3 публичной оферты (data/legal.ts), новых цифр нет. */
+    anchorNote: 'без VAT; сбор организатора за участие — отдельно, по агентскому договору или отдельной строкой в Расчёте · ',
+    anchorLink: 'все варианты застройки →',
     area: 'Работаем на выставках в эмиратах',
     vis: 'Визуализация стенда SIGNED DXB',
+    bandCap: 'Визуализация стенда SIGNED DXB и фото нашего стенда на Beautyworld Middle East',
     visTag: 'Визуализация',
+    photoTag: 'Наш проект · Beautyworld ME',
+    photoAlt: ['Наш стенд PARIMIR на Beautyworld Middle East, вид от прохода', 'Наш стенд PARIMIR на Beautyworld Middle East, общий план'],
     views: ['вид от входа, на стенде гости и персонал', 'общий план со светом', 'вид сбоку', 'вид с угла'],
     howH: 'Как мы работаем',
     howSub: 'На каждом этапе у вас один ответственный контакт.',
     leadTitle: 'Расскажите о выставке',
     bandTitle: 'Не знаете, какая выставка вам подойдёт?',
-    bandText: 'Созвонимся: назовите сферу — подберём выставки в Дубае и разберём, в каком формате участвовать под ваш бюджет.',
+    bandText: 'Напишите сферу — подберём выставки в Дубае и разберём, в каком формате участвовать под ваш бюджет. Можно текстом, голосовым или созвониться.',
   },
   en: {
     title: 'Turnkey exhibitions',
@@ -44,26 +49,34 @@ const T = {
     description: 'The full exhibition cycle in Dubai, from the organiser’s contract to breakdown. Eight blocks: stand, print, staff, catering, logistics, concierge, payment and negotiations.',
     lead: 'The full cycle — from the organiser’s contract to breakdown after the show. Eight blocks: take the whole package or only the ones you need.',
     quote: 'Get a quote',
-    anchor: (from: string) => `Turnkey stand — guide price ${from}/m²`,
-    anchorLink: 'examples in the price list',
+    anchor: (from: string) => `Modular stand — guide price ${from}/m²`,
+    anchorNote: 'excl. VAT; the organiser’s participation fee is separate — under the agency agreement or as a line in the Estimate · ',
+    anchorLink: 'all stand options →',
     area: 'We work at exhibitions in',
     vis: 'SIGNED DXB stand visualisation',
+    bandCap: 'A SIGNED DXB stand visualisation and photos of our stand at Beautyworld Middle East',
     visTag: 'Visualisation',
+    photoTag: 'Our project · Beautyworld ME',
+    photoAlt: ['Our PARIMIR stand at Beautyworld Middle East, view from the aisle', 'Our PARIMIR stand at Beautyworld Middle East, overview'],
     views: ['view from the aisle, with visitors and staff', 'overview with lighting', 'side view', 'corner view'],
     howH: 'How we work',
     howSub: 'At every stage you have a single point of contact.',
     leadTitle: 'Tell us about your exhibition',
     bandTitle: 'Not sure which exhibition is right for you?',
-    bandText: 'Let’s have a call: tell us your industry and we’ll pick shows in Dubai and work out how to take part within your budget.',
+    bandText: 'Tell us your industry — we’ll shortlist Dubai shows and work out the format for your budget. Text, voice note or a call — your choice.',
   },
 }[lang];
 
 /** Кадры 3D-стенда с главной (public/img/stand/): у английской версии на стенде английская надпись. */
 const still = (n: number, w: 800 | 1600, ext = 'webp') => link(`/img/stand/${lang === 'en' ? 'stand-en' : 'stand'}-${n}-${w}.${ext}`);
 const stillAlt = (n: number) => `${T.vis}: ${T.views[n - 1]}`;
-/** Лента вверху: крупный кадр и два поменьше; четвёртый — в карточке «Стенд». */
-const BAND = [1, 2, 3];
-const FEATURE = 4;
+/** Лента вверху: крупный кадр — рендер, две миниатюры — фото нашего стенда (public/img/expo/e1, e4).
+ *  В карточке «Стенд» — третье фото стенда: рендер в одном экране не повторяется. */
+const MAIN = 1;
+const PHOTOS = [1, 4];
+const FEATURE_PHOTO = 3;
+const expo = (n: number, size: number, ext = 'webp') => link(`/img/expo/e${n}-${size}.${ext}`);
+const FEATURE_ALT = lang === 'en' ? 'Our PARIMIR stand at Beautyworld Middle East: display cases and product shelves' : 'Наш стенд PARIMIR на Beautyworld Middle East: витрины и полки с продукцией';
 ---
 
 <Base title={T.metaTitle} description={T.description} crumbs={[{ label: T.title }]}>
@@ -71,9 +84,13 @@ const FEATURE = 4;
     <p class="caption area">{T.area}: {L.exhibitionsArea}.</p>
     {
       rate && (
-        <p class="anchor">
-          {T.anchor(fmtMoney(rate.lo, null, lang))} · <a href={link('/prices/#expo', lang)}>{T.anchorLink}</a>
-        </p>
+        <div class="anchor">
+          <p>{T.anchor(fmtMoney(rate.lo, null, lang))}</p>
+          <p class="anchor__note">
+            {T.anchorNote}
+            <a href={link('/prices/#expo', lang)}>{T.anchorLink}</a>
+          </p>
+        </div>
       )
     }
     {/* Расчёт открывается сразу с выбранной «Выставкой под ключ». */}
@@ -86,20 +103,30 @@ const FEATURE = 4;
 
     <figure class="sband">
       <div class="sband__grid">
+        <div class="sband__ph sband__ph--main">
+          <picture>
+            <source
+              type="image/webp"
+              srcset={`${still(MAIN, 800)} 800w, ${still(MAIN, 1600)} 1600w`}
+              sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1080px) 62vw, 800px"
+            />
+            <img src={still(MAIN, 800, 'jpg')} width="800" height="600" alt={stillAlt(MAIN)} loading="eager" decoding="async" />
+          </picture>
+          <span class="vis-tag">{T.visTag}</span>
+        </div>
         {
-          BAND.map((n, i) => (
-            <picture class:list={['sband__ph', i === 0 && 'sband__ph--main']}>
-              <source
-                type="image/webp"
-                srcset={`${still(n, 800)} 800w, ${still(n, 1600)} 1600w`}
-                sizes={i === 0 ? '(max-width: 760px) calc(100vw - 40px), (max-width: 1080px) 62vw, 800px' : '(max-width: 760px) 50vw, (max-width: 1080px) 32vw, 400px'}
-              />
-              <img src={still(n, 800, 'jpg')} width="800" height="600" alt={stillAlt(n)} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
-            </picture>
+          PHOTOS.map((n, i) => (
+            <div class="sband__ph">
+              <picture>
+                <source type="image/webp" srcset={`${expo(n, 600)} 600w, ${expo(n, 1200)} 1200w`} sizes="(max-width: 760px) 50vw, (max-width: 1080px) 32vw, 400px" />
+                <img src={expo(n, 600, 'jpg')} width="600" height="800" alt={T.photoAlt[i]} loading="lazy" decoding="async" />
+              </picture>
+              <span class="vis-tag vis-tag--photo">{T.photoTag}</span>
+            </div>
           ))
         }
       </div>
-      <figcaption class="caption sband__cap">{T.vis}</figcaption>
+      <figcaption class="caption sband__cap">{T.bandCap}</figcaption>
     </figure>
   </PageHero>
 
@@ -113,10 +140,10 @@ const FEATURE = 4;
                 {i === 0 && (
                   <div class="blk__media">
                     <picture>
-                      <source type="image/webp" srcset={`${still(FEATURE, 800)} 800w, ${still(FEATURE, 1600)} 1600w`} sizes="(max-width: 720px) calc(100vw - 40px), (max-width: 1080px) 50vw, 420px" />
-                      <img src={still(FEATURE, 800, 'jpg')} width="800" height="600" alt={stillAlt(FEATURE)} loading="lazy" decoding="async" />
+                      <source type="image/webp" srcset={`${expo(FEATURE_PHOTO, 600)} 600w, ${expo(FEATURE_PHOTO, 1200)} 1200w`} sizes="(max-width: 720px) calc(100vw - 40px), (max-width: 1080px) 50vw, 420px" />
+                      <img src={expo(FEATURE_PHOTO, 600, 'jpg')} width="600" height="800" alt={FEATURE_ALT} loading="lazy" decoding="async" />
                     </picture>
-                    <span class="blk__tag">{T.visTag}</span>
+                    <span class="vis-tag vis-tag--photo">{T.photoTag}</span>
                   </div>
                 )}
                 <div class="blk__body">
@@ -178,10 +205,18 @@ const FEATURE = 4;
     font-size: 16px;
     line-height: 24px;
   }
+  .anchor__note {
+    margin-top: 4px;
+    max-width: 64ch;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--on-stage-muted);
+  }
   .anchor a {
-    color: inherit;
+    color: var(--on-stage);
     text-decoration: underline;
     text-underline-offset: 3px;
+    white-space: nowrap;
   }
   .hero-actions {
     display: flex;
@@ -208,6 +243,9 @@ const FEATURE = 4;
     border-radius: var(--radius-sm);
     border: 1px solid var(--stage-line);
     background: #1a1b17;
+  }
+  .sband__ph picture {
+    display: block;
   }
   .sband__ph img {
     position: absolute;
@@ -294,18 +332,6 @@ const FEATURE = 4;
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-  .blk__tag {
-    position: absolute;
-    left: 14px;
-    bottom: 14px;
-    padding: 5px 12px;
-    border-radius: var(--pill);
-    background: rgb(15 16 13 / 0.72);
-    color: var(--on-stage);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 18px;
   }
   .blk__body {
     position: relative;

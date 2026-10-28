@@ -1,4 +1,5 @@
 import type { Block } from './exhibitions';
+import { LICENCE_VALID } from '@/consts';
 
 /** Английская версия. Порядок и слаги совпадают с русской. */
 export const BLOCKS_EN: Block[] = [
@@ -43,7 +44,7 @@ export const BLOCKS_EN: Block[] = [
     title: 'Print & branded merchandise',
     short: 'Banners, roll-ups, catalogues, brand book',
     icon: 'print',
-    lead: 'Everything that hangs on your stand or goes into visitors’ hands is produced with our production partner in the UAE — we work with them directly, with no chain of middlemen.',
+    lead: 'Everything that hangs on your stand or goes into visitors’ hands is produced with our production partner in the UAE — we work with them directly.',
     includes: [
       {
         title: 'Large format',
@@ -182,7 +183,10 @@ export const BLOCKS_EN: Block[] = [
   {
     slug: 'payment',
     title: 'Payment & registration',
-    short: 'Agency agreement and exhibiting under our licence',
+    short: LICENCE_VALID
+      ? // вернуть после продления лицензии
+        'Agency agreement and exhibiting under our licence'
+      : 'Agency agreement and closing documents',
     icon: 'payment',
     lead: 'Paying for participation from abroad is where many foreign companies get stuck. We handle this payment for you under an agency agreement.',
     includes: [
@@ -194,15 +198,17 @@ export const BLOCKS_EN: Block[] = [
         title: 'Supporting documents',
         text: 'You receive the full set of documents for the payment.',
       },
+      // вернуть после продления лицензии: пункт показываем только при действующей лицензии
       {
         title: 'Exhibiting under our licence',
         text: 'You can’t register as an exhibitor without a UAE trade licence. We register the stand under our company, while the stand carries your name and brand.',
+        licence: true,
       },
       {
         title: 'A company in the UAE',
-        text: 'Selling on the stand requires a company registered in the UAE. We can help set one up — allow about a month.',
+        text: 'Selling on the stand requires a company registered in the UAE. We can help set one up: registration usually takes about a week, but allow a month.',
       },
-    ],
+    ].filter((x) => LICENCE_VALID || !x.licence),
     points: ['Solves the cross-border payment issue', 'Available on its own, without other blocks'],
     note: {
       title: 'What to check in advance',

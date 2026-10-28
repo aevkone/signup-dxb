@@ -23,6 +23,7 @@ const T = {
     script: 'под ключ',
     pause: 'Остановить анимацию',
     play: 'Запустить анимацию',
+    vis: '3D-визуализация',
   },
   en: {
     area: '48 m²',
@@ -31,6 +32,7 @@ const T = {
     script: 'turnkey',
     pause: 'Pause animation',
     play: 'Play animation',
+    vis: '3D visualisation',
   },
 }[lang];
 /** Подписи внизу — все шесть этапов из схемы работы, по порядку. */
@@ -70,6 +72,8 @@ const CAPS: [number, string][] = STEPS.map((s, i) => [i + 1, s.title]);
       }
     </g>
   </svg>
+  {/* Сцена — рендер, а не фото: метка над кнопкой паузы, видна и на кадре-заставке. */}
+  <span class="vis-tag hs__tag">{T.vis}</span>
   <button class="hs__pp" type="button" data-hm-toggle data-label-pause={T.pause} data-label-play={T.play} aria-label={T.pause} hidden>
     <svg class="hs__pp-pause" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
     <svg class="hs__pp-play" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"></path></svg>
@@ -146,8 +150,8 @@ const CAPS: [number, string][] = STEPS.map((s, i) => [i + 1, s.title]);
     position: absolute;
     right: 8px;
     bottom: 8px;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border: 1px solid var(--stage-line);
     background: rgb(15 16 13 / 0.6);
@@ -155,6 +159,13 @@ const CAPS: [number, string][] = STEPS.map((s, i) => [i + 1, s.title]);
     display: grid;
     place-items: center;
     cursor: pointer;
+  }
+  /* Метка «3D-визуализация» стоит над кнопкой паузы, по её правому краю:
+     слева внизу — подпись этапа, туда не заходим. */
+  .hs__tag {
+    left: auto;
+    right: 8px;
+    bottom: 60px;
   }
   .hs__pp:hover {
     color: var(--olive-pastel);
@@ -178,6 +189,10 @@ const CAPS: [number, string][] = STEPS.map((s, i) => [i + 1, s.title]);
     .hs__pp {
       right: 27%;
       bottom: 24%;
+    }
+    .hs__tag {
+      right: 27%;
+      bottom: calc(24% + 54px);
     }
     .hs__caps {
       transform: translate(110px, -120px);

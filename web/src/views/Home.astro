@@ -14,7 +14,7 @@ import { ui } from '@/i18n/ui';
 import { blocks } from '@/data/exhibitions';
 import { faq, process } from '@/data/process';
 import { workById, workTitle } from '@/data/works';
-import { CONTACTS } from '@/consts';
+import { CONTACTS, waLink } from '@/consts';
 import { priceGroups } from '@/data/prices';
 
 /** Сцена первого экрана: на сайте — 3D-стенд; ui и neon — запасные варианты (смотреть на /proto/ в разработке). */
@@ -31,7 +31,14 @@ const T = {
     scriptFirst: false,
     lead: 'Полный цикл — от контракта до демонтажа. Плюс вывески и наружная реклама в ОАЭ.',
     /** {from} — нижняя граница «Выставочный стенд, модульная система» из прайса (data/prices.ts). */
-    priceFrom: 'Стенд под ключ — ориентир от {from} AED/м²',
+    priceFrom: 'Модульный стенд — ориентир от {from} AED/м²',
+    /** Пояснение — по п. 3 публичной оферты (data/legal.ts), новых цифр нет. */
+    priceNote: 'без VAT; сбор организатора за участие — отдельно, по агентскому договору или отдельной строкой в Расчёте · ',
+    priceLink: 'все варианты застройки →',
+    /** Строка-доказательство под фактами первого экрана: реальный кейс, не рендер. */
+    caseLine: 'Наш проект: стенд PARIMIR, Beautyworld Middle East, 9 м² →',
+    leadBy: 'Проект ведёт лично Кристина Дякина, архитектор по образованию',
+    collageAlt: 'Наш проект · Beautyworld Middle East',
     facts: [
       ['Один договор', 'Стенд, печать, персонал и логистика — у одного исполнителя'],
       ['Прямая связь с площадками', 'Выходим на организаторов напрямую'],
@@ -55,6 +62,7 @@ const T = {
       ['/exhibitions/concierge/', 'Консьерж-сервис', 'Встреча, размещение, сим-карты, обмен валюты, перемещение по городу.', 'Что входит'],
     ],
     standAlt: 'Визуализация выставочного стенда под ключ',
+    visTag: '3D-визуализация',
     conciergeAlt: 'Панорама Дубая днём: небоскрёбы и побережье',
     inclH: 'Что входит в работу под ключ',
     inclSub: 'У каждого блока своя страница с составом работ. Берите все восемь или только нужные.',
@@ -73,20 +81,27 @@ const T = {
       ['24', 'часа', 'Срок ответа на заявку'],
       ['50/50', '', 'Оплата: 50% предоплата, 50% перед отгрузкой или монтажом'],
       ['500', 'AED', 'Выезд на замер вывески — сумма засчитывается в заказ'],
-      ['7', 'дней', 'Работаем без выходных, 9:00–20:00'],
+      ['7', 'дней', 'Работаем без выходных, 9:00–20:00 по Дубаю'],
     ],
     termsLink: 'Все условия — в прайсе',
     calcH: 'Соберите заявку за минуту',
-    calcSub: 'Отметьте, что нужно, и укажите параметры — вернёмся с вариантами. Без звонков, если вам так удобнее.',
+    calcSub: 'Отметьте, что нужно, и укажите параметры — вернёмся с вариантами. Можно перепиской или созвоном — как вам удобнее.',
     faqH: 'Частые вопросы',
-    faqSub: 'Не нашли свой — напишите в WhatsApp, ответим текстом.',
+    /** «WhatsApp» — ссылка: до, текст ссылки, после. */
+    faqSub: ['Не нашли свой — напишите в ', 'WhatsApp', ', ответим текстом.'],
+    faqWa: 'вопрос из FAQ',
   },
   en: {
     h1pre: 'exhibitions in Dubai',
     h1script: 'Turnkey',
     scriptFirst: true,
     lead: 'Full cycle, from the organiser’s contract to breakdown. Plus signage and outdoor advertising in the UAE.',
-    priceFrom: 'Turnkey stand — a guide price from AED {from}/m²',
+    priceFrom: 'Modular stand — guide price from AED {from}/m²',
+    priceNote: 'excl. VAT; the organiser’s participation fee is separate — under the agency agreement or as a line in the Estimate · ',
+    priceLink: 'all stand options →',
+    caseLine: 'Our project: PARIMIR stand, Beautyworld Middle East, 9 m² →',
+    leadBy: 'Your project is run personally by Kristina Diakina, trained architect',
+    collageAlt: 'Our project · Beautyworld Middle East',
     facts: [
       ['One contract', 'Stand, print, staff and logistics from a single team'],
       ['Direct line to venues', 'We deal with organisers directly'],
@@ -110,6 +125,7 @@ const T = {
       ['/exhibitions/concierge/', 'Concierge', 'Airport pickup, accommodation, SIM cards, currency exchange and getting around.', 'What’s included'],
     ],
     standAlt: 'Visualisation of a turnkey exhibition stand',
+    visTag: '3D visualisation',
     conciergeAlt: 'Dubai skyline by day: high-rises and the coast',
     inclH: 'What’s included in turnkey service',
     inclSub: 'Each service has its own page with the full scope. Take all eight or only what you need.',
@@ -128,19 +144,21 @@ const T = {
       ['24', 'hours', 'Response time to your request'],
       ['50/50', '', 'Payment: 50% upfront, 50% before dispatch or installation'],
       ['500', 'AED', 'Signage site survey visit, credited against the order', 'before'],
-      ['7', 'days', 'Open every day, 9 am – 8 pm'],
+      ['7', 'days', 'Open every day, 9 am – 8 pm Dubai time'],
     ],
     termsLink: 'Full terms in the price list',
     calcH: 'Build your request in a minute',
-    calcSub: 'Tick what you need and add the details — we’ll come back with options. No phone call needed if you’d rather not.',
+    calcSub: 'Tick what you need and add the details — we’ll come back with options. By chat or by phone — whichever suits you.',
     faqH: 'Frequently asked questions',
-    faqSub: 'Don’t see your question? Ask on WhatsApp — we’ll reply in writing.',
+    faqSub: ['Don’t see your question? Ask on ', 'WhatsApp', ' — we’ll reply in writing.'],
+    faqWa: 'question from the FAQ',
   },
 }[lang];
 const STEPS = process(lang);
 const FEATURED = featuredWorks();
-/** Коллаж — реальные работы из data/works.ts. */
-const COLLAGE = ['36', '20'].map((id) => workById(id)!);
+/** Коллаж — фото нашего стенда на Beautyworld Middle East (public/img/expo/, как в ExpoCase). */
+const COLLAGE = [2, 3];
+const expo = (n: number, size: number, ext = 'webp') => link(`/img/expo/e${n}-${size}.${ext}`);
 const w = (id: string, size: number, ext = 'webp') => link(`/img/works/w${id}-${size}.${ext}`);
 /** Фото карточек направлений: у выставок — кадр 3D-визуализации стенда (подписан как визуализация),
  *  у производства — табличка из data/works.ts, у консьержа — панорама Дубая. */
@@ -188,16 +206,35 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
         </h1>
         <p class="hero__lead">{T.lead}</p>
         <div class="hero__actions">
-          <a class="btn btn--primary hero__cta" href={link('/configurator/', lang)}>{u.calc}</a>
+          {/* Расчёт — на этой же странице, ниже (#calc). */}
+          <a class="btn btn--primary hero__cta" href="#calc">{u.calc}</a>
           <a class="arrow-link" href={CONTACTS.whatsapp} target="_blank" rel="noopener">
             {u.whatsapp}
             <span class="arrow-link__disc" aria-hidden="true"><Icon name="arrow" size={16} /></span>
           </a>
         </div>
-        {standFrom && <p class="hero__price">{T.priceFrom.replace('{from}', standFrom)}</p>}
+        <p class="caption hero__by">{T.leadBy}</p>
+        {
+          standFrom && (
+            <div class="hero__price">
+              <p>{T.priceFrom.replace('{from}', standFrom)}</p>
+              <p class="hero__price-note">
+                {T.priceNote}
+                <a href={link('/prices/#expo', lang)}>{T.priceLink}</a>
+              </p>
+            </div>
+          )
+        }
         <ul class="hero__facts">
           {T.facts.map(([h, t]) => <li><strong>{h}</strong><span>{t}</span></li>)}
         </ul>
+        <a class="hero__case" href="#expo-h">
+          <picture>
+            <source type="image/webp" srcset={expo(2, 600)} />
+            <img src={expo(2, 600, 'jpg')} width="48" height="48" alt="" decoding="async" />
+          </picture>
+          <span>{T.caseLine}</span>
+        </a>
       </div>
       {hero === 'stand' ? <HeroStand /> : hero === 'neon' ? <HeroNeon /> : <HeroMotion />}
     </div>
@@ -208,11 +245,14 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
     <div class="shell intro__grid">
       <div class="collage">
         {
-          COLLAGE.map((wk, i) => (
-            <picture class:list={['collage__ph', 'taped', `collage__ph--${i + 1}`]} data-reveal style={`--d:${i * 80}ms`}>
-              <source type="image/webp" srcset={w(wk.id, 600)} />
-              <img src={w(wk.id, 600, 'jpg')} width="600" height="600" alt={workTitle(wk, lang)} loading="lazy" decoding="async" />
-            </picture>
+          COLLAGE.map((n, i) => (
+            <div class:list={['collage__ph', 'taped', `collage__ph--${i + 1}`]} data-reveal style={`--d:${i * 80}ms`}>
+              <picture>
+                <source type="image/webp" srcset={expo(n, 600)} />
+                <img src={expo(n, 600, 'jpg')} width="600" height="800" alt={T.collageAlt} loading="lazy" decoding="async" />
+              </picture>
+              {i === 0 && <span class="vis-tag vis-tag--photo">{T.collageAlt}</span>}
+            </div>
           ))
         }
       </div>
@@ -240,6 +280,12 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
     </div>
   </section>
 
+  <!-- 2а. Наш проект на выставке: доказательство сразу после обещания -->
+  <ExpoCase surface />
+
+  <!-- 2б. Руководитель проекта -->
+  <ProjectLead />
+
   <!-- 3. Направления -->
   <section class="section entries">
     <div class="shell">
@@ -254,6 +300,7 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
           T.entries.map(([href, h, p, m], i) => (
             <a class="entry" href={link(href, lang)} data-reveal style={`--d:${i * 70}ms`}>
               <div class="entry__media" data-drift>
+                {i === 0 && <span class="vis-tag">{T.visTag}</span>}
                 <picture>
                   <source type="image/webp" srcset={ENTRY_PIC[i]!.webp} sizes={ENTRY_SIZES} />
                   <img src={ENTRY_PIC[i]!.jpg} srcset={ENTRY_PIC[i]!.jpgSet} sizes={ENTRY_SIZES} width="800" height="600" alt={ENTRY_PIC[i]!.alt} loading="lazy" decoding="async" />
@@ -298,9 +345,6 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
       </ul>
     </div>
   </section>
-
-  <!-- 4а. Наш проект на выставке: фото стенда -->
-  <ExpoCase />
 
   <!-- 5. Схема работы -->
   <section class="section stage how" id="process">
@@ -388,9 +432,6 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
     </div>
   </section>
 
-  <!-- 7а. Руководитель проекта -->
-  <ProjectLead />
-
   <!-- 8. Конфигуратор -->
   <section class="section calc" id="calc">
     <div class="shell">
@@ -409,14 +450,24 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
     <div class="shell faq">
       <div>
         <h2 class="h2">{T.faqH}</h2>
-        <p class="sec-head__sub">{T.faqSub}</p>
+        <p class="sec-head__sub">
+          {T.faqSub[0]}<a href={waLink(lang, T.faqWa)} target="_blank" rel="noopener" translate="no">{T.faqSub[1]}</a>{T.faqSub[2]}
+        </p>
       </div>
       <div class="faq__list">
         {
           faq(lang).map((f) => (
             <details class="faq__item">
               <summary>{f.q}</summary>
-              <p>{f.a}</p>
+              <p>
+                {f.a}
+                {f.link && (
+                  <>
+                    {' '}
+                    <a class="faq__link" href={link(f.link.href, lang)}>{f.link.label}</a>
+                  </>
+                )}
+              </p>
             </details>
           ))
         }
@@ -513,12 +564,64 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
     height: 56px;
     padding-inline: 32px;
   }
-  /* Ориентир цены из прайса: одна тихая строка под кнопками, не отдельный блок. */
+  /* Кто ведёт проект — тихая строка сразу под кнопками. */
+  .hero__by {
+    margin-top: 14px;
+    max-width: 64ch;
+  }
+  /* Ориентир цены из прайса: строка и мелкое пояснение под кнопками, не отдельный блок. */
   .hero__price {
     margin-top: 18px;
+    font-size: 15px;
+    line-height: 22px;
+    color: var(--on-stage);
+  }
+  .hero__price-note {
+    margin-top: 4px;
+    max-width: 60ch;
     font-size: 14px;
     line-height: 20px;
     color: var(--on-stage-muted);
+  }
+  .hero__price-note a {
+    color: var(--on-stage);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+  .hero__price-note a:hover {
+    color: var(--olive-pastel);
+  }
+  /* Строка-кейс: миниатюра настоящего стенда и подпись — ведёт к блоку кейса ниже. */
+  .hero__case {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 48px;
+    margin-top: 22px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--on-stage-muted);
+    transition: color 0.18s ease;
+  }
+  /* Удвоенный класс — сильнее общего цвета ссылок на сцене (.stage a): строка тихая, не сливовая. */
+  .hero .hero__case.hero__case {
+    color: var(--on-stage-muted);
+  }
+  .hero .hero__case.hero__case:hover {
+    color: var(--on-stage);
+  }
+  .hero__case picture {
+    flex: none;
+  }
+  .hero__case img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: var(--radius-xs);
+    outline: 1px solid rgb(255 255 255 / 0.12);
+    outline-offset: -1px;
   }
   .hero__facts {
     display: grid;
@@ -552,21 +655,10 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
   :global(.js-motion) .hero__script {
     animation: write 1.1s var(--ease-out) 0.45s both !important;
   }
-  :global(.js-motion) .hero__lead,
-  :global(.js-motion) .hero__actions,
-  :global(.js-motion) .hero__price,
+  /* Подзаголовок, кнопки и цена видны сразу — главная кнопка не ждёт анимации.
+     Факты лишь коротко проявляются, без задержки. */
   :global(.js-motion) .hero__facts {
-    animation: fade 0.8s var(--ease-out) both;
-  }
-  :global(.js-motion) .hero__lead {
-    animation-delay: 0.35s;
-  }
-  :global(.js-motion) .hero__actions,
-  :global(.js-motion) .hero__price {
-    animation-delay: 0.5s;
-  }
-  :global(.js-motion) .hero__facts {
-    animation-delay: 0.65s;
+    animation: fade 0.3s var(--ease-out) both;
   }
   @keyframes rise {
     from {
@@ -590,9 +682,6 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
   @media (prefers-reduced-motion: reduce) {
     :global(.js-motion) .hero__line > span,
     :global(.js-motion) .hero__script,
-    :global(.js-motion) .hero__lead,
-    :global(.js-motion) .hero__actions,
-    :global(.js-motion) .hero__price,
     :global(.js-motion) .hero__facts {
       animation: none !important;
     }
@@ -620,11 +709,20 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
     background: #fff;
     box-shadow: 0 24px 50px rgb(28 30 31 / 0.18);
   }
+  .collage__ph picture {
+    display: block;
+  }
   .collage__ph img {
     width: 100%;
     height: auto;
     aspect-ratio: 1 / 1;
     object-fit: cover;
+  }
+  /* Метка «Наш проект» — внутри белой рамки фото, сверху: низ первого фото закрывает второе. */
+  .collage__ph :global(.vis-tag) {
+    top: 40px;
+    bottom: auto;
+    left: 20px;
   }
   .collage__ph--1 {
     top: 0;
@@ -698,7 +796,12 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
   .callout__text strong {
     color: var(--ink);
   }
+  /* Зона касания 44px без сдвига текста. */
   .callout__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-block: -10px;
     justify-self: start;
     font-size: 15px;
     font-weight: 700;
@@ -726,6 +829,7 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
     color: var(--ink);
   }
   .entry__media {
+    position: relative;
     display: block;
     overflow: hidden;
     border-radius: 4px;
@@ -866,10 +970,12 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
     grid-template-columns: 1fr 64px 1fr;
     align-items: center;
   }
+  /* Будущие шаги приглушены только кружком; текст этапа всегда читается полностью (контраст AA). */
   .flow__dot {
     grid-column: 2;
     grid-row: 1;
     justify-self: center;
+    opacity: 0.45;
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -884,15 +990,15 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
       background-color 0.4s var(--ease-out),
       border-color 0.4s var(--ease-out),
       color 0.4s var(--ease-out),
-      box-shadow 0.4s var(--ease-out);
+      box-shadow 0.4s var(--ease-out),
+      opacity 0.4s var(--ease-out);
     position: relative;
     z-index: 1;
   }
   .flow__card {
     grid-row: 1;
     max-width: 380px;
-    opacity: 0.45;
-    transition: opacity 0.6s var(--ease-out), translate 0.6s var(--ease-out);
+    transition: translate 0.6s var(--ease-out);
   }
   .flow__step--l .flow__card {
     grid-column: 1;
@@ -905,10 +1011,10 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
     translate: 12px 0;
   }
   .flow__step.is-lit .flow__card {
-    opacity: 1;
     translate: 0 0;
   }
   .flow__step.is-lit .flow__dot {
+    opacity: 1;
     background: var(--olive-pastel);
     border-color: var(--olive-pastel);
     color: var(--stage);
@@ -928,8 +1034,10 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
   }
   /* Без скрипта этапы видны полностью. */
   :global(html:not(.js-motion)) .flow__card {
-    opacity: 1;
     translate: 0 0;
+  }
+  :global(html:not(.js-motion)) .flow__dot {
+    opacity: 1;
   }
   :global(html:not(.js-motion)) .flow__fill {
     transform: scaleY(1);
@@ -1161,6 +1269,11 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
     color: var(--muted);
     max-width: 65ch;
   }
+  .faq__link {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
 
   /* ---------- Адаптив ---------- */
   @media (max-width: 1080px) {
@@ -1185,6 +1298,10 @@ const standFrom = standRow?.price.split('–')[0]?.trim();
     }
     .hero__facts {
       order: 2;
+    }
+    .hero__case {
+      order: 3;
+      justify-self: start;
     }
     /* На телефоне сцена во всю ширину экрана: края всё равно растворяются в фоне. */
     .hero__grid > :global(.hs) {

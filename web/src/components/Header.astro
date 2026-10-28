@@ -10,8 +10,8 @@ const path = altPath(rawPath);
 const t = ui(lang);
 const items = nav(lang);
 const wa = waLink(lang);
-/** В мобильном меню есть место для «Наших работ» — в широкой шапке строка и так на пределе. */
-const mItems = [...items.slice(0, -1), { href: '/works/', label: t.works }, ...items.slice(-1)];
+/** В широкой шапке — «Наши работы»; в мобильном меню есть место и для консьерж-сервиса. */
+const mItems = [...items.slice(0, -1), { href: '/exhibitions/concierge/', label: t.concierge }, ...items.slice(-1)];
 const isActive = (href: string) =>
   href === '/exhibitions/'
     ? path.startsWith('/exhibitions/') && !path.startsWith('/exhibitions/concierge/')
@@ -118,6 +118,7 @@ const current = (href: string) => (isActive(href) ? (path === href ? 'page' : 't
     top: 0;
     z-index: 50;
     background: rgb(15 16 13 / 0.94);
+    -webkit-backdrop-filter: saturate(1.2) blur(10px);
     backdrop-filter: saturate(1.2) blur(10px);
     border-bottom: 1px solid var(--stage-line);
     color: var(--on-stage);
@@ -226,8 +227,8 @@ const current = (href: string) => (isActive(href) ? (path === href ? 'page' : 't
     white-space: nowrap;
   }
   /* Сжатие стоит после базовых правил, иначе они его перебивают.
-     1101–1439px: меню целиком, но плотнее (в обычном размере оно влезает
-     только с ~1430px — у «Рассчитать стоимость» подпись длиннее) — бургер только ниже 1100px. */
+     1101–1439px: меню целиком, но плотнее — бургер только ниже 1100px.
+     Подпись кнопки — «Получить расчёт», пункт меню — «Наши работы». */
   @media (max-width: 1439px) {
     .hdr__row {
       gap: 20px;
@@ -256,8 +257,8 @@ const current = (href: string) => (isActive(href) ? (path === href ? 'page' : 't
       gap: 15px;
     }
   }
-  /* «Рассчитать стоимость» длиннее прежней подписи — у самого края
-     бургера ужимаем промежутки и поля кнопки, чтобы строка не рвалась. */
+  /* У самого края бургера ужимаем промежутки и поля кнопки «Получить расчёт»,
+     чтобы строка шапки не рвалась. */
   @media (max-width: 1140px) {
     .hdr__row {
       gap: 12px;
@@ -338,6 +339,8 @@ const current = (href: string) => (isActive(href) ? (path === href ? 'page' : 't
       left: 0;
       right: 0;
       top: 68px;
+      /* Safari до 15.4 не знает dvh — сначала обычная высота экрана. */
+      height: calc(100vh - 68px);
       height: calc(100dvh - 68px);
       overflow-y: auto;
       overscroll-behavior: contain;

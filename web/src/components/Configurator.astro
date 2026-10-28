@@ -1,5 +1,6 @@
 ---
 import Icon from './Icon.astro';
+import LeadDone from './LeadDone.astro';
 import type { IconName } from './Icon.astro';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
@@ -38,7 +39,6 @@ const SERVICE_SLUGS = ['turnkey', 'stand', 'sign', 'print', 'staff', 'concierge'
  */
 const LOCAL = {
   ru: {
-    expoPh: 'Выставка или адрес',
     datesPh: 'Например, в октябре',
     sizePh: 'Например, 3 × 1 м',
     qtyPh: 'Например, 2',
@@ -51,7 +51,6 @@ const LOCAL = {
     onlyLink: ['Ориентиры — ', 'в прайсе'],
   },
   en: {
-    expoPh: 'Show or venue address',
     datesPh: 'e.g. in October',
     sizePh: 'e.g. 3 × 1 m',
     qtyPh: 'e.g. 2',
@@ -136,7 +135,7 @@ const i18n = {
       {/* Поля показываются по ветке услуги; скрытые отключаются и не попадают в заявку. */}
       <label class="field" data-for="expo staff">
         <span>{c.expo}</span>
-        <input class="input" name="expo" autocomplete="off" placeholder={LOCAL.expoPh} />
+        <input class="input" name="expo" autocomplete="off" placeholder={c.expoPh} data-ph-narrow={c.expoPhShort} />
       </label>
       <div class="field" data-for="expo" role="radiogroup" aria-labelledby="cfg-area">
         <span id="cfg-area">{c.area}</span>
@@ -192,7 +191,7 @@ const i18n = {
         </label>
         <label class="field">
           <span>{t.contact}</span>
-          <input class="input" name="contact" type="tel" autocomplete="tel" placeholder="+971" />
+          <input class="input" name="contact" type="tel" autocomplete="tel" placeholder={t.contactPh} />
         </label>
       </div>
       <div class="field" role="radiogroup" aria-labelledby="cfg-budget">
@@ -225,9 +224,7 @@ const i18n = {
     </fieldset>
 
     <div class="cfg__step cfg__done" data-step="4" hidden>
-      <span class="cfg__done-icon"><Icon name="check" size={30} /></span>
-      <h2 class="h3 cfg__title" id="cfg-t4" tabindex="-1">{c.doneTitle}</h2>
-      <p class="caption">{c.doneText(L.replyTime)}</p>
+      <LeadDone heading titleId="cfg-t4" text={c.doneText(L.replyTime)} />
     </div>
 
     <div class="cfg__nav" data-nav>
@@ -241,6 +238,7 @@ const i18n = {
       <a class="cfg__wa" href={waLink(lang, LOCAL.waCtx)} target="_blank" rel="noopener" data-wa>
         <Icon name="whatsapp" size={18} /> <span class="cfg__wa-text">{t.whatsapp}</span>
       </a>
+      <p class="caption cfg__promise" data-promise hidden>{c.promise}</p>
     </div>
   </div>
 
@@ -265,7 +263,7 @@ const i18n = {
 </div>
 
 <script>
-  import { sendLead } from '@/scripts/lead';
+  import { sendLead, wireDone } from '@/scripts/lead';
 
   type Strings = {
     standServices: string[];
@@ -337,7 +335,14 @@ const i18n = {
     const groups = root.querySelectorAll<HTMLElement>('[data-for]');
     const est = root.querySelector<HTMLElement>('[data-est]')!;
     const wa = root.querySelector<HTMLAnchorElement>('[data-wa]')!;
+    const promise = root.querySelector<HTMLElement>('[data-promise]')!;
+    const done = root.querySelector<HTMLElement>('[data-done]')!;
     const E = S.est;
+
+    // Длинная подсказка в узком поле обрезается — на телефоне берём короткую.
+    if (matchMedia('(max-width: 420px)').matches) {
+      root.querySelectorAll<HTMLInputElement>('[data-ph-narrow]').forEach((el) => (el.placeholder = el.dataset.phNarrow!));
+    }
 
     const branch = (): Branch =>
       (root.querySelector<HTMLInputElement>('input[name="service"]:checked')?.dataset.branch as Branch) ?? 'expo';
@@ -399,10 +404,10 @@ const i18n = {
       if (g) return { figure: `${g.money} ${g.unit}`, tail: 'all' };
       return { figure: null, tail: 'link' };
     };
-    /** Строка ориентира для поля «Задача» в заявке — без ссылок. */
+    /** Ориентир для заявки — отдельной строкой «Ориентир с сайта», без ссылок. */
     const estimateText = () => {
       const e = estimate();
-      return e?.figure ? `${E.k}: ${e.figure} ${E.vat}` : '';
+      return e?.figure ? `${e.figure} ${E.vat}` : '';
     };
     const renderEstimate = () => {
       const e = estimate();
@@ -452,8 +457,16 @@ const i18n = {
       steps.forEach((el) => (el.hidden = Number(el.dataset.step) !== step));
       back.hidden = step === 1 || step === 4;
       nav.hidden = step === 4;
+      done.hidden = step !== 4;
+      // На шаге 1 «Далее» не нужна: шаг переключает выбор плитки (мышью, пальцем, Enter или пробелом).
+      next.hidden = step === 1;
+      promise.hidden = step !== 3;
       next.textContent = step === 3 ? S.submit : S.next;
       next.setAttribute('aria-disabled', String(Boolean(problem(v))));
+      // Отметка выбора классом — для Safari без :has().
+      root.querySelectorAll<HTMLInputElement>('.tile input, .pill input').forEach((el) =>
+        el.closest('label')?.classList.toggle('is-checked', el.checked),
+      );
       label.textContent = step === 4 ? S.done : stepText(step);
       root.dataset.at = String(step);
       bar.style.transform = `scaleX(${Math.min(step, 3) / 3})`;
@@ -497,7 +510,16 @@ const i18n = {
     let pointer = false;
     let timer = 0;
     tiles.addEventListener('pointerdown', () => (pointer = true));
-    tiles.addEventListener('keydown', () => (pointer = false));
+    tiles.addEventListener('keydown', (e) => {
+      pointer = false;
+      // Enter или пробел на плитке — выбор и сразу шаг 2 (кнопки «Далее» на шаге 1 нет).
+      const el = e.target;
+      if (step !== 1 || !(el instanceof HTMLInputElement) || (e.key !== 'Enter' && e.key !== ' ')) return;
+      e.preventDefault();
+      el.checked = true;
+      render();
+      goTo(2);
+    });
     tiles.addEventListener('click', (e) => {
       if (!(e.target instanceof HTMLInputElement)) return;
       const viaPointer = pointer;
@@ -544,13 +566,15 @@ const i18n = {
       const lead: Record<string, string> = {};
       for (const k of ['service', 'expo', 'area', 'dates', 'budget', 'name', 'contact']) if (v[k]) lead[k] = v[k];
       if (!lead.dates && v.deadline) lead.dates = v.deadline;
+      // В «Задаче» — только то, что ввёл сам посетитель; пустое поле не выводится.
       const extra = EXTRA.filter((k) => v[k]).map((k) => `${S.labels[k]}: ${v[k]}`);
-      // Ориентир по прайсу тоже уходит в «Задачу» — команда видит, какую цифру клиент уже знает.
-      const guide = estimateText();
-      if (guide) extra.push(guide);
       if (extra.length) lead.task = extra.join(' · ');
+      // Ориентир посчитал сайт, а не клиент, — отдельной строкой «Ориентир с сайта».
+      const guide = estimateText();
+      if (guide) lead.guide = guide;
 
-      sendLead(lead);
+      const url = sendLead(lead);
+      wireDone(done, lead, url);
       goTo(4);
     });
 
@@ -662,7 +686,8 @@ const i18n = {
   .tile:hover {
     border-color: #cfcbc3;
   }
-  .tile:has(input:checked) {
+  .tile:has(input:checked),
+  .tile.is-checked {
     border-color: var(--accent);
     background: #f4f5f8;
   }
@@ -699,9 +724,16 @@ const i18n = {
   .pill:hover {
     border-color: #cfcbc3;
   }
-  .pill:has(input:checked) {
+  .pill:has(input:checked),
+  .pill.is-checked {
     border-color: var(--accent);
     background: #f4f5f8;
+  }
+  /* Длинная подпись бюджета («over AED 100,000») не вылезает из пилюли на 320–360 px. */
+  .pill span {
+    min-width: 0;
+    overflow-wrap: break-word;
+    text-align: center;
   }
   .cfg__consent {
     margin-top: 4px;
@@ -712,17 +744,11 @@ const i18n = {
     gap: 16px;
   }
   .cfg__done {
-    align-items: flex-start;
     justify-content: center;
   }
-  .cfg__done-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: #eef4f0;
-    color: var(--ok);
+  /* Строка-обещание под кнопкой отправки. */
+  .cfg__promise {
+    flex-basis: 100%;
   }
   .cfg__hint {
     flex-basis: 100%;
@@ -748,12 +774,13 @@ const i18n = {
     transform: rotate(180deg);
   }
   .cfg__nav .btn[aria-disabled='true'] {
-    background: #b9bcc2;
-    color: #fff;
+    background: var(--disabled-bg);
+    color: var(--disabled-ink);
   }
   .cfg__wa {
     display: inline-flex;
     align-items: center;
+    min-height: 44px;
     gap: 8px;
     margin-left: auto;
     font-size: 15px;
@@ -1023,6 +1050,15 @@ const i18n = {
   }
   /* 320px: «Отправить заявку» не влезает между двумя круглыми кнопками — на последнем шаге
      WhatsApp прячем (он есть в шапке), кнопке отправки оставляем всю ширину. */
+  /* Узкий телефон: пилюли бюджета — в одну колонку, иначе «AED 100,000» рвётся посреди числа. */
+  @media (max-width: 380px) {
+    .pill {
+      padding-inline: 10px;
+    }
+    .pills--grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
   @media (max-width: 360px) {
     .cfg[data-at='3'] .cfg__wa {
       display: none;

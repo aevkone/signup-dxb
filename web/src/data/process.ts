@@ -1,7 +1,9 @@
 import type { Lang } from '@/i18n';
+import { LICENCE_VALID, local } from '@/consts';
 
 type Step = { title: string; text: string };
-type Qa = { q: string; a: string };
+/** link — ссылка в конце ответа (на странице; в микроразметку FAQ идёт только текст). */
+type Qa = { q: string; a: string; link?: { href: string; label: string } };
 
 const PROCESS: Record<Lang, Step[]> = {
   ru: [
@@ -46,11 +48,19 @@ const FAQ: Record<Lang, Qa[]> = {
     },
     {
       q: 'У нас нет компании в ОАЭ. Можно участвовать?',
-      a: 'Да. Без торговой лицензии в ОАЭ участником не зарегистрироваться, поэтому оформляем стенд на нашу компанию, а на стенде — ваше имя и бренд.',
+      a: LICENCE_VALID
+        ? // вернуть после продления лицензии
+          'Да. Без торговой лицензии в ОАЭ участником не зарегистрироваться, поэтому оформляем стенд на нашу компанию, а на стенде — ваше имя и бренд.'
+        : 'Схема участия зависит от выставки и организатора. Подскажем её в WhatsApp или на созвоне до того, как вы что-то оплатите.',
+    },
+    {
+      q: 'С кем я заключаю договор?',
+      a: `Исполнитель — ${local('ru').legalName}, Dubai Design District. Условия — в публичной оферте и в Расчёте под вашу задачу. Состав закрывающих документов зависит от выставки и вашей юрисдикции — уточним до оплаты.`,
+      link: { href: '/offer/', label: 'Публичная оферта' },
     },
     {
       q: 'Можно ли продавать продукцию прямо на стенде?',
-      a: 'Только если у вас компания, зарегистрированная в ОАЭ. Без неё продукцию можно показывать, но не продавать. Поможем открыть компанию — закладывайте на это около месяца.',
+      a: 'Только если у вас компания, зарегистрированная в ОАЭ. Без неё продукцию можно показывать, но не продавать. Поможем открыть компанию: регистрация обычно занимает около недели, но закладывайте месяц.',
     },
     {
       q: 'За сколько до выставки к вам обращаться?',
@@ -84,11 +94,19 @@ const FAQ: Record<Lang, Qa[]> = {
     },
     {
       q: 'We don’t have a company in the UAE. Can we still exhibit?',
-      a: 'Yes. You can’t register as an exhibitor without a UAE trade licence, so we register the stand under our company, while the stand carries your name and brand.',
+      a: LICENCE_VALID
+        ? // вернуть после продления лицензии
+          'Yes. You can’t register as an exhibitor without a UAE trade licence, so we register the stand under our company, while the stand carries your name and brand.'
+        : 'The way you take part depends on the show and the organiser. We’ll explain it on WhatsApp or a call before you pay anything.',
+    },
+    {
+      q: 'Who is my contract with?',
+      a: `The contractor is ${local('en').legalName}, Dubai Design District. Terms are in the public offer and in the Estimate for your project. Closing documents depend on the show and your jurisdiction — we’ll confirm them before you pay.`,
+      link: { href: '/offer/', label: 'Public offer' },
     },
     {
       q: 'Can we sell products on the stand?',
-      a: 'Only with a company registered in the UAE. Without one you can display products but not sell them. We can help set up a company — allow about a month.',
+      a: 'Only with a company registered in the UAE. Without one you can display products but not sell them. We can help set up a company: registration usually takes about a week, but allow a month.',
     },
     {
       q: 'How far ahead should we contact you?',

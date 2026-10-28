@@ -23,10 +23,21 @@ function docs(lang: Lang): Record<LegalSlug, LegalDoc> {
   const L = local(lang);
   const lic = LICENCE_VALID ? (lang === 'ru' ? `, лицензия ${L.licence}` : `, licence ${L.licence}`) : '';
   const who = `${L.legalName}${lic}, ${L.address}`;
+  // Почту упоминаем, только когда она настроена (CONTACTS.email не пустой); иначе — WhatsApp и телефон.
+  const mail = CONTACTS.email;
   const reach =
     lang === 'ru'
-      ? `телефон и WhatsApp ${CONTACTS.phone}, почта ${CONTACTS.email}`
-      : `phone and WhatsApp ${CONTACTS.phone}, email ${CONTACTS.email}`;
+      ? `телефон и WhatsApp ${CONTACTS.phone}${mail ? `, почта ${mail}` : ''}`
+      : `phone and WhatsApp ${CONTACTS.phone}${mail ? `, email ${mail}` : ''}`;
+  /** «Напишите на … или в WhatsApp …» — без почты остаётся только WhatsApp. */
+  const writeTo =
+    lang === 'ru'
+      ? mail
+        ? `на ${mail} или в WhatsApp ${CONTACTS.phone}`
+        : `в WhatsApp ${CONTACTS.phone}`
+      : mail
+        ? `to ${mail} or on WhatsApp ${CONTACTS.phone}`
+        : `on WhatsApp ${CONTACTS.phone}`;
 
   if (lang === 'en')
     return {
@@ -46,7 +57,7 @@ function docs(lang: Lang): Record<LegalSlug, LegalDoc> {
             h: '2. How your request reaches us',
             p: [
               'When you press the send button, the Website opens WhatsApp with your request already filled in. The message is sent only when you tap Send in WhatsApp yourself. The Website keeps no database of requests and does not send your data anywhere else.',
-              'From then on the conversation is handled in WhatsApp (WhatsApp LLC / Meta Platforms), whose own privacy policy applies to the message. You can also write to us by email or call us.',
+              `From then on the conversation is handled in WhatsApp (WhatsApp LLC / Meta Platforms), whose own privacy policy applies to the message. ${mail ? 'You can also write to us by email or call us.' : `You can also call us on ${CONTACTS.phone}.`}`,
             ],
           },
           {
@@ -84,7 +95,7 @@ function docs(lang: Lang): Record<LegalSlug, LegalDoc> {
           {
             h: '8. Your rights',
             p: [
-              `You can ask what data we hold about you, ask us to correct or delete it, restrict its use or withdraw your consent. Write to ${CONTACTS.email} or on WhatsApp ${CONTACTS.phone} — we will reply within 30 days. You can also complain to the UAE Data Office.`,
+              `You can ask what data we hold about you, ask us to correct or delete it, restrict its use or withdraw your consent. Write ${writeTo} — we will reply within 30 days. You can also complain to the UAE Data Office.`,
             ],
           },
           {
@@ -124,7 +135,7 @@ function docs(lang: Lang): Record<LegalSlug, LegalDoc> {
           {
             h: '5. Term and withdrawal',
             p: [
-              `The consent is valid until the purposes are achieved or for 12 months from my last contact with the Controller, whichever comes first, unless the law requires longer storage. I may withdraw it at any time by writing to ${CONTACTS.email} or on WhatsApp ${CONTACTS.phone}.`,
+              `The consent is valid until the purposes are achieved or for 12 months from my last contact with the Controller, whichever comes first, unless the law requires longer storage. I may withdraw it at any time by writing ${writeTo}.`,
             ],
           },
           { h: '6. Privacy policy', p: ['I have read the privacy policy published on the Website.'] },
@@ -180,7 +191,7 @@ function docs(lang: Lang): Record<LegalSlug, LegalDoc> {
             h: '1. Definitions',
             p: [
               'Quote — a commercial proposal or invoice that the Contractor sends the Client, specifying the services, scope, price, timeline and payment schedule. The Quote forms an integral part of the agreement.',
-              'Acceptance — the Client’s written confirmation of the Quote (including by email or WhatsApp) or payment of the invoice in full or in part. From acceptance, the agreement is concluded on the terms of this offer and the Quote.',
+              `Acceptance — the Client’s written confirmation of the Quote (including ${mail ? 'by email or on WhatsApp' : 'on WhatsApp'}) or payment of the invoice in full or in part. From acceptance, the agreement is concluded on the terms of this offer and the Quote.`,
             ],
           },
           {
@@ -265,7 +276,7 @@ function docs(lang: Lang): Record<LegalSlug, LegalDoc> {
           h: '2. Как заявка доходит до нас',
           p: [
             'Когда вы нажимаете кнопку отправки, Сайт открывает WhatsApp с уже заполненной заявкой. Сообщение уходит, только когда вы сами нажмёте «Отправить» в WhatsApp. Своей базы заявок у Сайта нет, и больше никуда он ваши данные не передаёт.',
-            'Дальше переписка идёт в WhatsApp (WhatsApp LLC / Meta Platforms) — к сообщению применяется и его политика конфиденциальности. Написать нам можно и на почту или позвонить.',
+            `Дальше переписка идёт в WhatsApp (WhatsApp LLC / Meta Platforms) — к сообщению применяется и его политика конфиденциальности. ${mail ? 'Написать нам можно и на почту или позвонить.' : `Можно и позвонить: ${CONTACTS.phone}.`}`,
           ],
         },
         {
@@ -301,7 +312,7 @@ function docs(lang: Lang): Record<LegalSlug, LegalDoc> {
         {
           h: '8. Ваши права',
           p: [
-            `Вы можете узнать, какие данные о вас у нас есть, попросить исправить или удалить их, ограничить обработку или отозвать согласие. Напишите на ${CONTACTS.email} или в WhatsApp ${CONTACTS.phone} — ответим в течение 30 дней. Вы также вправе обратиться с жалобой в UAE Data Office.`,
+            `Вы можете узнать, какие данные о вас у нас есть, попросить исправить или удалить их, ограничить обработку или отозвать согласие. Напишите ${writeTo} — ответим в течение 30 дней. Вы также вправе обратиться с жалобой в UAE Data Office.`,
           ],
         },
         { h: '9. Дети', p: ['Сайт предназначен для компаний и не рассчитан на лиц младше 18 лет. Сознательно их данные мы не собираем.'] },
@@ -332,7 +343,7 @@ function docs(lang: Lang): Record<LegalSlug, LegalDoc> {
         {
           h: '5. Срок и отзыв',
           p: [
-            `Согласие действует до достижения целей обработки или 12 месяцев с последнего контакта с Оператором — что наступит раньше, если закон не требует хранить данные дольше. Я могу отозвать его в любой момент, написав на ${CONTACTS.email} или в WhatsApp ${CONTACTS.phone}.`,
+            `Согласие действует до достижения целей обработки или 12 месяцев с последнего контакта с Оператором — что наступит раньше, если закон не требует хранить данные дольше. Я могу отозвать его в любой момент, написав ${writeTo}.`,
           ],
         },
         { h: '6. Политика конфиденциальности', p: ['С политикой конфиденциальности, опубликованной на Сайте, я ознакомлен.'] },
@@ -382,7 +393,7 @@ function docs(lang: Lang): Record<LegalSlug, LegalDoc> {
           h: '1. Термины',
           p: [
             'Расчёт — коммерческое предложение или счёт, который Исполнитель направляет Заказчику: состав услуг, объём, цена, сроки и порядок оплаты. Расчёт — неотъемлемая часть договора.',
-            'Акцепт — письменное подтверждение Расчёта Заказчиком (в том числе по почте или в WhatsApp) или оплата счёта полностью либо частично. С момента акцепта договор считается заключённым на условиях этой оферты и Расчёта.',
+            `Акцепт — письменное подтверждение Расчёта Заказчиком (в том числе ${mail ? 'по почте или в WhatsApp' : 'в WhatsApp'}) или оплата счёта полностью либо частично. С момента акцепта договор считается заключённым на условиях этой оферты и Расчёта.`,
           ],
         },
         {

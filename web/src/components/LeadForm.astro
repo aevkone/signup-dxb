@@ -1,5 +1,6 @@
 ---
 import Icon from './Icon.astro';
+import LeadDone from './LeadDone.astro';
 import { getLang, link } from '@/i18n';
 import { ui } from '@/i18n/ui';
 import { CONTACTS, local, waLink } from '@/consts';
@@ -8,11 +9,13 @@ interface Props {
   title?: string;
   /** Подставляется в поле «Задача», когда форма стоит на странице услуги. */
   context?: string;
+  /** Подсказка в поле «Задача» под тему страницы; по умолчанию — выставочная. */
+  placeholder?: string;
 }
 const lang = getLang(Astro.url);
 const t = ui(lang);
 const L = local(lang);
-const { title = t.leadTitle, context } = Astro.props;
+const { title = t.leadTitle, context, placeholder = t.taskPh } = Astro.props;
 /** В сообщение WhatsApp уходит сам раздел, без «Интересует:» из поля задачи. */
 const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
 ---
@@ -46,10 +49,11 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
     class="lead__form card"
     data-lead-form
     data-short-phone={t.shortPhone}
+    data-again={t.again}
     novalidate
   >
     <label class="field">
-      <span>{t.name}</span>
+      <span>{t.name} <span class="caption field__opt">{t.optional}</span></span>
       <input class="input" name="name" autocomplete="name" placeholder={t.namePh} />
     </label>
     <label class="field">
@@ -57,27 +61,24 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
       <input class="input" name="contact" type="tel" autocomplete="tel" placeholder={t.contactPh} required aria-required="true" />
     </label>
     <label class="field">
-      <span>{t.task}</span>
-      <textarea class="textarea" name="task" rows="3" autocomplete="off" placeholder={t.taskPh}>{context}</textarea>
+      <span>{t.task} <span class="caption field__opt">{t.optional}</span></span>
+      <textarea class="textarea" name="task" rows="3" autocomplete="off" placeholder={placeholder}>{context}</textarea>
     </label>
     <p class="lead__error" data-error role="alert" hidden>{t.noContact}</p>
-    <button class="btn btn--primary" type="submit">{t.submit}</button>
+    <button class="btn btn--primary" type="submit" data-submit>{t.submit}</button>
     <p class="lead__trust caption">{t.trust(L.replyTime)}</p>
     <p class="caption">
       {t.consent} <a class="lead__privacy" href={link('/consent/', lang)}>{t.consentLink}</a>.
     </p>
-    <div class="lead__done" data-done role="status" hidden>
-      <Icon name="check" size={28} />
-      <div>
-        <strong>{t.sent}</strong>
-        <p class="caption">{t.sentText(L.replyTime)}</p>
-      </div>
-    </div>
+    <LeadDone text={t.sentText(L.replyTime)} />
   </form>
 </div>
 
 <script>
-  import { sendLead } from '@/scripts/lead';
+  import { sendLead, wireDone } from '@/scripts/lead';
+
+  /** Пауза после нажатия: повторный тап не открывает второй чат с той же заявкой. */
+  const LOCK_MS = 3000;
 
   document.querySelectorAll<HTMLFormElement>('[data-lead-form]').forEach((form, i) => {
     const error = form.querySelector<HTMLElement>('[data-error]')!;
@@ -86,6 +87,7 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
     error.id ||= `lead-error-${i + 1}`;
     contact?.setAttribute('aria-describedby', error.id);
     const done = form.querySelector<HTMLElement>('[data-done]')!;
+    const submit = form.querySelector<HTMLButtonElement>('[data-submit]')!;
     const noContactText = error.textContent ?? '';
     const fail = (text: string, field?: HTMLInputElement | null) => {
       error.textContent = text;
@@ -116,9 +118,16 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
         contact?.focus();
         return;
       }
+      if (submit.disabled) return;
       ok();
-      sendLead(data);
+      const url = sendLead(data);
+      wireDone(done, data, url);
       done.hidden = false;
+      submit.disabled = true;
+      window.setTimeout(() => {
+        submit.disabled = false;
+        submit.textContent = form.dataset.again!;
+      }, LOCK_MS);
     });
   });
 </script>
@@ -185,22 +194,21 @@ const wa = waLink(lang, context?.replace(`${t.interested}: `, ''));
     font-size: 14px;
     line-height: 20px;
   }
-  .lead__done {
-    display: flex;
-    gap: 14px;
-    align-items: center;
-    padding: 16px;
-    border-radius: var(--radius-sm);
-    background: #eef4f0;
-    color: var(--ok);
-  }
-  .lead__done strong {
-    color: var(--ink);
+  /* «необязательно» рядом с подписью поля — тише самой подписи. */
+  .field__opt {
+    margin-left: 4px;
+    color: var(--muted);
+    font-weight: 400;
   }
   @media (max-width: 860px) {
+    /* minmax(0, …): длинное слово в заголовке не распирает колонку шире экрана. */
     .lead {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 32px;
+    }
+    .lead__info :global(.h2) {
+      overflow-wrap: break-word;
+      hyphens: auto;
     }
     .lead__form {
       padding: 22px;

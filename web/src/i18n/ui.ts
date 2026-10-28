@@ -14,11 +14,11 @@ const UI = {
     mobileMenu: 'Мобильное меню',
     menu: 'Меню',
     language: 'Язык',
-    calc: 'Рассчитать стоимость',
+    calc: 'Получить расчёт',
     whatsapp: 'Написать в WhatsApp',
     whatsappShort: 'WhatsApp',
 
-    footerAbout: 'Организация участия в выставках под ключ и производство наружной рекламы напрямую, без посредников.',
+    footerAbout: 'Организация участия в выставках под ключ и производство наружной рекламы — с производствами в ОАЭ работаем напрямую.',
     footerExhibitions: 'Выставки',
     footerProduction: 'Производство',
     footerServices: 'Услуги',
@@ -30,7 +30,7 @@ const UI = {
     prices: 'Прайс',
     works: 'Наши работы',
     technologies: 'Материалы и технологии',
-    quickCalc: 'Рассчитать стоимость',
+    quickCalc: 'Получить расчёт',
     contacts: 'Контакты',
     privacy: 'Политика конфиденциальности',
     consentDoc: 'Согласие на обработку данных',
@@ -47,17 +47,32 @@ const UI = {
     contact: 'Телефон или WhatsApp',
     task: 'Задача',
     taskPh: 'Выставка, даты, площадь стенда, что уже есть',
+    /** Подсказка в поле задачи на страницах производства (/production/*). */
+    taskPhProd: 'Тип вывески, размер, адрес объекта, срок',
+    optional: 'необязательно',
     interested: 'Интересует',
     noContact: 'Оставьте телефон или WhatsApp — без него мы не сможем ответить.',
     shortPhone: 'Проверьте номер — в нём не хватает цифр.',
-    contactPh: '+7 или +971 …',
+    contactPh: '+7, +971 или другой код',
     /** Тихая строка доверия под кнопкой отправки. Без номера лицензии — она продлевается. */
     trust: (reply: string) => `Dubai Design District · ${nb(`отвечаем ${reply}`)}`,
     submit: 'Отправить в WhatsApp',
     consent: 'Нажимая кнопку, вы даёте',
     consentLink: 'согласие на обработку персональных данных',
-    sent: 'Заявка открыта в WhatsApp',
+    /** Состояние после нажатия: сайт не знает, ушло ли сообщение, — только что чат подготовлен. */
+    sent: 'Подготовили сообщение в WhatsApp',
+    sentHint: 'Если чат не открылся — нажмите кнопку ниже',
     sentText: (reply: string) => `Осталось нажать «Отправить» в чате. Макет или фото можно приложить там же. Ответим ${reply}.`,
+    openWa: 'Открыть WhatsApp',
+    copy: 'Скопировать текст заявки',
+    copied: 'Скопировано',
+    noWa: 'Нет WhatsApp? Позвоните:',
+    again: 'Отправить ещё раз',
+
+    /** Страница 404. */
+    nfH1: 'Такой страницы нет',
+    nfLead: 'Возможно, адрес изменился. Начните с главной или сразу получите расчёт.',
+    nfHome: 'На главную',
 
     bandTitle: 'Соберём объём работ под ваш бюджет',
     bandText: (min: string) =>
@@ -72,7 +87,9 @@ const UI = {
       s2: 'Параметры',
       s2sub: 'Заполните то, что уже известно. Можно пропустить.',
       expo: 'Выставка или объект',
-      expoPh: 'Название выставки или адрес объекта',
+      expoPh: 'Например, Gulfood, Beautyworld или адрес объекта',
+      /** Та же подсказка для узкого поля (≤ 420 px): длинная там обрезается. */
+      expoPhShort: 'Gulfood, Beautyworld или адрес',
       area: 'Площадь стенда',
       dates: 'Даты',
       datesPh: 'Когда выставка или когда нужно',
@@ -90,7 +107,7 @@ const UI = {
       s3: 'Бюджет и контакт',
       s3sub: 'Бюджет помогает подобрать объём услуг. Точной суммы не нужно.',
       budget: 'Ориентировочный бюджет',
-      doneTitle: 'Заявка открыта в WhatsApp',
+      doneTitle: 'Подготовили сообщение в WhatsApp',
       doneText: (reply: string) => `Осталось нажать «Отправить» в чате. Макет или фото можно приложить там же. Свяжемся ${reply} и вернёмся с вариантами под ваш бюджет.`,
       back: 'Назад',
       next: 'Далее',
@@ -104,6 +121,8 @@ const UI = {
         `Точную смету соберём под ваш бюджет, ответим ${reply}. Минимальный заказ ${nb(min)}.`,
       needService: 'Выберите направление, чтобы продолжить',
       needContact: 'Оставьте телефон или WhatsApp, чтобы отправить',
+      /** Строка под кнопкой отправки на последнем шаге. */
+      promise: 'Расчёт пришлём в WhatsApp — отвечаем в течение суток',
       labels: {
         service: 'Направление',
         expo: 'Объект',
@@ -133,7 +152,7 @@ const UI = {
     whatsapp: 'Message on WhatsApp',
     whatsappShort: 'WhatsApp',
 
-    footerAbout: 'Turnkey exhibition participation and outdoor advertising made directly with UAE production.',
+    footerAbout: 'Turnkey exhibition participation and outdoor advertising — we work directly with UAE production.',
     footerExhibitions: 'Exhibitions',
     footerProduction: 'Production',
     footerServices: 'Services',
@@ -162,17 +181,32 @@ const UI = {
     contact: 'Phone or WhatsApp',
     task: 'What you need',
     taskPh: 'Exhibition, dates, stand size, what you already have',
+    /** Подсказка в поле задачи на страницах производства (/production/*). */
+    taskPhProd: 'Sign type, size, site address, deadline',
+    optional: 'optional',
     interested: 'Interested in',
     noContact: 'Please leave a phone or WhatsApp number so we can reply.',
     shortPhone: 'Please check the number — it looks too short.',
-    contactPh: '+44, +7 or +971 …',
+    contactPh: '+971, +7 or any code',
     /** Тихая строка доверия под кнопкой отправки. Без номера лицензии — она продлевается. */
     trust: (reply: string) => `Dubai Design District · ${nb(`we reply ${reply}`)}`,
     submit: 'Send via WhatsApp',
     consent: 'By sending this form, you give your',
     consentLink: 'consent to the processing of your personal data',
-    sent: 'Your request is open in WhatsApp',
+    /** Состояние после нажатия: сайт не знает, ушло ли сообщение, — только что чат подготовлен. */
+    sent: 'Your WhatsApp message is ready',
+    sentHint: 'If the chat didn’t open, tap the button below',
     sentText: (reply: string) => `Just tap Send in the chat — you can attach artwork or photos there too. We’ll reply ${reply}.`,
+    openWa: 'Open WhatsApp',
+    copy: 'Copy request text',
+    copied: 'Copied',
+    noWa: 'No WhatsApp? Call us:',
+    again: 'Send again',
+
+    /** Страница 404. */
+    nfH1: 'This page doesn’t exist',
+    nfLead: 'The address may have changed. Start from the home page or get a quote right away.',
+    nfHome: 'Home page',
 
     bandTitle: 'We’ll shape the scope around your budget',
     bandText: (min: string) =>
@@ -187,7 +221,9 @@ const UI = {
       s2: 'Details',
       s2sub: 'Fill in what you already know. Everything here is optional.',
       expo: 'Exhibition or venue',
-      expoPh: 'Exhibition name or venue address',
+      expoPh: 'e.g. Gulfood, Beautyworld or site address',
+      /** Та же подсказка для узкого поля (≤ 420 px): длинная там обрезается. */
+      expoPhShort: 'Gulfood, Beautyworld or address',
       area: 'Stand area',
       dates: 'Dates',
       datesPh: 'Exhibition dates or deadline',
@@ -205,7 +241,7 @@ const UI = {
       s3: 'Budget & contact',
       s3sub: 'Your budget helps us pick the right scope. A rough figure is fine.',
       budget: 'Approximate budget',
-      doneTitle: 'Your request is open in WhatsApp',
+      doneTitle: 'Your WhatsApp message is ready',
       doneText: (reply: string) => `Just tap Send in the chat — you can attach artwork or photos there too. We’ll get back to you ${reply} with options to suit your budget.`,
       back: 'Back',
       next: 'Next',
@@ -219,6 +255,8 @@ const UI = {
         `We’ll build an exact quote around your budget and reply ${reply}. Orders start ${nb(min)}.`,
       needService: 'Choose a service to continue',
       needContact: 'Add a phone or WhatsApp number to send',
+      /** Строка под кнопкой отправки на последнем шаге. */
+      promise: 'We’ll send the quote on WhatsApp — we reply within a day',
       labels: {
         service: 'Service',
         expo: 'Venue',

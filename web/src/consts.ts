@@ -9,7 +9,8 @@ export const CONTACTS = {
   phone: '+971 50 245 7669',
   phoneHref: 'tel:+971502457669',
   whatsapp: 'https://wa.me/971502457669',
-  email: 'info@signeddxb.com',
+  // пусто, пока у signeddxb.com нет MX; вернуть 'info@signeddxb.com' после настройки почты
+  email: '' as string,
   /** Instagram основателя: в шапке профиля — «Основатель SIGNED DXB». */
   instagram: 'https://www.instagram.com/kris_dkf/',
 } as const;
@@ -33,7 +34,7 @@ export const waLink = (lang: Lang, context?: string): string =>
 
 const L = {
   ru: {
-    hours: 'Ежедневно, 9:00–20:00',
+    hours: 'Ежедневно, 9:00–20:00 по Дубаю (GMT+4)',
     replyTime: 'в течение суток',
     legalName: 'Kristina Diakina, Sole Professional',
     licence: '№ 107257, Dubai Development Authority',
@@ -50,11 +51,11 @@ const L = {
     areas: ['до 12 м²', '12–36 м²', '36–100 м²', 'больше 100 м²', 'пока не знаю'],
     siteTitle: 'SIGNED DXB — выставки в Дубае под ключ',
     siteDescription:
-      'Организуем участие в выставках в Дубае и Абу-Даби под ключ: стенд, печать, персонал, питание, логистика, консьерж-сервис. Производство наружной рекламы напрямую, без посредников.',
-    nav: ['Выставки под ключ', 'Наружная реклама', 'Прайс', 'Консьерж-сервис', 'Контакты'],
+      'Организуем участие в выставках в Дубае и Абу-Даби под ключ: стенд, печать, персонал, питание, логистика, консьерж-сервис. Производство наружной рекламы — напрямую с производствами в ОАЭ.',
+    nav: ['Выставки под ключ', 'Наружная реклама', 'Прайс', 'Наши работы', 'Контакты'],
   },
   en: {
-    hours: 'Daily, 9 am – 8 pm',
+    hours: 'Daily, 9 am – 8 pm Dubai time (GMT+4)',
     replyTime: 'within 24 hours',
     legalName: 'Kristina Diakina, Sole Professional',
     licence: 'No. 107257, Dubai Development Authority',
@@ -69,8 +70,8 @@ const L = {
     areas: ['up to 12 m²', '12–36 m²', '36–100 m²', 'over 100 m²', 'not sure yet'],
     siteTitle: 'SIGNED DXB — turnkey exhibitions in Dubai',
     siteDescription:
-      'Turnkey exhibition participation in Dubai and Abu Dhabi: stand, print, staff, catering, logistics and concierge. Outdoor advertising made directly with UAE production, no middlemen.',
-    nav: ['Turnkey exhibitions', 'Outdoor advertising', 'Price list', 'Concierge', 'Contact'],
+      'Turnkey exhibition participation in Dubai and Abu Dhabi: stand, print, staff, catering, logistics and concierge. Outdoor advertising made directly with UAE production.',
+    nav: ['Turnkey exhibitions', 'Outdoor advertising', 'Price list', 'Our work', 'Contact'],
   },
 } as const;
 
@@ -94,6 +95,7 @@ export const LICENCE_VALID = Date.parse(`${LICENCE_EXPIRES}T23:59:59+04:00`) >= 
 
 export type NavItem = { href: string; label: string };
 
-const NAV_HREFS = ['/exhibitions/', '/production/', '/prices/', '/exhibitions/concierge/', '/contacts/'];
+/** Консьерж-сервис — в мобильном меню, подвале и карточке направлений на главной. */
+const NAV_HREFS = ['/exhibitions/', '/production/', '/prices/', '/works/', '/contacts/'];
 
 export const nav = (lang: Lang): NavItem[] => NAV_HREFS.map((href, i) => ({ href, label: L[lang].nav[i] }));

@@ -21,9 +21,12 @@ const others = BLOCKS.filter((b) => b.slug !== block.slug);
 const T = {
   ru: {
     parent: 'Выставки под ключ',
-    quote: 'Рассчитать стоимость',
-    anchor: (from: string) => `Стенд под ключ — ориентир ${from}/м²`,
-    anchorLink: 'примеры в прайсе',
+    quote: 'Получить расчёт',
+    anchor: (from: string) => `Модульный стенд — ориентир ${from}/м²`,
+    /** Пояснение — по п. 3 публичной оферты (data/legal.ts), новых цифр нет. */
+    anchorNote: 'без VAT; сбор организатора за участие — отдельно, по агентскому договору или отдельной строкой в Расчёте · ',
+    anchorLink: 'все варианты застройки →',
+    standPrices: 'Цены на стенды →',
     of: (i: number, n: number) => `Блок ${i} из ${n} · можно заказать отдельно`,
     incl: 'Что входит',
     know: 'Что важно знать',
@@ -33,8 +36,10 @@ const T = {
   en: {
     parent: 'Turnkey exhibitions',
     quote: 'Get a quote',
-    anchor: (from: string) => `Turnkey stand — guide price ${from}/m²`,
-    anchorLink: 'examples in the price list',
+    anchor: (from: string) => `Modular stand — guide price ${from}/m²`,
+    anchorNote: 'excl. VAT; the organiser’s participation fee is separate — under the agency agreement or as a line in the Estimate · ',
+    anchorLink: 'all stand options →',
+    standPrices: 'Stand prices →',
     of: (i: number, n: number) => `Block ${i} of ${n} · can be ordered separately`,
     incl: 'What’s included',
     know: 'Good to know',
@@ -96,9 +101,13 @@ const metaDescription = (() => {
   <PageHero title={block.title} lead={block.lead} crumbs={[{ href: '/exhibitions/', label: T.parent }, { label: block.title }]}>
     {
       rate && (
-        <p class="anchor">
-          {T.anchor(fmtMoney(rate.lo, null, lang))} · <a href={link('/prices/#expo', lang)}>{T.anchorLink}</a>
-        </p>
+        <div class="anchor">
+          <p>{T.anchor(fmtMoney(rate.lo, null, lang))}</p>
+          <p class="anchor__note">
+            {T.anchorNote}
+            <a href={link('/prices/#expo', lang)}>{T.anchorLink}</a>
+          </p>
+        </div>
       )
     }
     {/* Одна просьба на странице: кнопка ведёт к форме внизу, где уже подставлен этот блок. */}
@@ -127,6 +136,7 @@ const metaDescription = (() => {
           ))
         }
       </div>
+      {rate && <a class="stand-prices" href={link('/prices/#expo', lang)}>{T.standPrices}</a>}
     </div>
   </section>
 
@@ -243,7 +253,7 @@ const metaDescription = (() => {
     padding: 36px;
   }
   .note .eyebrow {
-    color: #8b8f96;
+    color: var(--on-stage-faint);
   }
   .note p {
     margin-top: 16px;
@@ -257,10 +267,28 @@ const metaDescription = (() => {
     font-size: 16px;
     line-height: 24px;
   }
+  .anchor__note {
+    margin-top: 4px;
+    max-width: 64ch;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--on-stage-muted);
+  }
   .anchor a {
-    color: inherit;
+    color: var(--on-stage);
     text-decoration: underline;
     text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+  .stand-prices {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 28px;
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: underline;
+    text-underline-offset: 4px;
   }
   .others {
     display: flex;

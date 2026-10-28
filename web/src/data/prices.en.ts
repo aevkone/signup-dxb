@@ -3,6 +3,20 @@ import type { Group } from './prices';
 /** Английская версия прайса. Порядок групп и слаги совпадают с русской. */
 export const GROUPS_EN: Group[] = [
   {
+    slug: 'expo',
+    title: 'Exhibition stands and photo zones',
+    lead: 'Excl. VAT; the organiser’s participation fee is separate — under the agency agreement or as a line in the Estimate.',
+    rows: [
+      { title: 'Fabric press wall with frame, 3×2.4 m', price: '2,400 – 4,900', unit: 'set' },
+      { title: 'Replacement fabric for an existing frame', price: '680 – 1,700', unit: 'each' },
+      { title: 'Photo zone with 3D elements and lighting', price: '8,100 – 28,000', unit: 'project' },
+      { title: 'Exhibition stand, modular system', price: '1,100 – 2,100', unit: 'per m²' },
+      { title: 'Exhibition stand, custom build', price: '2,000 – 4,900', unit: 'per m²' },
+      { title: 'Premium two-storey exhibition stand', price: 'from 4,700', unit: 'per m²' },
+    ],
+    note: 'For reference: an 18 m² custom-built stand starts at AED 36,000; 36 m² with an LED screen starts at AED 92,000.',
+  },
+  {
     slug: 'illuminated',
     title: 'Illuminated signage',
     rows: [
@@ -49,19 +63,6 @@ export const GROUPS_EN: Group[] = [
     ],
   },
   {
-    slug: 'expo',
-    title: 'Photo walls and exhibition structures',
-    rows: [
-      { title: 'Fabric press wall with frame, 3×2.4 m', price: '2,400 – 4,900', unit: 'set' },
-      { title: 'Replacement fabric for an existing frame', price: '680 – 1,700', unit: 'each' },
-      { title: 'Photo zone with 3D elements and lighting', price: '8,100 – 28,000', unit: 'project' },
-      { title: 'Exhibition stand, modular system', price: '1,100 – 2,100', unit: 'per m²' },
-      { title: 'Exhibition stand, custom build', price: '2,000 – 4,900', unit: 'per m²' },
-      { title: 'Premium two-storey exhibition stand', price: 'from 4,700', unit: 'per m²' },
-    ],
-    note: 'For reference: an 18 m² custom-built stand starts at AED 36,000; 36 m² with an LED screen starts at AED 92,000.',
-  },
-  {
     slug: 'vehicle',
     title: 'Vehicle branding',
     rows: [
@@ -77,8 +78,9 @@ export const GROUPS_EN: Group[] = [
     slug: 'apparel',
     title: 'Apparel branding',
     rows: [
-      { title: 'Screen print, 1 colour', price: '40 – 55', unit: 'each' },
-      { title: 'Screen print, 2 colours', price: '25 – 35', unit: 'each' },
+      // снято до подтверждения Кристиной: цена за 2 цвета ниже, чем за 1 — проверить тираж/единицы
+      // { title: 'Screen print, 1 colour', price: '40 – 55', unit: 'each' },
+      // { title: 'Screen print, 2 colours', price: '25 – 35', unit: 'each' },
       { title: 'DTF or heat transfer, full colour', price: '55 – 85', unit: 'each' },
       { title: 'Embroidered logo', price: 'from 70', unit: 'each' },
       { title: 'Turnkey printed T-shirt', price: '60 – 140', unit: 'each' },

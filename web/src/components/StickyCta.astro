@@ -19,6 +19,8 @@ const lang = getLang(Astro.url);
 const t = ui(lang);
 const { path } = splitPath(Astro.url.pathname);
 const onConfigurator = path.startsWith('/configurator');
+/** На главной расчёт стоит на самой странице (#calc) — ведём туда, а не на /configurator/. */
+const calcHref = path === '/' ? '#calc' : link('/configurator/', lang);
 ---
 
 {
@@ -29,7 +31,7 @@ const onConfigurator = path.startsWith('/configurator');
           <Icon name="whatsapp" size={20} />
           <span translate="no">WhatsApp</span>
         </a>
-        <a class="btn btn--primary scta__cta" href={link('/configurator/', lang)}>
+        <a class="btn btn--primary scta__cta" href={calcHref}>
           {t.calc}
         </a>
       </div>
@@ -113,6 +115,7 @@ const onConfigurator = path.startsWith('/configurator');
       z-index: 40;
       padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom));
       background: rgb(15 16 13 / 0.96);
+      -webkit-backdrop-filter: saturate(1.2) blur(10px);
       backdrop-filter: saturate(1.2) blur(10px);
       border-top: 1px solid var(--stage-line);
       transform: translateY(105%);

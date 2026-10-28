@@ -32,7 +32,7 @@ const T = {
     crumb: 'Наружная реклама',
     metaTitle: `${c.title} в Дубае`,
     description: `${c.title} в Дубае, Шардже и Аджмане: ${lower(c.short)}. Работаем напрямую с производством, минимальный заказ ${L.minOrder}.`,
-    quote: 'Рассчитать стоимость',
+    quote: 'Получить расчёт',
     adv: 'Преимущества',
     offer: 'Мы предлагаем',
     terms: `Ориентировочные цены — в прайсе. Минимальный заказ ${L.minOrder}. Замер ${L.survey} — засчитывается в стоимость.`,
@@ -187,7 +187,7 @@ const T = {
 
   <section class="section section--surface" id="lead">
     <div class="shell">
-      <LeadForm title={T.leadTitle} context={`${u.interested}: ${c.title}`} />
+      <LeadForm title={T.leadTitle} context={`${u.interested}: ${c.title}`} placeholder={u.taskPhProd} />
     </div>
   </section>
 
@@ -268,8 +268,8 @@ const T = {
   .cframe__cap {
     padding: 10px 2px 14px;
     color: var(--ink);
-    font-size: 13px;
-    line-height: 18px;
+    font-size: 14px;
+    line-height: 19px;
     font-weight: 600;
   }
   @media (max-width: 560px) {
@@ -288,8 +288,8 @@ const T = {
     }
     .cframe__cap {
       padding: 8px 1px 10px;
-      font-size: 12px;
-      line-height: 16px;
+      font-size: 14px;
+      line-height: 18px;
     }
   }
   .adv {
@@ -361,7 +361,7 @@ const T = {
   }
   .item__price .caption {
     display: block;
-    font-size: 13px;
+    font-size: 14px;
   }
   .plus__more {
     display: none;
@@ -381,9 +381,11 @@ const T = {
     .item:not(.is-open) .plus .is-extra {
       display: none;
     }
+    /* «ещё N» — зона касания 44px. */
     .plus__more {
-      display: inline-block;
-      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
     }
     /* Примеры работ — лента со снапом, карточка на ~3/4 экрана, следующая выглядывает. */
     .pc-works :global(.works) {

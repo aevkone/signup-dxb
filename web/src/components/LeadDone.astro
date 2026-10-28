@@ -1,0 +1,136 @@
+---
+/**
+ * Состояние после нажатия «Отправить в WhatsApp» — общее для формы заявки
+ * и конфигуратора. Сайт не видит, ушло ли сообщение, поэтому пишем
+ * «подготовили» и даём запасные пути: открыть чат ещё раз, скопировать текст,
+ * позвонить. Ссылку и копирование подключает wireDone из scripts/lead.ts.
+ * Слова «отправлено» и «получили» здесь не используем.
+ */
+import Icon from './Icon.astro';
+import { getLang } from '@/i18n';
+import { ui } from '@/i18n/ui';
+import { CONTACTS } from '@/consts';
+
+interface Props {
+  /** Заголовок: h2 — шаг конфигуратора, по умолчанию строка внутри формы. */
+  heading?: boolean;
+  /** Дополнительная строка под подсказкой: что делать в чате и когда ответим. */
+  text: string;
+  /** id заголовка — для фокуса при переходе на шаг. */
+  titleId?: string;
+}
+const { heading = false, text, titleId } = Astro.props;
+const t = ui(getLang(Astro.url));
+---
+
+<div class="ldone" data-done role="status" hidden>
+  <span class="ldone__icon" aria-hidden="true"><Icon name="check" size={24} /></span>
+  <div class="ldone__body">
+    {heading ? <h2 class="h3 ldone__t cfg__title" id={titleId} tabindex="-1">{t.sent}</h2> : <strong class="ldone__t">{t.sent}</strong>}
+    <p class="ldone__hint">{t.sentHint}.</p>
+    <p class="caption">{text}</p>
+    <div class="ldone__actions">
+      <a class="btn btn--primary" href={CONTACTS.whatsapp} target="_blank" rel="noopener" data-done-wa>
+        <Icon name="whatsapp" size={20} /> {t.openWa}
+      </a>
+      <button class="btn btn--ghost" type="button" data-done-copy data-label={t.copy} data-copied={t.copied} hidden>{t.copy}</button>
+    </div>
+    <p class="caption ldone__call">
+      {t.noWa} <a class="nowrap" href={CONTACTS.phoneHref}>{CONTACTS.phone}</a>
+    </p>
+  </div>
+</div>
+
+<style>
+  .ldone {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 18px;
+    border-radius: var(--radius-sm);
+    background: #eef4f0;
+    color: var(--ink);
+    animation: ldone-in 0.3s var(--ease-out);
+  }
+  .ldone[hidden] {
+    display: none;
+  }
+  @keyframes ldone-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ldone {
+      animation: none;
+    }
+  }
+  .ldone__icon {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    color: var(--ok);
+  }
+  .ldone__body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .ldone__t {
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  /* Фокус на заголовок ставит скрипт конфигуратора при смене шага — рамка не нужна. */
+  .ldone__t:focus {
+    outline: none;
+  }
+  .ldone__hint {
+    font-size: 15px;
+    line-height: 22px;
+  }
+  .ldone__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .ldone__actions .btn {
+    height: 48px;
+    padding-inline: 20px;
+    font-size: 15px;
+  }
+  .ldone__actions .btn--ghost {
+    background: #fff;
+  }
+  .ldone__call {
+    margin-top: 4px;
+  }
+  .ldone__call a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-block: -12px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  @media (max-width: 420px) {
+    .ldone {
+      padding: 16px 14px;
+      gap: 10px;
+    }
+    .ldone__icon {
+      width: 36px;
+      height: 36px;
+    }
+    .ldone__actions .btn {
+      flex: 1 1 100%;
+    }
+  }
+</style>

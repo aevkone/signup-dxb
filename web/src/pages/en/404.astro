@@ -1,0 +1,42 @@
+---
+/**
+ * Английская 404 для адресов /en/…: хостинг (Cloudflare Pages) отдаёт
+ * ближайший 404.html по дереву каталогов, поэтому битая ссылка внутри /en/
+ * показывает эту страницу — с английской шапкой и подвалом.
+ * В sitemap не попадает (фильтр /404 в astro.config.mjs).
+ */
+import Base from '@/layouts/Base.astro';
+import { link } from '@/i18n';
+import { ui } from '@/i18n/ui';
+
+const u = ui('en');
+---
+
+<Base title="404">
+  <section class="section">
+    <div class="shell">
+      <p class="eyebrow">404</p>
+      <h1 class="h1 nf__h">{u.nfH1}</h1>
+      <p class="lead measure nf__lead">{u.nfLead}</p>
+      <div class="nf__actions">
+        <a class="btn btn--primary" href={link('/', 'en')}>{u.nfHome}</a>
+        <a class="btn btn--ghost" href={link('/configurator/', 'en')}>{u.calc}</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf__h {
+    margin-top: 16px;
+  }
+  .nf__lead {
+    margin-top: 12px;
+  }
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+  }
+</style>
